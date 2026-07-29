@@ -1,0 +1,3 @@
+pytest>=8.0
+ruff
+langdetect>=1.0.9
