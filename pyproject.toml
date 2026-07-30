@@ -27,11 +27,15 @@ dev = ["pytest>=8.0", "ruff"]
 lang = ["langdetect>=1.0.9"]
 
 [project.scripts]
-sprezzature-accessibility-lint = "sprezzature_accessibility.cli:main"
+sprezzature-accessibility-lint = "scripts.lint_a11y:main"
 
 [project.urls]
 Homepage = "https://harchaoui.org/warith/sprezzature/"
 Repository = "https://github.com/warith-harchaoui/sprezzature-accessibility"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["sprezzature_accessibility*", "scripts*"]
 
 [tool.ruff]
 line-length = 100
