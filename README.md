@@ -1,11 +1,11 @@
 # sprezzature-accessibility
 
-[![License](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg)](https://github.com/warith-harchaoui/sprezzature-accessibility/blob/main/LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 
-[🇫🇷 LISEZMOI.md](LISEZMOI.md) · 🇬🇧 README.md
+[🇫🇷 LISEZMOI.md](https://github.com/warith-harchaoui/sprezzature-accessibility/blob/main/LISEZMOI.md) · 🇬🇧 README.md
 
-[![logo](assets/logo.png)](https://harchaoui.org/warith/sprezzature/)
+[![logo](https://raw.githubusercontent.com/warith-harchaoui/sprezzature-accessibility/main/assets/logo.png)](https://harchaoui.org/warith/sprezzature/)
 
 A static accessibility linter for HTML: fourteen WCAG/WAI rules that are decidable from
 source, without a browser, without a runtime DOM, without network access. Drop it into a
