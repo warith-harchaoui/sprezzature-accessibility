@@ -1,7 +1,16 @@
 # Paysage
 
-Comparaison de `sprezzature-accessibility` avec les principaux outils
-de test d'accessibilité.
+Les outils d'accessibilité se répartissent en deux familles selon leur façon
+d'inspecter une page. Un outil **statique** lit le texte source HTML, comme
+le ferait un œil humain ; il n'ouvre jamais de navigateur. Un outil **DOM
+dynamique** pilote un vrai navigateur, le laisse afficher la page en entier
+pour construire un DOM (l'arbre d'éléments qu'un navigateur assemble en
+affichant une page), puis inspecte cet arbre vivant, ce qui permet de
+détecter des problèmes qu'une simple lecture du source ne révèle pas, au
+prix d'avoir besoin d'un moteur de navigateur pour fonctionner. Voici la
+comparaison entre `sprezzature-accessibility`, un outil statique, et les
+principaux outils de test d'accessibilité disponibles aujourd'hui, la
+plupart fonctionnant en DOM dynamique.
 
 ## Comparaison des outils
 

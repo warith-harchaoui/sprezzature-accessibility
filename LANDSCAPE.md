@@ -1,7 +1,14 @@
 # Landscape
 
-This compares `sprezzature-accessibility` to the main accessibility
-testing tools available today.
+Accessibility tools split into two families by how they inspect a page. A
+**static** tool reads the HTML source text, the way you would with your
+eyes; it never opens a browser. A **runtime DOM** tool drives a real
+browser, lets it fully render the page into a DOM (the tree of elements a
+browser assembles while displaying it), and inspects that live tree, which
+catches things no static read can, at the cost of needing a browser engine
+to run. This compares `sprezzature-accessibility`, a static tool, to the
+main accessibility testing tools available today, most of which are
+runtime-DOM.
 
 ## Tool comparison
 

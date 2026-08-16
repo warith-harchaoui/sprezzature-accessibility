@@ -5,7 +5,7 @@ English prose standards for sprezzature-accessibility.
 Refresh the full version with:
 
 ```
-gh gist view f45304d1a2b3c4d5e6f7a8b9c0d1e2f3
+gh gist view f45304d066abc81dd7d4f059a1f4e45f
 ```
 
 Key rules: no punctuation dashes, no machine tells, short sentences,

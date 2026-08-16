@@ -7,21 +7,43 @@
 
 [![logo](assets/logo.png)](https://harchaoui.org/warith/sprezzature/)
 
-Un linter d'accessibilité statique pour HTML. Quatorze règles WCAG/WAI décidables
-depuis le code source, sans navigateur, sans DOM, sans réseau. Il s'intègre dans
-un hook pre-commit ou une étape CI et fournit une porte rapide et déterministe avant
-que toute modification n'atterrisse en production.
+Une page web est accessible quand une personne qui utilise un lecteur d'écran, qui
+navigue au clavier seul (sans souris), ou qui a activé le réglage « mouvement réduit »
+de son navigateur, peut malgré tout s'en servir. Cet outil relit le code source HTML
+à la recherche des erreurs qui cassent le plus souvent cette expérience : une balise
+`<img>` sans texte alternatif est aussi invisible pour un lecteur d'écran que si
+l'image n'existait tout simplement pas sur la page.
 
-Le linter couvre les violations qui représentent la majorité des problèmes
-d'accessibilité réels : textes alternatifs manquants, champs sans étiquette, boutons
-vides, divs cliquables, fenêtres de dialogue sans bouton de fermeture, attributs lang
-absents, ordre des titres inversé, indicateurs d'état par couleur seule, et guards
-pour les animations réduites. Cinq de ces règles disposent d'un mode de correction
-automatique (`--fix`) pour que la porte puisse se réparer elle-même.
+C'est un linter statique : quatorze règles issues des WCAG (*Web Content
+Accessibility Guidelines*, la norme du W3C qui définit ce que « accessible » veut
+dire pour le web) et de WAI-ARIA (le vocabulaire d'attributs, `role`, `aria-label`
+et consorts, qui permet à un composant fait maison de se décrire aux logiciels
+d'assistance), chacune décidable à la seule lecture du texte HTML. Aucun navigateur
+ne s'ouvre, aucune page ne s'affiche, aucun JavaScript ne s'exécute : il n'y a donc
+pas de DOM (l'arbre d'éléments qu'un navigateur construit en affichant une page) à
+inspecter, et rien à installer en dehors de Python lui-même. C'est ce qui rend
+l'outil assez rapide pour un hook pre-commit ou une étape d'intégration continue
+(CI) : une porte déterministe avant que la moindre modification n'atteigne la
+production.
 
-Ce n'est pas un substitut aux tests DOM au moment de l'exécution. Associez-le à
-axe-core, Pa11y ou Lighthouse pour les vérifications en navigateur. Cet outil
-détecte ce qu'un navigateur ne voit jamais.
+Les violations couvertes représentent la majorité des problèmes d'accessibilité
+réels : textes alternatifs manquants, champs de formulaire sans étiquette, boutons
+vides, `<div>` cliquables qu'un clavier ne peut pas atteindre, fenêtres de dialogue
+sans moyen de les fermer au clavier, attribut `lang` absent (ce qui casse la
+prononciation du lecteur d'écran), niveaux de titre qui sautent au lieu de s'emboîter
+dans l'ordre, état montré par la seule couleur (un rouge et un vert qu'une personne
+daltonienne ne distingue pas), et animations sans moyen de les réduire pour qui y est
+sensible. Cinq de ces quatorze règles disposent en plus d'une correction automatique
+mécanique (`--fix`), pour que la porte répare elle-même ce qu'elle peut réparer sans
+risque, au lieu de se contenter de le signaler.
+
+Cet outil ne lit que du code source : il ne peut donc pas détecter ce qui n'apparaît
+qu'une fois la page réellement affichée dans un navigateur, l'ordre de parcours au
+clavier, le minutage des annonces du lecteur d'écran, le contraste des couleurs sur
+un fond réel. Associez-le à axe-core, Pa11y ou Lighthouse, qui pilotent un vrai
+navigateur, pour cette couche-là. Les deux approches se complètent, elles ne se
+remplacent pas : celui-ci est la porte rapide sans navigateur ; les autres sont la
+passe plus lente mais fidèle au rendu réel.
 
 ## Fonctionnalités
 

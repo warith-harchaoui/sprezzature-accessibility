@@ -7,19 +7,36 @@
 
 [![logo](https://raw.githubusercontent.com/warith-harchaoui/sprezzature-accessibility/main/assets/logo.png)](https://harchaoui.org/warith/sprezzature/)
 
-A static accessibility linter for HTML: fourteen WCAG/WAI rules that are decidable from
-source, without a browser, without a runtime DOM, without network access. Drop it into a
-pre-commit hook or a CI step and get a fast, deterministic gate before any diff lands in
+A web page is accessible when someone using a screen reader, a keyboard alone (no
+mouse), or a browser's reduced-motion setting can still use it. This tool checks HTML
+source code for the mistakes that most often break that: an `<img>` with no `alt` text
+is as invisible to a screen reader as if the image were simply missing from the page.
+
+It is a static linter: fourteen rules from WCAG (Web Content Accessibility
+Guidelines, the W3C standard that defines what "accessible" means for the web) and
+WAI-ARIA (the attribute vocabulary, `role`, `aria-label` and the like, that lets custom
+widgets describe themselves to assistive software), each one decidable by reading the
+HTML text alone. No browser opens, no page renders, no JavaScript runs, so there is no
+DOM (the tree of elements a browser builds while rendering a page) to inspect and
+nothing to install beyond Python itself. That is what makes it fast enough for a
+pre-commit hook or a CI step: a deterministic gate before any change lands in
 production.
 
-The linter covers the violations that account for the bulk of real-world accessibility
-failures: missing alt text, unlabelled inputs, empty buttons, clickable divs, missing
-dialog close affordances, absent lang attributes, inverted heading order, color-only
-state cues, and missing reduced-motion guards. Five of those rules also have a mechanical
-auto-fix mode (`--fix`) so the gate can self-heal what it can.
+The violations it covers account for the bulk of real-world accessibility failures:
+missing alt text, unlabelled inputs, empty buttons, clickable `<div>`s a keyboard
+cannot reach, dialogs with no way to close them by keyboard, missing `lang` attributes
+(which break screen-reader pronunciation), heading levels that jump around instead of
+nesting in order, status shown by color alone (a red/green pair that a colorblind
+reader cannot tell apart), and animations with no way to turn them down for someone
+sensitive to motion. Five of those fourteen rules also ship a mechanical auto-fix
+(`--fix`), so the gate can repair what it safely can instead of only reporting it.
 
-This is not a substitute for runtime DOM testing. Pair it with axe-core, Pa11y, or
-Lighthouse for browser-time checks. This tool catches what a browser never sees.
+This tool only ever reads source code, so it cannot catch what only shows up once a
+page actually renders in a browser: keyboard focus order, screen-reader announcement
+timing, color contrast against a real background. Pair it with axe-core, Pa11y, or
+Lighthouse, which drive a real browser, for that layer. The two are complementary, not
+interchangeable: this one is the fast, no-browser first gate; those are the slower,
+browser-accurate second pass.
 
 ## Features
 

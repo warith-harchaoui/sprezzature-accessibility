@@ -5,7 +5,7 @@ Standards de prose française pour sprezzature-accessibility.
 Actualisez la version complète avec :
 
 ```
-gh gist view 7cc42b0a1b2c3d4e5f6a7b8c9d0e1f2a
+gh gist view 7cc42b038e86c5195ec09f0531111ba4
 ```
 
 Règles clés : pas de tirets de ponctuation, pas de tics de machine,

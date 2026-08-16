@@ -16,6 +16,10 @@ pytest
 
 ## Lint
 
+`ruff` is the Python linter and formatter this project uses: it reads the
+source without running it and flags style issues (unused imports, wrong
+quote style, and the like) in one fast pass.
+
 ```bash
 ruff check scripts/ sprezzature_accessibility/
 ```
