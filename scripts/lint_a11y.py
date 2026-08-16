@@ -4,12 +4,27 @@ lint_a11y
 =========
 
 Accessibility linter for HTML emitted by (or for) the ``sprezzature``
-skill. The linter is **static** — no browser, no DOM, no JS execution —
-so it fits into a code-emit pipeline or a pre-commit hook.
+skill. "Accessible" here means concretely: can someone using a screen
+reader, a keyboard alone (no mouse), or a browser's reduced-motion
+setting still use the page? The fourteen rules below each check for
+one source-level defect that breaks that experience, for example an
+``<img>`` with no ``alt`` text, which is as invisible to a screen
+reader as if the image were missing from the page entirely.
 
-The rules cover the ~20 violations that account for the bulk of
-real-world WCAG / WAI-ARIA failures. None of them require the runtime
-DOM; all are decidable from source.
+The linter is **static**: it never opens a browser, never builds a DOM
+(the tree of elements a browser assembles while rendering a page,
+which is what a screen reader actually reads from), never runs
+JavaScript. It only reads the HTML text, so it drops straight into a
+code-emit pipeline or a pre-commit hook with no Chromium to install.
+
+The fourteen rules cover the violations that account for the bulk of
+real-world WCAG (Web Content Accessibility Guidelines, the W3C
+standard that defines what "accessible" means for the web) and
+WAI-ARIA (Web Accessibility Initiative, Accessible Rich Internet
+Applications, the attribute vocabulary like ``role`` and
+``aria-label`` that lets custom widgets describe themselves to a
+screen reader) failures. Every one of them is decidable from the HTML
+source alone; none needs the runtime DOM.
 
 Rule catalogue
 --------------
@@ -64,7 +79,7 @@ Usage
 Notes
 -----
 * Python 3.10+, stdlib only (``html.parser``, ``argparse``, ``pathlib``).
-* The parser is forgiving — it walks documents that contain mixed-case
+* The parser is forgiving: it walks documents that contain mixed-case
   tags, missing closures, and inline scripts without raising.
 * This linter is a *first pass*, not a replacement for ``axe-core`` or
   manual screen-reader testing. It catches the violations easiest to fix.

@@ -10,10 +10,13 @@ expects:
   optional ``epilog`` are not reflowed.
 - A standard ``-V`` / ``--version`` option.
 
-Duplicated (intentionally) across every sprezzature-* skill so each stays
-self-contained; keep this file in sync with the copies in
-sprezzature-colors/scripts/_argparse.py etc. Bump ``SKILL_VERSION`` in every
-copy at release time (release.sh checks the drift).
+Duplicated on purpose across every sprezzature-* skill (each skill's
+``scripts/_argparse.py`` is its own copy, not an import from a shared
+package), so that every skill stays installable and usable on its own
+without depending on another skill's source tree. Keep this file in sync
+with the copies in sprezzature-colors/scripts/_argparse.py etc. by hand,
+and bump ``SKILL_VERSION`` in every copy at release time; this repo has no
+automated drift check for it yet.
 
 Author
 ------
