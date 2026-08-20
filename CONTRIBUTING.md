@@ -32,7 +32,8 @@ ruff check scripts/ sprezzature_accessibility/
 3. If a mechanical fix exists, add a `_fix_<rule_name>` function and
    register it in `RULE_FIXERS`.
 4. Add a test in `tests/test_accessibility.py`.
-5. Document the rule in `EXAMPLES.md` and the rules table in `README.md`.
+5. Document the rule in `EXAMPLES.md`, the rules table in `README.md`, and
+   its WCAG/WAI-ARIA mapping in `references/lint-rules.md`.
 
 ## Code standards
 
