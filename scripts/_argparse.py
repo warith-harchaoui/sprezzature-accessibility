@@ -26,8 +26,6 @@ Author
 from __future__ import annotations
 
 import argparse
-from typing import Optional
-
 
 SKILL_VERSION = "1.0.0"
 
@@ -35,7 +33,7 @@ SKILL_VERSION = "1.0.0"
 def make_parser(
     prog: str,
     description: str,
-    epilog: Optional[str] = None,
+    epilog: str | None = None,
 ) -> argparse.ArgumentParser:
     """Build a pre-configured argparse parser.
 

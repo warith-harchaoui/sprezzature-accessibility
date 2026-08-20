@@ -45,7 +45,6 @@ import importlib.util
 import re
 from html.parser import HTMLParser
 
-
 # ── Body-text extraction (stdlib only) ──────────────────────────────────────
 
 class _VisibleTextParser(HTMLParser):
@@ -212,7 +211,9 @@ def detect_text_language(text: str, fallback: str = "en") -> str:
         # ``langdetect.detect`` returns BCP-47 tags like "en", "fr",
         # "zh-cn"; we keep only the base subtag.
         from langdetect import detect  # type: ignore[import-not-found]
-        from langdetect.lang_detect_exception import LangDetectException  # type: ignore[import-not-found]
+        from langdetect.lang_detect_exception import (
+            LangDetectException,  # type: ignore[import-not-found]
+        )
         return detect(text).split("-")[0].lower()[:2]
     except LangDetectException:
         return fallback

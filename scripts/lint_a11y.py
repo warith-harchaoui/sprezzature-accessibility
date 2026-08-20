@@ -98,13 +98,14 @@ from pathlib import Path as _PathHelper
 
 # Shared parser factory: prog name, RawDescriptionHelpFormatter, --version.
 sys.path.insert(0, str(_PathHelper(__file__).resolve().parent))
-from _argparse import make_parser  # noqa: E402
-from _lang import detect_text_language, extract_body_text  # noqa: E402
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import Any, Callable, Iterator, Optional
+from typing import Any
 
+from _argparse import make_parser  # noqa: E402
+from _lang import detect_text_language, extract_body_text  # noqa: E402
 
 # ── Data structures ────────────────────────────────────────────────────────
 
@@ -133,8 +134,8 @@ class Element:
     attrs: dict[str, str] = field(default_factory=dict)
     line: int = 0
     text: str = ""
-    children: list["Element"] = field(default_factory=list)
-    parent: Optional["Element"] = None
+    children: list[Element] = field(default_factory=list)
+    parent: Element | None = None
 
 
 @dataclass
@@ -188,7 +189,7 @@ class TreeBuilder(HTMLParser):
 
     # html.parser hooks --------------------------------------------------
 
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, Optional[str]]]) -> None:
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         # ``getpos()`` returns (line, column) for the current token; only
         # the line is preserved.
         """Record an opening tag and its attributes for later rule checks."""
@@ -214,7 +215,7 @@ class TreeBuilder(HTMLParser):
                 del self.stack[i:]
                 return
 
-    def handle_startendtag(self, tag: str, attrs: list[tuple[str, Optional[str]]]) -> None:
+    def handle_startendtag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         # Self-closing form (``<br />``); treat as a leaf.
         """Record a self-closing tag (e.g. ``<img/>``, ``<input/>``)."""
         self.handle_starttag(tag, attrs)
@@ -563,7 +564,7 @@ def check_motion_reduce(root: Element) -> list[Finding]:
 
 
 # Registered rules — declaring them in a list makes ``--ignore`` cheap.
-ALL_RULES: dict[str, "Callable[..., Any]"] = {
+ALL_RULES: dict[str, Callable[..., Any]] = {
     "html-missing-lang": check_html_lang,
     "img-missing-alt": check_img,
     "img-redundant-aria": check_img,
@@ -584,7 +585,7 @@ ALL_RULES: dict[str, "Callable[..., Any]"] = {
 # ── Auto-fix machinery ────────────────────────────────────────────────────
 
 
-def _detect_html_lang(lines: list[str]) -> Optional[str]:
+def _detect_html_lang(lines: list[str]) -> str | None:
     """Detect the document language from the HTML's own visible body text.
 
     Uses the shared :func:`_lang.extract_body_text` (HTML → visible text) and
@@ -612,7 +613,7 @@ def _detect_html_lang(lines: list[str]) -> Optional[str]:
     return code or None
 
 
-def _fix_html_missing_lang(lines: list[str], finding: "Finding") -> bool:
+def _fix_html_missing_lang(lines: list[str], finding: Finding) -> bool:
     """Insert ``lang="<detected>"`` into the ``<html …>`` opening tag.
 
     The language is **detected from the document's own visible body text** —
@@ -628,7 +629,7 @@ def _fix_html_missing_lang(lines: list[str], finding: "Finding") -> bool:
     # fixed file is a no-op.
     if re.search(r"<html\b[^>]*\blang=", line, re.IGNORECASE):
         return False
-    lang: Optional[str] = _detect_html_lang(lines)
+    lang: str | None = _detect_html_lang(lines)
     if not lang:
         return False  # cannot detect the language → do not inject a default
     new_line: str = re.sub(
@@ -640,7 +641,7 @@ def _fix_html_missing_lang(lines: list[str], finding: "Finding") -> bool:
     return True
 
 
-def _fix_img_redundant_aria(lines: list[str], finding: "Finding") -> bool:
+def _fix_img_redundant_aria(lines: list[str], finding: Finding) -> bool:
     """Strip redundant ``role="presentation"`` / ``aria-hidden="true"`` from <img alt="">."""
     idx: int = finding.line - 1
     if not (0 <= idx < len(lines)):
@@ -658,7 +659,7 @@ def _fix_img_redundant_aria(lines: list[str], finding: "Finding") -> bool:
     return True
 
 
-def _fix_tabindex_positive(lines: list[str], finding: "Finding") -> bool:
+def _fix_tabindex_positive(lines: list[str], finding: Finding) -> bool:
     """Demote ``tabindex="N>0"`` to ``tabindex="0"`` (preserves focusability)."""
     idx: int = finding.line - 1
     if not (0 <= idx < len(lines)):
@@ -674,7 +675,7 @@ def _fix_tabindex_positive(lines: list[str], finding: "Finding") -> bool:
     return True
 
 
-def _fix_aria_hidden_interactive(lines: list[str], finding: "Finding") -> bool:
+def _fix_aria_hidden_interactive(lines: list[str], finding: Finding) -> bool:
     """Strip ``aria-hidden="true"`` from an interactive element."""
     idx: int = finding.line - 1
     if not (0 <= idx < len(lines)):
@@ -689,7 +690,7 @@ def _fix_aria_hidden_interactive(lines: list[str], finding: "Finding") -> bool:
     return True
 
 
-def _fix_motion_reduce_guard(lines: list[str], finding: "Finding") -> bool:
+def _fix_motion_reduce_guard(lines: list[str], finding: Finding) -> bool:
     """Append a ``motion-reduce:`` guard to the offending element's class list."""
     idx: int = finding.line - 1
     if not (0 <= idx < len(lines)):
@@ -712,7 +713,7 @@ def _fix_motion_reduce_guard(lines: list[str], finding: "Finding") -> bool:
 #: buttons / missing labels / missing headings / color-only state
 #: are deliberately absent — those need a content decision the
 #: linter cannot make for the user.
-RULE_FIXERS: dict[str, "Callable[..., Any]"] = {
+RULE_FIXERS: dict[str, Callable[..., Any]] = {
     "html-missing-lang": _fix_html_missing_lang,
     "img-redundant-aria": _fix_img_redundant_aria,
     "tabindex-positive": _fix_tabindex_positive,
@@ -729,7 +730,7 @@ MAX_FIX_ITERATIONS: int = 3
 
 def fix_file(
     path: Path, ignored: set[str], *, dry_run: bool = False
-) -> tuple[int, int, list["Finding"]]:
+) -> tuple[int, int, list[Finding]]:
     """
     Apply mechanical accessibility fixes to one HTML file in place.
 
@@ -762,7 +763,7 @@ def fix_file(
     skipped_seen: bool = False
 
     if dry_run:
-        findings: list["Finding"] = lint_file(path, ignored)
+        findings: list[Finding] = lint_file(path, ignored)
         for f in findings:
             fixer = RULE_FIXERS.get(f.rule)
             if fixer is None:
@@ -798,7 +799,7 @@ def fix_file(
     if raw.endswith("\n"):
         new_text += "\n"
     path.write_text(new_text, encoding="utf-8")
-    remaining: list["Finding"] = lint_file(path, ignored)
+    remaining: list[Finding] = lint_file(path, ignored)
     return applied, skipped, remaining
 
 
@@ -880,7 +881,7 @@ def main() -> int:
         epilog="Examples:\n"
                "  sprezzature-accessibility-lint public/index.html\n"
                "  sprezzature-accessibility-lint --format json public/\n"
-               "  sprezzature-accessibility-lint --ignore IMG_ALT,A_HREF dist/\n",
+               "  sprezzature-accessibility-lint --ignore img-missing-alt,a-missing-href dist/\n",
     )
     p.add_argument(
         "target", type=Path,
