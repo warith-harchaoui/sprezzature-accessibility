@@ -179,3 +179,139 @@ def test_fix_motion_reduce_guard() -> None:
         assert "motion-reduce:" in fixed
     finally:
         tmp.unlink(missing_ok=True)
+
+
+def test_fix_html_missing_lang() -> None:
+    """--fix detects the document's language from its own body text and
+    injects it into <html>, in place, idempotently."""
+    from lint_a11y import fix_file
+
+    # Enough real English prose (>= 20 non-whitespace chars) for langdetect
+    # to have signal. No lang attribute on <html> to start.
+    html = textwrap.dedent("""\
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="utf-8"><title>Welcome</title></head>
+        <body>
+          <h1>Welcome to our website</h1>
+          <p>This page explains how our product helps small teams ship
+          software faster, with fewer meetings and clearer priorities.</p>
+        </body>
+        </html>
+    """)
+    with tempfile.NamedTemporaryFile(suffix=".html", mode="w", delete=False) as f:
+        f.write(html)
+        tmp = Path(f.name)
+    try:
+        applied, skipped, remaining = fix_file(tmp, ignored=set())
+        assert applied >= 1
+        fixed = tmp.read_text(encoding="utf-8")
+        assert 'lang="en"' in fixed
+        assert not any(f.rule == "html-missing-lang" for f in remaining)
+        # Re-running against the now-fixed file must be a no-op.
+        applied_again, _, _ = fix_file(tmp, ignored=set())
+        assert applied_again == 0
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
+def test_fix_html_missing_lang_undetectable_is_left_alone() -> None:
+    """When the body has too little text to detect a language, the fixer
+    does not inject a default — it leaves the finding unfixed."""
+    from lint_a11y import fix_file
+
+    html = "<html><body><p>Hi</p></body></html>\n"
+    with tempfile.NamedTemporaryFile(suffix=".html", mode="w", delete=False) as f:
+        f.write(html)
+        tmp = Path(f.name)
+    try:
+        applied, skipped, remaining = fix_file(tmp, ignored=set())
+        # The fixer is registered for this rule but declines to guess: with
+        # too little text to detect a language, it leaves the line alone
+        # rather than applying a fix (0 applied), and the finding survives
+        # into the residual list rather than being silently dropped.
+        assert applied == 0
+        fixed = tmp.read_text(encoding="utf-8")
+        assert "lang=" not in fixed.split(">")[0] + ">"
+        assert any(f.rule == "html-missing-lang" for f in remaining)
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
+def test_fix_img_redundant_aria_role_presentation() -> None:
+    """--fix strips a redundant role="presentation" from a decorative
+    <img alt=""> and preserves everything else on the line."""
+    from lint_a11y import fix_file
+
+    html = (
+        '<html lang="en"><body>'
+        '<img src="deco.png" alt="" role="presentation">'
+        "</body></html>\n"
+    )
+    with tempfile.NamedTemporaryFile(suffix=".html", mode="w", delete=False) as f:
+        f.write(html)
+        tmp = Path(f.name)
+    try:
+        applied, skipped, remaining = fix_file(tmp, ignored=set())
+        assert applied >= 1
+        fixed = tmp.read_text(encoding="utf-8")
+        assert 'role="presentation"' not in fixed
+        assert 'src="deco.png"' in fixed
+        assert 'alt=""' in fixed
+        assert not any(f.rule == "img-redundant-aria" for f in remaining)
+        applied_again, _, _ = fix_file(tmp, ignored=set())
+        assert applied_again == 0
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
+def test_fix_img_redundant_aria_aria_hidden() -> None:
+    """--fix strips a redundant aria-hidden="true" from a decorative
+    <img alt="">."""
+    from lint_a11y import fix_file
+
+    html = (
+        '<html lang="en"><body>'
+        '<img src="deco.png" alt="" aria-hidden="true">'
+        "</body></html>\n"
+    )
+    with tempfile.NamedTemporaryFile(suffix=".html", mode="w", delete=False) as f:
+        f.write(html)
+        tmp = Path(f.name)
+    try:
+        applied, _, remaining = fix_file(tmp, ignored=set())
+        assert applied >= 1
+        fixed = tmp.read_text(encoding="utf-8")
+        assert 'aria-hidden="true"' not in fixed
+        assert 'src="deco.png"' in fixed
+        assert not any(f.rule == "img-redundant-aria" for f in remaining)
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
+def test_fix_aria_hidden_interactive() -> None:
+    """--fix strips aria-hidden="true" from an interactive element,
+    keeping its accessible text intact so it is reachable and announced
+    again by assistive technology."""
+    from lint_a11y import fix_file
+
+    html = (
+        '<html lang="en"><body>'
+        '<button aria-hidden="true" class="btn">Submit</button>'
+        "</body></html>\n"
+    )
+    with tempfile.NamedTemporaryFile(suffix=".html", mode="w", delete=False) as f:
+        f.write(html)
+        tmp = Path(f.name)
+    try:
+        applied, _, remaining = fix_file(tmp, ignored=set())
+        assert applied >= 1
+        fixed = tmp.read_text(encoding="utf-8")
+        assert 'aria-hidden="true"' not in fixed
+        assert 'class="btn"' in fixed
+        assert ">Submit<" in fixed
+        assert not any(f.rule == "aria-hidden-interactive" for f in remaining)
+        applied_again, _, _ = fix_file(tmp, ignored=set())
+        assert applied_again == 0
+    finally:
+        tmp.unlink(missing_ok=True)
