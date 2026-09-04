@@ -6,7 +6,7 @@ lint_a11y
 Accessibility linter for HTML emitted by (or for) the ``sprezzature``
 skill. "Accessible" here means concretely: can someone using a screen
 reader, a keyboard alone (no mouse), or a browser's reduced-motion
-setting still use the page? The fourteen rules below each check for
+setting still use the page? The fifteen rules below each check for
 one source-level defect that breaks that experience, for example an
 ``<img>`` with no ``alt`` text, which is as invisible to a screen
 reader as if the image were missing from the page entirely.
@@ -17,7 +17,7 @@ which is what a screen reader actually reads from), never runs
 JavaScript. It only reads the HTML text, so it drops straight into a
 code-emit pipeline or a pre-commit hook with no Chromium to install.
 
-The fourteen rules cover the violations that account for the bulk of
+The fifteen rules cover the violations that account for the bulk of
 real-world WCAG (Web Content Accessibility Guidelines, the W3C
 standard that defines what "accessible" means for the web) and
 WAI-ARIA (Web Accessibility Initiative, Accessible Rich Internet
@@ -52,6 +52,13 @@ Rule catalogue
                             "red is bad / green is good" anti-pattern.
 ``motion-no-reduce-guard``  ``animate-*`` or ``transition-transform`` without
                             a ``motion-reduce:`` peer.
+``body-text-tracking-tight`` Tailwind ``tracking-tight`` / ``tracking-tighter``
+                            (negative letter-spacing) on a body-text element
+                            (``p``, ``li``, ``dd``, ``blockquote``, ``td``,
+                            ``figcaption``). Reduced letter-spacing is exactly
+                            the anti-pattern a 2012 Zorzi et al. study found
+                            slows reading for dyslexic readers; the same
+                            tokens on a heading or nav label are unflagged.
 ========================  =====================================================
 
 Output
@@ -523,6 +530,17 @@ _MOTION_PAT: re.Pattern[str] = re.compile(
     r"\b(animate-(?:spin|ping|pulse|bounce)|transition-transform|transition-all)\b"
 )
 _MOTION_REDUCE_PAT: re.Pattern[str] = re.compile(r"motion-reduce:")
+_TIGHT_TRACKING_PAT: re.Pattern[str] = re.compile(r"\btracking-tight(?:er)?\b")
+
+#: Elements that carry continuous body text a reader scans line by line, as
+#: opposed to a short heading or label read as one glance. Zorzi et al.
+#: (2012) found dyslexic children read 20% faster once letter-spacing was
+#: widened, not narrowed, across a paragraph of running text; the same
+#: negative-tracking utility on a one-line heading has no comparable evidence
+#: of harm, so headings, buttons, and nav labels are deliberately excluded.
+BODY_TEXT_TAGS: frozenset[str] = frozenset({
+    "p", "li", "dd", "blockquote", "td", "figcaption",
+})
 
 
 def check_color_only_state(root: Element) -> list[Finding]:
@@ -563,6 +581,37 @@ def check_motion_reduce(root: Element) -> list[Finding]:
     return findings
 
 
+def check_body_text_tracking(root: Element) -> list[Finding]:
+    """Rule ``body-text-tracking-tight``: don't narrow letter-spacing on running text.
+
+    Static proxy for the readability finding behind WCAG 1.4.12 (Text
+    Spacing): reading speed for dyslexic readers improves with *wider*
+    letter-spacing on continuous text, not narrower. Flags Tailwind's
+    ``tracking-tight``/``tracking-tighter`` (negative ``letter-spacing``)
+    only on elements that carry a paragraph's worth of running text
+    (:data:`BODY_TEXT_TAGS`) — the same utility on a heading or nav label is
+    a display-type choice with no comparable evidence of harm and is not
+    flagged. **Known limit**: this only catches the Tailwind utility class;
+    a literal ``letter-spacing`` CSS declaration in a ``<style>`` block or
+    external stylesheet is invisible to this static, class-attribute-only
+    check.
+    """
+    findings: list[Finding] = []
+    for elem in walk(root):
+        if elem.tag not in BODY_TEXT_TAGS:
+            continue
+        cls: str = elem.attrs.get("class", "")
+        if not _TIGHT_TRACKING_PAT.search(cls):
+            continue
+        findings.append(Finding(
+            rule="body-text-tracking-tight",
+            line=elem.line,
+            message=f"<{elem.tag}> uses tracking-tight/tighter on running text: "
+                    "narrow letter-spacing slows reading for dyslexic readers.",
+        ))
+    return findings
+
+
 # Registered rules — declaring them in a list makes ``--ignore`` cheap.
 ALL_RULES: dict[str, Callable[..., Any]] = {
     "html-missing-lang": check_html_lang,
@@ -579,6 +628,7 @@ ALL_RULES: dict[str, Callable[..., Any]] = {
     "heading-skip": check_heading_order,
     "color-only-state": check_color_only_state,
     "motion-no-reduce-guard": check_motion_reduce,
+    "body-text-tracking-tight": check_body_text_tracking,
 }
 
 
@@ -708,6 +758,25 @@ def _fix_motion_reduce_guard(lines: list[str], finding: Finding) -> bool:
     return True
 
 
+def _fix_body_text_tracking_tight(lines: list[str], finding: Finding) -> bool:
+    """Strip ``tracking-tight``/``tracking-tighter`` from the offending element's class list."""
+    idx: int = finding.line - 1
+    if not (0 <= idx < len(lines)):
+        return False
+    line: str = lines[idx]
+    m = re.search(r'''class=(["'])((?:(?!\1).)*)\1''', line)
+    if not m:
+        return False
+    remaining: list[str] = [
+        c for c in m.group(2).split() if not _TIGHT_TRACKING_PAT.fullmatch(c)
+    ]
+    new_classes: str = " ".join(remaining)
+    if new_classes == m.group(2):
+        return False
+    lines[idx] = line[: m.start(2)] + new_classes + line[m.end(2) :]
+    return True
+
+
 #: Mapping of rule id → fixer. Only rules whose violations have a
 #: single safe mechanical repair appear here. Empty links / empty
 #: buttons / missing labels / missing headings / color-only state
@@ -719,6 +788,7 @@ RULE_FIXERS: dict[str, Callable[..., Any]] = {
     "tabindex-positive": _fix_tabindex_positive,
     "aria-hidden-interactive": _fix_aria_hidden_interactive,
     "motion-no-reduce-guard": _fix_motion_reduce_guard,
+    "body-text-tracking-tight": _fix_body_text_tracking_tight,
 }
 
 
@@ -876,7 +946,7 @@ def main() -> int:
     p = make_parser(
         prog="sprezzature-accessibility-lint",
         description="W3C/WAI accessibility linter for HTML emitted by the sprezzature skill. "
-                    "14 rules, exit 1 on any finding. Pre-commit gate — pair with axe-core "
+                    "15 rules, exit 1 on any finding. Pre-commit gate — pair with axe-core "
                     "or Pa11y for runtime DOM audits.",
         epilog="Examples:\n"
                "  sprezzature-accessibility-lint public/index.html\n"
@@ -902,7 +972,8 @@ def main() -> int:
             "strip redundant role/aria-hidden from decorative <img alt=''>, "
             "demote tabindex>0 to 0, strip aria-hidden from interactive "
             "elements, append motion-reduce:transform-none to animated "
-            "elements. Rules without a fixer (empty button, missing "
+            "elements, strip tracking-tight/tighter from body text. "
+            "Rules without a fixer (empty button, missing "
             "label, heading skip, etc.) are passed through honestly. "
             "Idempotent."
         ),

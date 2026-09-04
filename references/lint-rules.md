@@ -1,4 +1,4 @@
-# The fourteen rules — WCAG/WAI-ARIA mapping and known limits
+# The fifteen rules — WCAG/WAI-ARIA mapping and known limits
 
 Each rule below maps to a specific Web Content Accessibility Guidelines
 (WCAG, the W3C standard that defines what "accessible" means for the
@@ -18,6 +18,7 @@ document; for run commands and output shapes, see `EXAMPLES.md`.
 | `heading-skip` | 2.4.6 Headings and Labels (best practice reading) | Heading levels that jump downward (`<h2>` straight to `<h4>`). Screen-reader users navigate by heading level as a table of contents; a skipped level reads as a missing section. |
 | `color-only-state` | 1.4.1 Use of Color | A Tailwind `text-red-*` / `bg-green-*` token with no accompanying icon or text. Roughly 1 in 12 men have some form of color vision deficiency; a status shown by hue alone disappears for them. |
 | `motion-no-reduce-guard` | 2.3.3 Animation from Interactions (AAA, applied here as a house baseline) | An `animate-*` or `transition-transform` class with no `motion-reduce:` peer, so `prefers-reduced-motion` is silently ignored. |
+| `body-text-tracking-tight` | 1.4.12 Text Spacing (AA), applied here as a static proxy, not a conformance test | Tailwind `tracking-tight`/`tracking-tighter` (negative `letter-spacing`) on a body-text element (`p`, `li`, `dd`, `blockquote`, `td`, `figcaption`). Grounded in [Zorzi et al. 2012](https://www.planetesante.ch/Magazine/Bebes-enfants-et-adolescents/Dyslexie/Dyslexie-espacer-les-lettres-permet-d-ameliorer-la-lecture): doubling letter-spacing on running text raised reading speed 20% for dyslexic children (8-14yo, no prior training), the opposite direction of what `tracking-tight` does. Headings, buttons, and nav labels are deliberately excluded — one glance at a short label has no comparable evidence of harm, and tight tracking there is an established display-type convention. **Known limit**: this cannot verify actual WCAG 1.4.12 conformance (does the layout survive a *user* widening spacing without clipping/overlap?) — that needs a rendered DOM, out of scope for a static linter by design (see house baseline note above); it only catches the Tailwind utility, not a literal `letter-spacing` CSS declaration in a `<style>` block or external stylesheet. |
 
 ## Rules grounded in WAI-ARIA authoring practice
 
@@ -33,7 +34,7 @@ document; for run commands and output shapes, see `EXAMPLES.md`.
 | `aria-hidden-interactive` | `aria-hidden="true"` removes an element from the accessibility tree entirely | A `button` / `a` / `input` / `select` / `textarea` with `aria-hidden="true"`, which makes it invisible to assistive technology while remaining visible and clickable on screen. |
 | `img-redundant-aria` | Not a violation, a redundancy | `alt=""` (already the correct decorative marker) combined with `role="presentation"` or `aria-hidden="true"`. Harmless but redundant; flagged as a style warning, not an error. |
 
-## What these fourteen rules do not cover
+## What these fifteen rules do not cover
 
 The linter is static by design (see `README.md` / `LISEZMOI.md` for why), so it cannot see:
 

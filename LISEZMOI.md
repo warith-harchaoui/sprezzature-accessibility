@@ -14,7 +14,7 @@ de son navigateur, peut malgré tout s'en servir. Cet outil relit le code source
 `<img>` sans texte alternatif est aussi invisible pour un lecteur d'écran que si
 l'image n'existait tout simplement pas sur la page.
 
-C'est un linter statique : quatorze règles issues des WCAG (*Web Content
+C'est un linter statique : quinze règles issues des WCAG (*Web Content
 Accessibility Guidelines*, la norme du W3C qui définit ce que « accessible » veut
 dire pour le web) et de WAI-ARIA (le vocabulaire d'attributs, `role`, `aria-label`
 et consorts, qui permet à un composant fait maison de se décrire aux logiciels
@@ -33,9 +33,11 @@ sans moyen de les fermer au clavier, attribut `lang` absent (ce qui casse la
 prononciation du lecteur d'écran), niveaux de titre qui sautent au lieu de s'emboîter
 dans l'ordre, état montré par la seule couleur (un rouge et un vert qu'une personne
 daltonienne ne distingue pas), et animations sans moyen de les réduire pour qui y est
-sensible. Cinq de ces quatorze règles disposent en plus d'une correction automatique
-mécanique (`--fix`), pour que la porte répare elle-même ce qu'elle peut réparer sans
-risque, au lieu de se contenter de le signaler.
+sensible, et un espacement des lettres resserré sur du texte de lecture (ce qui
+ralentit la lecture des personnes dyslexiques). Six de ces quinze règles disposent
+en plus d'une correction automatique mécanique (`--fix`), pour que la porte répare
+elle-même ce qu'elle peut réparer sans risque, au lieu de se contenter de le
+signaler.
 
 Cet outil ne lit que du code source : il ne peut donc pas détecter ce qui n'apparaît
 qu'une fois la page réellement affichée dans un navigateur, l'ordre de parcours au
@@ -47,11 +49,12 @@ passe plus lente mais fidèle au rendu réel.
 
 ## Fonctionnalités
 
-- 14 règles couvrant img, a, button, div/span, input, dialog, html, tabindex, aria,
-  ordre des titres, état par couleur seule, et guards motion-reduce
-- Correction automatique pour 5 règles : détection et insertion du lang, suppression
+- 15 règles couvrant img, a, button, div/span, input, dialog, html, tabindex, aria,
+  ordre des titres, état par couleur seule, guards motion-reduce, et espacement des
+  lettres sur le texte de lecture
+- Correction automatique pour 6 règles : détection et insertion du lang, suppression
   d'aria redondant, rétrogradation du tabindex, suppression d'aria-hidden, ajout du
-  guard motion-reduce
+  guard motion-reduce, suppression du resserrement de lettres
 - Sortie texte et JSON, composable avec jq ou tout parseur CI
 - Code de sortie 1 sur tout résultat (0 si propre), utilisable comme porte pre-commit
 - Stdlib Python uniquement à l'exécution : Python 3.10+, pas de pip install requis

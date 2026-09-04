@@ -143,6 +143,30 @@ def test_check_motion_reduce_guard() -> None:
     assert any(f.rule == "motion-no-reduce-guard" for f in findings)
 
 
+def test_check_body_text_tracking_tight() -> None:
+    """tracking-tight on a <p> (running text) triggers the rule."""
+    findings = _findings_for('<p class="tracking-tight">Some paragraph text.</p>')
+    assert any(f.rule == "body-text-tracking-tight" for f in findings)
+
+
+def test_check_body_text_tracking_tighter_on_li() -> None:
+    """tracking-tighter on an <li> (also running text) triggers the rule."""
+    findings = _findings_for('<li class="tracking-tighter">List item text.</li>')
+    assert any(f.rule == "body-text-tracking-tight" for f in findings)
+
+
+def test_check_body_text_tracking_tight_on_heading_is_clean() -> None:
+    """The same utility on a heading (one glance, not running text) is not flagged."""
+    findings = _findings_for('<h1 class="tracking-tight">Page title</h1>')
+    assert not any(f.rule == "body-text-tracking-tight" for f in findings)
+
+
+def test_check_body_text_tracking_wide_is_clean() -> None:
+    """tracking-wide (positive letter-spacing) is never flagged."""
+    findings = _findings_for('<p class="tracking-wide">Some paragraph text.</p>')
+    assert not any(f.rule == "body-text-tracking-tight" for f in findings)
+
+
 def test_fix_tabindex_positive() -> None:
     """--fix demotes a positive tabindex to 0, in place, idempotently."""
     from lint_a11y import fix_file
@@ -311,6 +335,33 @@ def test_fix_aria_hidden_interactive() -> None:
         assert 'class="btn"' in fixed
         assert ">Submit<" in fixed
         assert not any(f.rule == "aria-hidden-interactive" for f in remaining)
+        applied_again, _, _ = fix_file(tmp, ignored=set())
+        assert applied_again == 0
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
+def test_fix_body_text_tracking_tight() -> None:
+    """--fix strips tracking-tight from a paragraph's class list, keeping
+    the rest of its classes intact."""
+    from lint_a11y import fix_file
+
+    html = (
+        '<html lang="en"><body>'
+        '<p class="mt-2 tracking-tight text-lg">Some paragraph text.</p>'
+        "</body></html>\n"
+    )
+    with tempfile.NamedTemporaryFile(suffix=".html", mode="w", delete=False) as f:
+        f.write(html)
+        tmp = Path(f.name)
+    try:
+        applied, _, remaining = fix_file(tmp, ignored=set())
+        assert applied >= 1
+        fixed = tmp.read_text(encoding="utf-8")
+        assert "tracking-tight" not in fixed
+        assert "mt-2" in fixed
+        assert "text-lg" in fixed
+        assert not any(f.rule == "body-text-tracking-tight" for f in remaining)
         applied_again, _, _ = fix_file(tmp, ignored=set())
         assert applied_again == 0
     finally:

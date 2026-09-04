@@ -12,7 +12,7 @@ mouse), or a browser's reduced-motion setting can still use it. This tool checks
 source code for the mistakes that most often break that: an `<img>` with no `alt` text
 is as invisible to a screen reader as if the image were simply missing from the page.
 
-It is a static linter: fourteen rules from WCAG (Web Content Accessibility
+It is a static linter: fifteen rules from WCAG (Web Content Accessibility
 Guidelines, the W3C standard that defines what "accessible" means for the web) and
 WAI-ARIA (the attribute vocabulary, `role`, `aria-label` and the like, that lets custom
 widgets describe themselves to assistive software), each one decidable by reading the
@@ -28,8 +28,10 @@ cannot reach, dialogs with no way to close them by keyboard, missing `lang` attr
 (which break screen-reader pronunciation), heading levels that jump around instead of
 nesting in order, status shown by color alone (a red/green pair that a colorblind
 reader cannot tell apart), and animations with no way to turn them down for someone
-sensitive to motion. Five of those fourteen rules also ship a mechanical auto-fix
-(`--fix`), so the gate can repair what it safely can instead of only reporting it.
+sensitive to motion, and negative letter-spacing on running text (which slows
+reading for dyslexic readers). Six of those fifteen rules also ship a mechanical
+auto-fix (`--fix`), so the gate can repair what it safely can instead of only
+reporting it.
 
 This tool only ever reads source code, so it cannot catch what only shows up once a
 page actually renders in a browser: keyboard focus order, screen-reader announcement
@@ -40,10 +42,10 @@ browser-accurate second pass.
 
 ## Features
 
-- 14 rules covering img, a, button, div/span, input, dialog, html, tabindex, aria,
-  heading order, color-only state, and motion-reduce guards
-- Auto-fix for 5 rules: lang detection + insertion, redundant aria removal, tabindex
-  demotion, aria-hidden strip, motion-reduce guard append
+- 15 rules covering img, a, button, div/span, input, dialog, html, tabindex, aria,
+  heading order, color-only state, motion-reduce guards, and body-text letter-spacing
+- Auto-fix for 6 rules: lang detection + insertion, redundant aria removal, tabindex
+  demotion, aria-hidden strip, motion-reduce guard append, tight-tracking strip
 - Text and JSON output formats, composable with jq or any CI parser
 - Exit code 1 on any finding (exit 0 on clean), suitable as a pre-commit gate
 - Stdlib only at runtime: Python 3.10+, no pip install required for the core
