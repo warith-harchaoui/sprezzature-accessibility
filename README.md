@@ -46,6 +46,9 @@ browser-accurate second pass.
   heading order, color-only state, motion-reduce guards, and body-text letter-spacing
 - Auto-fix for 6 rules: lang detection + insertion, redundant aria removal, tabindex
   demotion, aria-hidden strip, motion-reduce guard append, tight-tracking strip
+- `text_spacing_preset.py`: the make-side counterpart to the letter-spacing rule —
+  emits an opt-in "comfortable reading" CSS block at the WCAG 1.4.12 Text Spacing
+  minimums, for pages that want to ship the fix as a reader-facing toggle
 - Text and JSON output formats, composable with jq or any CI parser
 - Exit code 1 on any finding (exit 0 on clean), suitable as a pre-commit gate
 - Stdlib only at runtime: Python 3.10+, no pip install required for the core

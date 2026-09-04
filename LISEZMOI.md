@@ -55,6 +55,10 @@ passe plus lente mais fidèle au rendu réel.
 - Correction automatique pour 6 règles : détection et insertion du lang, suppression
   d'aria redondant, rétrogradation du tabindex, suppression d'aria-hidden, ajout du
   guard motion-reduce, suppression du resserrement de lettres
+- `text_spacing_preset.py` : le pendant « make » de la règle d'espacement des
+  lettres — génère un bloc CSS optionnel « lecture confortable » aux minima WCAG
+  1.4.12, pour les pages qui veulent proposer la correction comme un réglage
+  visible par le lecteur
 - Sortie texte et JSON, composable avec jq ou tout parseur CI
 - Code de sortie 1 sur tout résultat (0 si propre), utilisable comme porte pre-commit
 - Stdlib Python uniquement à l'exécution : Python 3.10+, pas de pip install requis

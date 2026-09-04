@@ -366,3 +366,71 @@ def test_fix_body_text_tracking_tight() -> None:
         assert applied_again == 0
     finally:
         tmp.unlink(missing_ok=True)
+
+
+def test_text_spacing_preset_default_values() -> None:
+    """build_css() emits the four WCAG 1.4.12 minimums by default."""
+    from text_spacing_preset import build_css
+
+    css = build_css()
+    assert "line-height: 1.5;" in css
+    assert "letter-spacing: 0.12em;" in css
+    assert "word-spacing: 0.16em;" in css
+    assert "margin-bottom: 2.0em;" in css
+    assert '[data-text-spacing="comfortable"] p' in css
+
+
+def test_text_spacing_preset_covers_lint_rule_tags() -> None:
+    """Every tag the body-text-tracking-tight rule audits gets a selector."""
+    from lint_a11y import BODY_TEXT_TAGS
+    from text_spacing_preset import build_css
+
+    css = build_css()
+    for tag in BODY_TEXT_TAGS:
+        assert f'[data-text-spacing="comfortable"] {tag}' in css
+
+
+def test_text_spacing_preset_custom_attr_and_values() -> None:
+    """Custom attribute/value/spacing numbers flow through to the output."""
+    from text_spacing_preset import build_css
+
+    css = build_css(
+        attr="data-reading-mode",
+        value="on",
+        line_height=1.8,
+        letter_spacing_em=0.2,
+        word_spacing_em=0.3,
+        paragraph_spacing_em=2.5,
+    )
+    assert '[data-reading-mode="on"] p' in css
+    assert '[data-text-spacing' not in css
+    assert "line-height: 1.8;" in css
+    assert "letter-spacing: 0.2em;" in css
+    assert "word-spacing: 0.3em;" in css
+    assert "margin-bottom: 2.5em;" in css
+
+
+def test_text_spacing_preset_help() -> None:
+    """--help exits 0 on the make-side CLI."""
+    result = subprocess.run(
+        [sys.executable, "scripts/text_spacing_preset.py", "--help"],
+        capture_output=True,
+        text=True,
+        cwd=Path(__file__).resolve().parent.parent,
+    )
+    assert result.returncode == 0
+    assert "text-spacing" in result.stdout.lower() or "spacing" in result.stdout.lower()
+
+
+def test_text_spacing_preset_out_file(tmp_path: Path) -> None:
+    """--out writes the CSS to a file instead of stdout."""
+    out = tmp_path / "reading-mode.css"
+    result = subprocess.run(
+        [sys.executable, "scripts/text_spacing_preset.py", "--out", str(out)],
+        capture_output=True,
+        text=True,
+        cwd=Path(__file__).resolve().parent.parent,
+    )
+    assert result.returncode == 0
+    assert out.exists()
+    assert "letter-spacing: 0.12em;" in out.read_text(encoding="utf-8")

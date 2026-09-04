@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "sprezzature-accessibility"
 version = "1.0.0"
-description = "Static HTML accessibility linter: 14 WCAG/WAI rules decidable from source, stdlib only, CI-ready."
+description = "Static HTML accessibility linter: 15 WCAG/WAI rules decidable from source, stdlib only, CI-ready."
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "BSD-3-Clause"}
@@ -28,6 +28,7 @@ lang = ["langdetect>=1.0.9"]
 
 [project.scripts]
 sprezzature-accessibility-lint = "sprezzature_accessibility_scripts.lint_a11y:main"
+sprezzature-accessibility-text-spacing = "sprezzature_accessibility_scripts.text_spacing_preset:main"
 
 [project.urls]
 Homepage = "https://harchaoui.org/warith/sprezzature/"
