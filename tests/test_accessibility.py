@@ -434,3 +434,63 @@ def test_text_spacing_preset_out_file(tmp_path: Path) -> None:
     assert result.returncode == 0
     assert out.exists()
     assert "letter-spacing: 0.12em;" in out.read_text(encoding="utf-8")
+
+
+# ── WCAG 1.2 — time-based media ───────────────────────────────────────────
+
+
+def _findings(html: str) -> set[str]:
+    """Rule ids reported for `html`, through the real linter entry point."""
+    from lint_a11y import lint_file
+
+    with tempfile.TemporaryDirectory() as tmp:
+        page = Path(tmp) / "page.html"
+        page.write_text(html, encoding="utf-8")
+        return {f.rule for f in lint_file(page, set())}
+
+
+def test_video_without_captions_is_reported() -> None:
+    """A <video> with audio and no caption track fails WCAG 1.2.2."""
+    rules = _findings('<html lang="en"><body><video src="t.mp4" controls></video></body></html>')
+    assert "video-missing-captions" in rules
+
+
+def test_video_with_captions_is_clean() -> None:
+    """Declaring a caption track clears the rule."""
+    rules = _findings(
+        '<html lang="en"><body><video src="t.mp4" controls>'
+        '<track kind="captions" src="c.vtt" srclang="en"></video></body></html>'
+    )
+    assert "video-missing-captions" not in rules
+    assert "track-missing-srclang" not in rules
+
+
+def test_muted_decorative_video_is_exempt() -> None:
+    """A silent background video needs no captions: there is no audio to caption."""
+    rules = _findings(
+        '<html lang="en"><body><video src="hero.mp4" muted autoplay loop></video></body></html>'
+    )
+    assert "video-missing-captions" not in rules
+    assert "media-missing-controls" not in rules
+    assert "media-autoplay-sound" not in rules
+
+
+def test_autoplay_with_sound_is_reported() -> None:
+    """Unmuted autoplay masks a screen reader — WCAG 1.4.2."""
+    rules = _findings('<html lang="en"><body><audio src="a.mp3" autoplay controls></audio></body></html>')
+    assert "media-autoplay-sound" in rules
+
+
+def test_track_without_srclang_is_reported() -> None:
+    """Captions in an unnamed language cannot be selected by assistive tech."""
+    rules = _findings(
+        '<html lang="en"><body><video src="t.mp4" controls>'
+        '<track kind="captions" src="c.vtt"></video></body></html>'
+    )
+    assert "track-missing-srclang" in rules
+
+
+def test_audio_without_transcript_is_reported() -> None:
+    """Prerecorded audio needs a text alternative — WCAG 1.2.1."""
+    rules = _findings('<html lang="en"><body><audio src="p.mp3" controls></audio></body></html>')
+    assert "audio-missing-transcript" in rules

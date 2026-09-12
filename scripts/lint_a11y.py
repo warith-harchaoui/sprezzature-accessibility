@@ -613,6 +613,111 @@ def check_body_text_tracking(root: Element) -> list[Finding]:
 
 
 # Registered rules — declaring them in a list makes ``--ignore`` cheap.
+
+def check_media_alternatives(root: Element) -> list[Finding]:
+    """
+    Rules ``video-missing-captions``, ``audio-missing-transcript``,
+    ``track-missing-srclang`` and ``media-missing-controls``.
+
+    WCAG 1.2 (Time-based Media) is the one success-criterion family the other
+    fourteen rules here never touch, and it is the family that locks a Deaf or
+    hard-of-hearing visitor out of a page entirely rather than merely making it
+    awkward. A ``<video>`` with no caption track is not a degraded experience;
+    it is no experience.
+
+    What this can and cannot see: a static linter can tell that a caption track
+    is *declared*, never that its text is correct or synchronised. It reports
+    the absence, which is the failure it can prove.
+    """
+    findings: list[Finding] = []
+    for elem in walk(root):
+        if elem.tag not in ("video", "audio"):
+            continue
+
+        # A media element handed to a script (no controls, no autoplay) is
+        # usually decorative background; requiring captions on a silent
+        # looping hero video would be noise. Sound is what triggers WCAG 1.2.
+        decorative = (
+            elem.tag == "video"
+            and "muted" in elem.attrs
+            and "controls" not in elem.attrs
+        )
+
+        tracks = [d for d in walk(elem) if d.tag == "track"]
+        kinds = {t.attrs.get("kind", "subtitles").strip().lower() for t in tracks}
+
+        if elem.tag == "video" and not decorative and not (kinds & {"captions", "subtitles"}):
+            findings.append(Finding(
+                rule="video-missing-captions",
+                line=elem.line,
+                message=(
+                    '<video> has no <track kind="captions">. WCAG 1.2.2 (level A): '
+                    "prerecorded video with audio needs captions."
+                ),
+            ))
+
+        if elem.tag == "audio" and not accessible_name(elem) and not tracks:
+            findings.append(Finding(
+                rule="audio-missing-transcript",
+                line=elem.line,
+                message=(
+                    "<audio> has no caption track and no accessible name pointing at a "
+                    "transcript. WCAG 1.2.1 (level A): prerecorded audio needs a text alternative."
+                ),
+            ))
+
+        # ``controls`` is not itself a WCAG criterion, but a media element with
+        # neither controls nor a scripted alternative cannot be operated from
+        # the keyboard at all, which is 2.1.1.
+        if "controls" not in elem.attrs and not decorative:
+            findings.append(Finding(
+                rule="media-missing-controls",
+                line=elem.line,
+                message=(
+                    f"<{elem.tag}> has no controls attribute: nothing to operate from the "
+                    "keyboard. WCAG 2.1.1 (level A)."
+                ),
+            ))
+
+        for track in tracks:
+            if not track.attrs.get("srclang", "").strip():
+                findings.append(Finding(
+                    rule="track-missing-srclang",
+                    line=track.line,
+                    message=(
+                        "<track> missing srclang: assistive technology cannot tell which "
+                        "language the captions are in."
+                    ),
+                ))
+    return findings
+
+
+def check_media_autoplay(root: Element) -> list[Finding]:
+    """
+    Rule ``media-autoplay-sound``.
+
+    Audio that starts by itself and runs past three seconds masks a screen
+    reader's own speech — the user cannot hear the tool they navigate with,
+    and on many pages cannot find the control to stop it either. WCAG 1.4.2
+    (level A) requires a pause or stop mechanism; ``muted`` satisfies it
+    outright, so only unmuted autoplay is reported.
+    """
+    findings: list[Finding] = []
+    for elem in walk(root):
+        if elem.tag not in ("video", "audio"):
+            continue
+        if "autoplay" in elem.attrs and "muted" not in elem.attrs:
+            findings.append(Finding(
+                rule="media-autoplay-sound",
+                line=elem.line,
+                message=(
+                    f"<{elem.tag} autoplay> without muted: sound starts on its own and "
+                    "masks a screen reader. WCAG 1.4.2 (level A) — add muted, or a stop control."
+                ),
+            ))
+    return findings
+
+
 ALL_RULES: dict[str, Callable[..., Any]] = {
     "html-missing-lang": check_html_lang,
     "img-missing-alt": check_img,
@@ -629,6 +734,13 @@ ALL_RULES: dict[str, Callable[..., Any]] = {
     "color-only-state": check_color_only_state,
     "motion-no-reduce-guard": check_motion_reduce,
     "body-text-tracking-tight": check_body_text_tracking,
+    # WCAG 1.2 — time-based media. Captions and transcripts are the one
+    # family whose absence locks a visitor out rather than slowing them down.
+    "video-missing-captions": check_media_alternatives,
+    "audio-missing-transcript": check_media_alternatives,
+    "track-missing-srclang": check_media_alternatives,
+    "media-missing-controls": check_media_alternatives,
+    "media-autoplay-sound": check_media_autoplay,
 }
 
 
@@ -875,23 +987,35 @@ def fix_file(
 
 # ── Orchestration ────────────────────────────────────────────────────────
 
-def lint_file(path: Path, ignored: set[str]) -> list[Finding]:
+def lint_html(html: str, ignored: "set[str] | None" = None) -> list[Finding]:
     """
-    Run every enabled rule against one HTML file.
+    Run every enabled rule against a string of HTML.
+
+    The real implementation; :func:`lint_file` reads a file and calls this.
+    Split out because the HTTP and MCP surfaces lint markup that never
+    touches disk — a caller posting a template fragment should not have to
+    invent a temporary file, and a second copy of the rule loop would be
+    free to drift from this one.
 
     Parameters
     ----------
-    path : Path
-        HTML file to lint.
-    ignored : set of str
-        Rule identifiers to suppress.
+    html : str
+        HTML source. A fragment is fine; the parser does not require a
+        complete document.
+    ignored : set of str, optional
+        Rule identifiers to suppress. ``None`` means suppress nothing.
 
     Returns
     -------
     list of Finding
-        All findings from the enabled rules, deduplicated by (rule, line).
+        All findings from the enabled rules, ordered by line then rule.
+
+    Examples
+    --------
+    >>> [f.rule for f in lint_html('<img src="a.png">')]
+    ['img-missing-alt']
     """
-    html = path.read_text(encoding="utf-8", errors="ignore")
+    ignored = ignored or set()
     parser = TreeBuilder()
     parser.feed(html)
     parser.close()
@@ -913,6 +1037,27 @@ def lint_file(path: Path, ignored: set[str]) -> list[Finding]:
     # Stable order: by line, then by rule.
     findings.sort(key=lambda x: (x.line, x.rule))
     return findings
+
+
+def lint_file(path: Path, ignored: set[str]) -> list[Finding]:
+    """
+    Run every enabled rule against one HTML file.
+
+    Thin wrapper over :func:`lint_html`: reads the file, lints the text.
+
+    Parameters
+    ----------
+    path : Path
+        HTML file to lint.
+    ignored : set of str
+        Rule identifiers to suppress.
+
+    Returns
+    -------
+    list of Finding
+        All findings from the enabled rules, deduplicated by (rule, line).
+    """
+    return lint_html(path.read_text(encoding="utf-8", errors="ignore"), ignored)
 
 
 def collect_targets(target: Path) -> list[Path]:

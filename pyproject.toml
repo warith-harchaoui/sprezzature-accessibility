@@ -25,8 +25,20 @@ dependencies = []
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "ruff"]
 lang = ["langdetect>=1.0.9"]
+# HTTP surface (sprezzature_accessibility/api.py): the linter over HTTP, so
+# a CI job or an editor plugin in any language can check markup.
+api = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+]
+# MCP surface: the same routes republished as agent tools, via fastapi-mcp.
+mcp = [
+    "sprezzature-accessibility[api]",
+    "fastapi-mcp>=0.3",
+]
 
 [project.scripts]
+sprezzature-accessibility-mcp = "sprezzature_accessibility.mcp:main"
 sprezzature-accessibility-lint = "sprezzature_accessibility_scripts.lint_a11y:main"
 sprezzature-accessibility-text-spacing = "sprezzature_accessibility_scripts.text_spacing_preset:main"
 

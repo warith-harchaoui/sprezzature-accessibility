@@ -108,6 +108,11 @@ python scripts/lint_a11y.py public/
 | `heading-skip` | error | headings skip levels downward |
 | `color-only-state` | warning | red/green token with no icon or text |
 | `motion-no-reduce-guard` | warning | animation without motion-reduce peer |
+| `video-missing-captions` | error | `<video>` with audio and no `<track kind="captions">` (WCAG 1.2.2) |
+| `audio-missing-transcript` | error | `<audio>` with no text alternative (WCAG 1.2.1) |
+| `track-missing-srclang` | warning | `<track>` without `srclang`: caption language unknown |
+| `media-missing-controls` | error | `<video>`/`<audio>` with nothing to operate from the keyboard (WCAG 2.1.1) |
+| `media-autoplay-sound` | error | unmuted `autoplay` masks a screen reader (WCAG 1.4.2) |
 
 ## License
 
