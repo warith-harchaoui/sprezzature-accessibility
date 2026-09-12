@@ -60,7 +60,17 @@ from pydantic import BaseModel, Field
 
 # The rules live in the scripts package, which is where the command line
 # reaches them too; importing rather than re-implementing is the whole point.
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+# Two layouts, one import. In this checkout the modules sit in scripts/;
+# installed from a wheel they ship as the sprezzature_accessibility_scripts package.
+# Either way what goes on the path is the directory holding them, because
+# they import each other by bare name — that is the same property that lets
+# each one run on its own out of a downloaded zip.
+_SCRIPTS = Path(__file__).resolve().parent.parent / "scripts"
+if not _SCRIPTS.is_dir():  # pragma: no cover - installed layout
+    import sprezzature_accessibility_scripts
+
+    _SCRIPTS = Path(sprezzature_accessibility_scripts.__file__).resolve().parent
+sys.path.insert(0, str(_SCRIPTS))
 from lint_a11y import ALL_RULES, lint_html  # noqa: E402
 
 from . import __version__ as _VERSION  # noqa: E402
