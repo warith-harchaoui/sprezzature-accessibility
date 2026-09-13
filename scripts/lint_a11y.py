@@ -987,7 +987,7 @@ def fix_file(
 
 # ── Orchestration ────────────────────────────────────────────────────────
 
-def lint_html(html: str, ignored: "set[str] | None" = None) -> list[Finding]:
+def lint_html(html: str, ignored: set[str] | None = None) -> list[Finding]:
     """
     Run every enabled rule against a string of HTML.
 

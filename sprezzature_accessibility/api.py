@@ -108,10 +108,17 @@ class LintRequest(BaseModel):
     )
 
 
-@app.get("/health", tags=["meta"], operation_id="health")
+@app.get(
+    "/health",
+    tags=["meta"],
+    operation_id="health",
+    summary="Check that this accessibility server is up",
+)
 def health() -> dict:
     """
     Liveness probe — no dependency check, just proves the app is up.
+
+    Call this only to diagnose a connection problem.
 
     Returns
     -------
@@ -121,10 +128,21 @@ def health() -> dict:
     return {"status": "ok"}
 
 
-@app.get("/v1/rules", tags=["meta"], operation_id="list_rules")
+@app.get(
+    "/v1/rules",
+    tags=["meta"],
+    operation_id="list_rules",
+    summary="List the accessibility rules this linter checks",
+)
 def rules() -> dict:
     """
     Every rule this build knows, with its severity.
+
+    Call this to answer "what do you actually check", and before using
+    `lint_html`'s `ignore` list -- a rule id that does not exist is silently
+    ignored, so suppressing a finding by a guessed name suppresses nothing.
+    It also draws the boundary honestly: what is not in this list is not
+    checked, and a clean lint is not a claim of WCAG conformance.
 
     Returns
     -------
@@ -139,10 +157,26 @@ def rules() -> dict:
     }
 
 
-@app.post("/v1/lint", tags=["actions"], operation_id="lint_html")
+@app.post(
+    "/v1/lint",
+    tags=["actions"],
+    operation_id="lint_html",
+    summary="Find accessibility faults in a page's HTML",
+)
 def lint(request: LintRequest) -> dict:
     """
     Lint a string of HTML and report every violation found.
+
+    This is the tool for "check this for accessibility", "a11y lint", "is
+    this WCAG-friendly", "missing alt", "unlabelled input", "vérifie
+    l'accessibilité" -- and the one to run over any markup you just wrote,
+    before showing it to anyone.
+
+    It reads the source only: no browser, no runtime DOM, so it is fast and
+    deterministic, and it cannot see what JavaScript builds, what focus does,
+    or what colour contrast computes to. A clean result means "none of the
+    listed rules fired", never "this page is accessible". Say that when you
+    report it, and send colour questions to sprezzature-colors.
 
     Parameters
     ----------
