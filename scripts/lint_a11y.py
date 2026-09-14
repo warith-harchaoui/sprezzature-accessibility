@@ -6,7 +6,7 @@ lint_a11y
 Accessibility linter for HTML emitted by (or for) the ``sprezzature``
 skill. "Accessible" here means concretely: can someone using a screen
 reader, a keyboard alone (no mouse), or a browser's reduced-motion
-setting still use the page? The fifteen rules below each check for
+setting still use the page? The twenty rules below each check for
 one source-level defect that breaks that experience, for example an
 ``<img>`` with no ``alt`` text, which is as invisible to a screen
 reader as if the image were missing from the page entirely.
@@ -17,7 +17,7 @@ which is what a screen reader actually reads from), never runs
 JavaScript. It only reads the HTML text, so it drops straight into a
 code-emit pipeline or a pre-commit hook with no Chromium to install.
 
-The fifteen rules cover the violations that account for the bulk of
+The twenty rules cover the violations that account for the bulk of
 real-world WCAG (Web Content Accessibility Guidelines, the W3C
 standard that defines what "accessible" means for the web) and
 WAI-ARIA (Web Accessibility Initiative, Accessible Rich Internet
@@ -619,8 +619,8 @@ def check_media_alternatives(root: Element) -> list[Finding]:
     Rules ``video-missing-captions``, ``audio-missing-transcript``,
     ``track-missing-srclang`` and ``media-missing-controls``.
 
-    WCAG 1.2 (Time-based Media) is the one success-criterion family the other
-    fourteen rules here never touch, and it is the family that locks a Deaf or
+    WCAG 1.2 (Time-based Media) is the one success-criterion family no other
+    rule here touches, and it is the family that locks a Deaf or
     hard-of-hearing visitor out of a page entirely rather than merely making it
     awkward. A ``<video>`` with no caption track is not a degraded experience;
     it is no experience.
@@ -1091,7 +1091,7 @@ def main() -> int:
     p = make_parser(
         prog="sprezzature-accessibility-lint",
         description="W3C/WAI accessibility linter for HTML emitted by the sprezzature skill. "
-                    "15 rules, exit 1 on any finding. Pre-commit gate — pair with axe-core "
+                    "20 rules, exit 1 on any finding. Pre-commit gate — pair with axe-core "
                     "or Pa11y for runtime DOM audits.",
         epilog="Examples:\n"
                "  sprezzature-accessibility-lint public/index.html\n"

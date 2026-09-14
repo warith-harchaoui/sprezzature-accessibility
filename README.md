@@ -12,7 +12,7 @@ mouse), or a browser's reduced-motion setting can still use it. This tool checks
 source code for the mistakes that most often break that: an `<img>` with no `alt` text
 is as invisible to a screen reader as if the image were simply missing from the page.
 
-It is a static linter: fifteen rules from WCAG (Web Content Accessibility
+It is a static linter: twenty rules from WCAG (Web Content Accessibility
 Guidelines, the W3C standard that defines what "accessible" means for the web) and
 WAI-ARIA (the attribute vocabulary, `role`, `aria-label` and the like, that lets custom
 widgets describe themselves to assistive software), each one decidable by reading the
@@ -29,7 +29,7 @@ cannot reach, dialogs with no way to close them by keyboard, missing `lang` attr
 nesting in order, status shown by color alone (a red/green pair that a colorblind
 reader cannot tell apart), and animations with no way to turn them down for someone
 sensitive to motion, and negative letter-spacing on running text (which slows
-reading for dyslexic readers). Six of those fifteen rules also ship a mechanical
+reading for dyslexic readers). Six of those twenty rules also ship a mechanical
 auto-fix (`--fix`), so the gate can repair what it safely can instead of only
 reporting it.
 
@@ -42,8 +42,10 @@ browser-accurate second pass.
 
 ## Features
 
-- 15 rules covering img, a, button, div/span, input, dialog, html, tabindex, aria,
-  heading order, color-only state, motion-reduce guards, and body-text letter-spacing
+- 20 rules covering img, a, button, div/span, input, dialog, html, tabindex, aria,
+  heading order, color-only state, motion-reduce guards, body-text letter-spacing,
+  and time-based media: video captions, audio transcripts, unmuted autoplay,
+  keyboard controls, and caption-track language
 - Auto-fix for 6 rules: lang detection + insertion, redundant aria removal, tabindex
   demotion, aria-hidden strip, motion-reduce guard append, tight-tracking strip
 - `text_spacing_preset.py`: the make-side counterpart to the letter-spacing rule —

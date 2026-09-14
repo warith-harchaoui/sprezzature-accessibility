@@ -14,7 +14,7 @@ de son navigateur, peut malgré tout s'en servir. Cet outil relit le code source
 `<img>` sans texte alternatif est aussi invisible pour un lecteur d'écran que si
 l'image n'existait tout simplement pas sur la page.
 
-C'est un linter statique : quinze règles issues des WCAG (*Web Content
+C'est un linter statique : vingt règles issues des WCAG (*Web Content
 Accessibility Guidelines*, la norme du W3C qui définit ce que « accessible » veut
 dire pour le web) et de WAI-ARIA (le vocabulaire d'attributs, `role`, `aria-label`
 et consorts, qui permet à un composant fait maison de se décrire aux logiciels
@@ -34,7 +34,7 @@ prononciation du lecteur d'écran), niveaux de titre qui sautent au lieu de s'em
 dans l'ordre, état montré par la seule couleur (un rouge et un vert qu'une personne
 daltonienne ne distingue pas), et animations sans moyen de les réduire pour qui y est
 sensible, et un espacement des lettres resserré sur du texte de lecture (ce qui
-ralentit la lecture des personnes dyslexiques). Six de ces quinze règles disposent
+ralentit la lecture des personnes dyslexiques). Six de ces vingt règles disposent
 en plus d'une correction automatique mécanique (`--fix`), pour que la porte répare
 elle-même ce qu'elle peut réparer sans risque, au lieu de se contenter de le
 signaler.
@@ -49,9 +49,11 @@ passe plus lente mais fidèle au rendu réel.
 
 ## Fonctionnalités
 
-- 15 règles couvrant img, a, button, div/span, input, dialog, html, tabindex, aria,
-  ordre des titres, état par couleur seule, guards motion-reduce, et espacement des
-  lettres sur le texte de lecture
+- 20 règles couvrant img, a, button, div/span, input, dialog, html, tabindex, aria,
+  ordre des titres, état par couleur seule, guards motion-reduce, espacement des
+  lettres sur le texte de lecture, et les médias temporels : sous-titres vidéo,
+  transcription audio, lecture automatique non muette, commandes au clavier,
+  et langue de la piste de sous-titres
 - Correction automatique pour 6 règles : détection et insertion du lang, suppression
   d'aria redondant, rétrogradation du tabindex, suppression d'aria-hidden, ajout du
   guard motion-reduce, suppression du resserrement de lettres

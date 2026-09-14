@@ -1,4 +1,4 @@
-# The fifteen rules — WCAG/WAI-ARIA mapping and known limits
+# The twenty rules — WCAG/WAI-ARIA mapping and known limits
 
 Each rule below maps to a specific Web Content Accessibility Guidelines
 (WCAG, the W3C standard that defines what "accessible" means for the
@@ -34,7 +34,26 @@ document; for run commands and output shapes, see `EXAMPLES.md`.
 | `aria-hidden-interactive` | `aria-hidden="true"` removes an element from the accessibility tree entirely | A `button` / `a` / `input` / `select` / `textarea` with `aria-hidden="true"`, which makes it invisible to assistive technology while remaining visible and clickable on screen. |
 | `img-redundant-aria` | Not a violation, a redundancy | `alt=""` (already the correct decorative marker) combined with `role="presentation"` or `aria-hidden="true"`. Harmless but redundant; flagged as a style warning, not an error. |
 
-## What these fifteen rules do not cover
+## Rules for time-based media (WCAG 1.2, 1.4.2, 2.1.1)
+
+WCAG 1.2 is the one success-criterion family no other rule here touches, and it is the one that locks a Deaf or hard-of-hearing visitor out of a
+page entirely rather than merely making it awkward. A `<video>` with no caption
+track is not a degraded experience; it is no experience.
+
+What a static linter can and cannot see here: it can tell that a caption track
+is **declared**, never that its text is correct or synchronised. It reports the
+absence, which is the failure it can prove. Pair it with `sprezzature-audio`,
+which drafts the WebVTT the declaration points at.
+
+| Rule | Criterion | What it flags |
+|---|---|---|
+| `video-missing-captions` | 1.2.2 Captions (Prerecorded), level A | `<video>` with no `<track kind="captions">` or `kind="subtitles"`. Skipped when the element is marked decorative. |
+| `audio-missing-transcript` | 1.2.1 Audio-only and Video-only (Prerecorded), level A | `<audio>` with neither a caption track nor an accessible name pointing at a transcript. |
+| `media-autoplay-sound` | 1.4.2 Audio Control, level A | `<video autoplay>` / `<audio autoplay>` without `muted`. Sound that starts by itself masks a screen reader's own speech — the user cannot hear the tool they navigate with. `muted` satisfies the criterion outright, so muted autoplay is not flagged. |
+| `media-missing-controls` | 2.1.1 Keyboard, level A | A media element with no `controls` attribute: nothing to operate from the keyboard. `controls` is not itself a criterion, but its absence with no scripted alternative is a keyboard failure. |
+| `track-missing-srclang` | 1.2.4 / authoring practice | `<track>` with no `srclang`, so assistive technology cannot tell which language the captions are in. |
+
+## What these twenty rules do not cover
 
 The linter is static by design (see `README.md` / `LISEZMOI.md` for why), so it cannot see:
 
