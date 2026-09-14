@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sprezzature-accessibility"
-version = "1.0.1"
-description = "Static HTML accessibility linter: 15 WCAG/WAI rules decidable from source, stdlib only, CI-ready."
+version = "1.0.2"
+description = "Static HTML accessibility linter: 20 WCAG/WAI rules decidable from source, time-based media included, stdlib only, CI-ready."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "BSD-3-Clause"

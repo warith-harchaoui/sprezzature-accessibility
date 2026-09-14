@@ -64,6 +64,10 @@ def test_changelog_leads_with_the_current_version() -> None:
 
 #: Files whose prose tells a reader how many rules the linter has.
 _COUNT_CLAIMING_FILES = (
+    # pyproject's `description` is the one line PyPI prints above everything
+    # else, and it is the line this list forgot: 1.0.1 shipped with the rule
+    # count corrected in five files and still wrong on the package page.
+    "pyproject.toml",
     "README.md",
     "LISEZMOI.md",
     "references/lint-rules.md",

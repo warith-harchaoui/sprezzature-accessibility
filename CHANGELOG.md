@@ -2,6 +2,17 @@
 
 All notable changes to sprezzature-accessibility are documented here.
 
+## [1.0.2] - 2026-09-14: the rule count on the package page itself
+
+### Fixed
+
+- **1.0.1 corrected the count in five files and shipped it wrong in the
+  sixth.** `pyproject.toml`'s `description` is the one line PyPI prints above
+  everything else, and it still said "15 WCAG/WAI rules". The guard added in
+  1.0.1 could not catch it: its list of count-claiming files was written by
+  hand and did not include the file the package page renders. It does now —
+  the same lesson as the release it was written for, one level up.
+
 ## [1.0.1] - 2026-09-14: the linter has twenty rules, and every document said fifteen
 
 ### Fixed
