@@ -5,7 +5,7 @@
 
 🇫🇷 LISEZMOI.md · [🇬🇧 README.md](README.md)
 
-[![logo](assets/logo.png)](https://harchaoui.org/warith/sprezzature/)
+[![logo](assets/logo.png)](https://sprezzature.ai/)
 
 Une page web est accessible quand une personne qui utilise un lecteur d'écran, qui
 navigue au clavier seul (sans souris), ou qui a activé le réglage « mouvement réduit »

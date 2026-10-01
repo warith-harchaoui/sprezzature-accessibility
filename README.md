@@ -5,7 +5,7 @@
 
 [🇫🇷 LISEZMOI.md](https://github.com/warith-harchaoui/sprezzature-accessibility/blob/main/LISEZMOI.md) · 🇬🇧 README.md
 
-[![logo](https://raw.githubusercontent.com/warith-harchaoui/sprezzature-accessibility/main/assets/logo.png)](https://harchaoui.org/warith/sprezzature/)
+[![logo](https://raw.githubusercontent.com/warith-harchaoui/sprezzature-accessibility/main/assets/logo.png)](https://sprezzature.ai/)
 
 A web page is accessible when someone using a screen reader, a keyboard alone (no
 mouse), or a browser's reduced-motion setting can still use it. This tool checks HTML

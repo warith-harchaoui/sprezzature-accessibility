@@ -52,7 +52,7 @@ sprezzature-accessibility-lint = "sprezzature_accessibility_scripts.lint_a11y:ma
 sprezzature-accessibility-text-spacing = "sprezzature_accessibility_scripts.text_spacing_preset:main"
 
 [project.urls]
-Homepage = "https://harchaoui.org/warith/sprezzature/"
+Homepage = "https://sprezzature.ai/"
 Repository = "https://github.com/warith-harchaoui/sprezzature-accessibility"
 
 [tool.setuptools]
