@@ -3,7 +3,7 @@
 ## Lint a single file
 
 ```bash
-python scripts/lint_a11y.py public/index.html
+sprezzature-accessibility-lint public/index.html
 ```
 
 Output (text):
@@ -21,13 +21,13 @@ Exit code: `1` (findings present).
 ## Lint a directory recursively
 
 ```bash
-python scripts/lint_a11y.py public/
+sprezzature-accessibility-lint public/
 ```
 
 ## JSON output for machine consumption
 
 ```bash
-python scripts/lint_a11y.py --format json public/index.html | jq '.findings_total'
+sprezzature-accessibility-lint --format json public/index.html | jq '.findings_total'
 ```
 
 Output:
@@ -50,13 +50,13 @@ Output:
 ## Ignore specific rules
 
 ```bash
-python scripts/lint_a11y.py --ignore heading-skip,motion-no-reduce-guard public/
+sprezzature-accessibility-lint --ignore heading-skip,motion-no-reduce-guard public/
 ```
 
 ## Auto-fix in place
 
 ```bash
-python scripts/lint_a11y.py --fix public/index.html
+sprezzature-accessibility-lint --fix public/index.html
 ```
 
 stderr output:
@@ -77,7 +77,7 @@ Rules without a fixer (require a content decision): `a-empty`,
 ## Preview fix without writing
 
 ```bash
-python scripts/lint_a11y.py --fix --dry-run public/index.html
+sprezzature-accessibility-lint --fix --dry-run public/index.html
 ```
 
 Exits 0 always (preview, not a verdict).
@@ -89,7 +89,7 @@ running text; `text_spacing_preset.py` emits the opposite — an opt-in CSS
 block a page can ship, at the WCAG 1.4.12 Text Spacing minimums:
 
 ```bash
-python scripts/text_spacing_preset.py
+sprezzature-accessibility-text-spacing
 ```
 
 Output:
@@ -122,7 +122,7 @@ page already persists a dark-mode choice) once this CSS block is included.
 Custom attribute, values, and output file:
 
 ```bash
-python scripts/text_spacing_preset.py \
+sprezzature-accessibility-text-spacing \
   --attr data-reading-mode --value on \
   --letter-spacing 0.16 --word-spacing 0.32 \
   --out reading-mode.css
@@ -137,7 +137,7 @@ repos:
     hooks:
       - id: a11y-lint
         name: Accessibility lint
-        entry: python scripts/lint_a11y.py
+        entry: sprezzature-accessibility-lint
         language: python
         files: \.html$
         args: ["public/"]

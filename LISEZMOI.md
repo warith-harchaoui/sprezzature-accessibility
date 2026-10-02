@@ -70,22 +70,22 @@ passe plus lente mais fidèle au rendu réel.
 
 ```bash
 # Lint d'une page unique
-python scripts/lint_a11y.py public/index.html
+sprezzature-accessibility-lint public/index.html
 
 # Lint récursif d'un répertoire, sortie 1 sur tout résultat
-python scripts/lint_a11y.py public/
+sprezzature-accessibility-lint public/
 
 # Sortie JSON pour une chaîne CI
-python scripts/lint_a11y.py --format json public/index.html
+sprezzature-accessibility-lint --format json public/index.html
 
 # Ignorer deux règles
-python scripts/lint_a11y.py --ignore heading-skip,motion-no-reduce-guard public/
+sprezzature-accessibility-lint --ignore heading-skip,motion-no-reduce-guard public/
 
 # Corriger automatiquement ce qui peut l'être
-python scripts/lint_a11y.py --fix public/
+sprezzature-accessibility-lint --fix public/
 
 # Prévisualiser sans écrire
-python scripts/lint_a11y.py --fix --dry-run public/
+sprezzature-accessibility-lint --fix --dry-run public/
 ```
 
 ## Installation
@@ -99,7 +99,7 @@ pip install "sprezzature-accessibility[lang]"
 Ou exécution directe sans installation :
 
 ```bash
-python scripts/lint_a11y.py public/
+sprezzature-accessibility-lint public/
 ```
 
 ## Licence

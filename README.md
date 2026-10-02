@@ -60,22 +60,22 @@ browser-accurate second pass.
 
 ```bash
 # Lint a single page
-python scripts/lint_a11y.py public/index.html
+sprezzature-accessibility-lint public/index.html
 
 # Lint a directory recursively, exit 1 on any finding
-python scripts/lint_a11y.py public/
+sprezzature-accessibility-lint public/
 
 # JSON output for CI pipeline consumption
-python scripts/lint_a11y.py --format json public/index.html
+sprezzature-accessibility-lint --format json public/index.html
 
 # Suppress two rules
-python scripts/lint_a11y.py --ignore heading-skip,motion-no-reduce-guard public/
+sprezzature-accessibility-lint --ignore heading-skip,motion-no-reduce-guard public/
 
 # Auto-fix what can be fixed mechanically
-python scripts/lint_a11y.py --fix public/
+sprezzature-accessibility-lint --fix public/
 
 # Preview what --fix would change, without writing
-python scripts/lint_a11y.py --fix --dry-run public/
+sprezzature-accessibility-lint --fix --dry-run public/
 ```
 
 ## Install
@@ -89,7 +89,7 @@ pip install "sprezzature-accessibility[lang]"
 Or run directly without install:
 
 ```bash
-python scripts/lint_a11y.py public/
+sprezzature-accessibility-lint public/
 ```
 
 ## Rules
