@@ -2,6 +2,41 @@
 
 All notable changes to sprezzature-accessibility are documented here.
 
+## [1.1.0] — 2026-10-17
+
+The package gains its missing half. It could say what a page got wrong about
+images; it could not say what the image was. Now it can do both, and the
+second is informed by the first.
+
+### Added
+
+- **`--fix-alt`**, which closes the audit→make loop for the one finding that
+  needed a model. The lint reports `img-missing-alt`; this drafts the text
+  and writes it in, using the image **and the surrounding text of the very
+  page being fixed** — the heading above it, the sentence beside it, and the
+  proper nouns the document itself uses. The W3C decision tree asks what an
+  image is *doing* on the page, which is a question about the page, not about
+  the pixels.
+- **The drafting half**, merged in from the former `sprezzature-vision`:
+  `make-alt` (argparse) and `sprezzature-accessibility-alt` (click) over one
+  engine, `sprezzature-accessibility-install-alt` for the model, nine prompts
+  tuned per image purpose, an on-disk cache, and language detection from the
+  document rather than the machine's locale.
+- **A library surface.** `sprezzature_accessibility` exported only
+  `__version__` before. It now exports `lint_file` and `fix_file` eagerly,
+  and the drafting functions lazily.
+
+### Changed
+
+- `--fix` is unchanged, deliberately. It promises mechanical, offline,
+  idempotent repairs, and drafting is none of those: it calls a model, takes
+  seconds per image, and writes prose a human should read. Folding it in
+  would silently change what the flag means for everyone already using it.
+- The drafting half sits behind an **optional `[alt]` extra**. The lint stays
+  stdlib-only with zero dependencies, which is the reason it is worth
+  reaching for in a pre-commit hook: `pip install sprezzature-accessibility`
+  for the audit, `pip install "sprezzature-accessibility[alt]"` for both.
+
 ## [1.0.3] - 2026-10-02: the half of the dependency guard nobody runs
 
 ### Fixed

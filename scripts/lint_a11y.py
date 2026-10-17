@@ -1124,6 +1124,25 @@ def main() -> int:
         ),
     )
     p.add_argument(
+        "--fix-alt", dest="fix_alt", action="store_true",
+        help=(
+            "Draft the missing alt text and write it in, using the image AND "
+            "the surrounding text of the very page being fixed. Separate from "
+            "--fix on purpose: --fix is mechanical, offline and idempotent, "
+            "while this calls a local vision model, takes seconds per image, "
+            "and writes prose a human should read before committing. Needs "
+            "the drafting half: pip install 'sprezzature-accessibility[alt]'."
+        ),
+    )
+    p.add_argument(
+        "--alt-lang", dest="alt_lang", default=None, metavar="TAG",
+        help=(
+            "BCP-47 base tag for drafted alt text. Detected from the "
+            "document's own text when omitted — a French page should not get "
+            "English alt because the machine's locale is English."
+        ),
+    )
+    p.add_argument(
         "--dry-run", action="store_true",
         help=(
             "With --fix, print what would change without touching the "
@@ -1138,12 +1157,43 @@ def main() -> int:
         sys.stderr.write(f"No HTML files found under {args.target}\n")
         return 0
 
+    # ── Drafting pass ─────────────────────────────────────────────────
+    # Runs before the mechanical pass so the alt it writes is visible to the
+    # lint that follows: an image that now has alt="" would be reported as a
+    # decorative one with a redundant role, and --fix should get to clean
+    # that up in the same invocation.
+    if args.fix_alt:
+        from fill_alt import fill_missing_alt
+
+        drafted = 0
+        for path in paths:
+            drafts, unreachable = fill_missing_alt(
+                path, ignored, lang=args.alt_lang, dry_run=args.dry_run
+            )
+            drafted += len(drafts)
+            for draft in drafts:
+                sys.stderr.write(
+                    f"{path}:{draft.line}: drafted from {draft.src} "
+                    f"with {draft.context_chars} chars of page context\n"
+                )
+            for finding in unreachable:
+                sys.stderr.write(
+                    f"{path}:{finding.line}: left alone — the image is remote, "
+                    f"missing, or the tag spans lines\n"
+                )
+        if drafted:
+            sys.stderr.write(
+                f"{drafted} draft(s) written. They are drafts: a model cannot "
+                f"know that the photograph on the About page is the founder. "
+                f"Read them before committing.\n"
+            )
+
     # ── Fix mode ──────────────────────────────────────────────────────
     # ``--dry-run`` alone implies ``--fix`` (preview only). When the
     # user runs ``--fix``, we apply the safe mechanical fixes in place,
     # then emit the residual findings in the requested format so a CI
     # pipeline can still gate on them.
-    if args.fix or args.dry_run:
+    if args.fix or args.dry_run or args.fix_alt:
         total_applied: int = 0
         total_skipped: int = 0
         total_remaining: list[Finding] = []

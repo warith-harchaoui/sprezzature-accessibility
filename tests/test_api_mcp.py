@@ -134,3 +134,66 @@ def test_every_tool_says_when_to_call_it() -> None:
             f"{route.operation_id}: description is {len(description)} chars. Say when "
             f"to call it, not just what it is."
         )
+
+
+# ── Every route is actually called ─────────────────────────────────────────
+#
+# Added after the merge, because the suite had gone green over a route that
+# would have raised NameError on the first request: `/v1/kinds` referenced a
+# table that had not been carried across. Reading the OpenAPI schema proves a
+# route is *declared*; only calling it proves it runs. ruff caught this one;
+# a test should not need ruff's help.
+
+def test_every_declared_get_route_answers() -> None:
+    """A declared route that raises on call is worse than a missing one."""
+    from fastapi.testclient import TestClient
+
+    from sprezzature_accessibility.api import app
+
+    client = TestClient(app)
+    declared = [
+        route.path
+        for route in app.routes
+        if getattr(route, "methods", None)
+        and "GET" in route.methods
+        and getattr(route, "include_in_schema", True)
+    ]
+    assert declared, "no GET routes found — the walk has stopped matching"
+    for path in declared:
+        response = client.get(path)
+        assert response.status_code < 500, (
+            f"GET {path} returned {response.status_code}: a route that is "
+            f"declared but raises is worse than one that is missing"
+        )
+
+
+def test_the_lint_route_reports_a_real_finding() -> None:
+    """The audit half answers over HTTP, not just in-process."""
+    from fastapi.testclient import TestClient
+
+    from sprezzature_accessibility.api import app
+
+    client = TestClient(app)
+    response = client.post("/v1/lint", json={"html": '<img src="a.png">'})
+    assert response.status_code == 200
+    rules = [f["rule"] for f in response.json()["findings"]]
+    assert "img-missing-alt" in rules, response.json()
+
+
+def test_the_drafting_route_says_so_when_its_extra_is_absent(monkeypatch) -> None:
+    """
+    Without the ``[alt]`` extra, drafting answers 503 — not 500, not a crash.
+
+    The audit half has to keep working in a deployment that never installed a
+    model client, and the caller has to be told which extra is missing rather
+    than reading a traceback.
+    """
+    from fastapi.testclient import TestClient
+
+    import sprezzature_accessibility.api as api
+
+    monkeypatch.setattr(api, "_ALT_READY", False)
+    client = TestClient(api.app)
+    response = client.post("/v1/alt", json={"src": "a.png"})
+    assert response.status_code == 503
+    assert "[alt]" in response.json()["detail"]

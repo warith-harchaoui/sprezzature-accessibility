@@ -1,7 +1,10 @@
 """
 sprezzature-accessibility — static HTML accessibility linter.
 
-Fourteen rules from WCAG (Web Content Accessibility Guidelines) and
+Two halves of one job — **audit** what a page gets wrong about
+accessibility, and **make** the content it is missing.
+
+The audit half: fourteen rules from WCAG (Web Content Accessibility Guidelines) and
 WAI-ARIA (the W3C's accessible-widget attribute vocabulary), each
 decidable by reading the HTML source alone, with no browser involved:
 missing alt text, unlabelled inputs, empty buttons, onclick divs,
@@ -11,7 +14,74 @@ axe-core / Pa11y, which check the page after a browser has rendered it
 (the "runtime DOM"), for the failures that only show up there.
 """
 
-__version__ = "1.0.3"
+__version__ = "1.1.0"
 __author__ = "Warith HARCHAOUI"
 __email__ = "warith.harchaoui@gmail.com"
 __license__ = "BSD-3-Clause"
+
+from sprezzature_accessibility_scripts.lint_a11y import (  # noqa: E402
+    Finding,
+    fix_file,
+    lint_file,
+)
+
+#: Image purposes from the W3C alt-text decision tree, in the order the tree
+#: asks about them. Exported because every surface needs the same list: the
+#: command lines validate against it, the API publishes it as an enum, and the
+#: MCP tool schema is derived from the API.
+KINDS: tuple[str, ...] = (
+    "informative",
+    "decorative",
+    "functional",
+    "text",
+    "complex",
+    "group",
+)
+
+#: Names served lazily from the drafting half. They live behind the ``[alt]``
+#: extra, and importing them eagerly would drag click and an LLM helper into
+#: ``import sprezzature_accessibility`` — breaking the promise that makes the
+#: lint worth reaching for: zero dependencies, milliseconds, no browser, runs
+#: in any pre-commit hook.
+_ALT_EXPORTS = {
+    "DEFAULT_BASE", "MAX_CHARS", "describe", "describe_long", "detect_lang",
+    "compose_vocabulary_hint", "load_image_bytes", "long_prompt_for",
+    "maybe_resize", "pick_default_model", "post_process", "prompt_for",
+    "surrounding_text",
+}
+
+
+def __getattr__(name: str):
+    """Resolve a drafting export on first use, per PEP 562.
+
+    A caller who only lints never triggers this, and so never needs the extra.
+    A caller who asks for ``describe`` without the extra installed gets a
+    sentence naming the install command rather than a bare ImportError about
+    a module they have never heard of.
+    """
+    if name not in _ALT_EXPORTS:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    try:
+        if name == "surrounding_text":
+            from sprezzature_accessibility_scripts._vocab import surrounding_text
+            return surrounding_text
+        import sprezzature_accessibility_scripts.alt_from_ollama as engine
+    except ImportError as exc:
+        raise ImportError(
+            f"`{name}` belongs to the alt-text drafting half of this package, "
+            f"which is an optional extra so the lint stays dependency-free. "
+            f"Install it with: pip install 'sprezzature-accessibility[alt]'"
+        ) from exc
+    return getattr(engine, name)
+
+
+__all__ = [
+    # audit
+    "Finding",
+    "fix_file",
+    "lint_file",
+    # make
+    "KINDS",
+    *sorted(_ALT_EXPORTS),
+    "__version__",
+]

@@ -46,9 +46,10 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import Literal
 
 try:
-    from fastapi import FastAPI
+    from fastapi import FastAPI, HTTPException
     from fastapi.responses import RedirectResponse
 except ImportError as exc:  # pragma: no cover - dependency guard
     raise ImportError(
@@ -210,3 +211,187 @@ def lint(request: LintRequest) -> dict:
 def docs_redirect() -> RedirectResponse:
     """Convenience redirect to the interactive API docs."""
     return RedirectResponse(url="/docs")
+
+
+#: What each purpose is for, in the words the decision tree uses. Served
+#: rather than documented only, because a caller choosing a ``kind`` is
+#: making the one judgement the model cannot make for them.
+KIND_HELP: dict[str, str] = {
+    "informative": "Carries meaning the surrounding text does not. Describe it.",
+    "decorative": "Adds nothing a reader would miss. Takes alt=\"\" — no words.",
+    "functional": "Is a control or a link. Describe the *action*, not the picture.",
+    "text": "Is words as an image. Transcribe them.",
+    "complex": "A chart or diagram. Short alt plus a long description nearby.",
+    "group": "One of several images that only make sense together.",
+}
+
+
+# ── The drafting half ────────────────────────────────────────────────────
+#
+# Served only when the ``[alt]`` extra is installed. The audit routes above
+# have no dependencies beyond FastAPI itself; these need a model client, and
+# a deployment that only wants the lint should not be forced to carry one.
+# A missing extra is reported per-request as a 503 rather than at import, so
+# `GET /health` and the lint keep answering.
+try:
+    from sprezzature_accessibility import (
+        DEFAULT_BASE,
+        KINDS,
+        MAX_CHARS,
+        describe,
+        describe_long,
+        detect_lang,
+    )
+    _ALT_READY = True
+except ImportError:  # pragma: no cover - dependency guard
+    _ALT_READY = False
+    DEFAULT_BASE, MAX_CHARS = "qwen3-vl:8b", 125
+    from sprezzature_accessibility import KINDS
+
+
+class AltRequest(BaseModel):
+    """One image, and the single judgement the model cannot make for you."""
+
+    src: str = Field(
+        description="Path or URL to the image. Ignored when kind is 'decorative'.",
+        examples=["hero.jpg"],
+    )
+    kind: Literal[
+        "informative", "decorative", "functional", "text", "complex", "group"
+    ] = Field(
+        default="informative",
+        description="Image purpose, per the W3C alt decision tree.",
+    )
+    lang: str | None = Field(
+        default=None,
+        description="BCP-47 base tag. Omit to detect from the environment.",
+        examples=["fr"],
+    )
+    context: str = Field(
+        default="",
+        description=(
+            "Surrounding-text hint. For kind='functional' this is where you "
+            "name the action or destination."
+        ),
+    )
+    resize: int = Field(
+        default=1024, ge=0,
+        description="Longest edge sent to the model, in pixels. 0 disables resizing.",
+    )
+    model: str | None = Field(
+        default=None,
+        description=f"Ollama tag. Omit for the one authorized model ({DEFAULT_BASE}).",
+    )
+    vocabulary: list[str] | None = Field(
+        default=None,
+        description="Project spellings to bias toward instead of a near-miss.",
+    )
+    long: bool = Field(
+        default=False,
+        description=(
+            "Return a long description as well — what a 'complex' image needs "
+            "beside its short alt."
+        ),
+    )
+
+
+class AltResponse(BaseModel):
+    """The draft, and enough context to judge it."""
+
+    alt: str = Field(description=f"Alt text, at most {MAX_CHARS} characters.")
+    long: str | None = Field(
+        default=None, description="Long description, when it was asked for."
+    )
+    lang: str = Field(description="Language the text was written in.")
+    kind: str = Field(description="Purpose the caller declared.")
+    draft: bool = Field(
+        default=True,
+        description=(
+            "Always true. A model cannot know what an image is for on your "
+            "page; verify before committing."
+        ),
+    )
+
+
+@app.get(
+    "/v1/kinds",
+    tags=["meta"],
+    operation_id="list_kinds",
+    summary="List the six image purposes alt text is written against",
+)
+def list_kinds() -> dict[str, str]:
+    """The six image purposes, each with what it is for.
+
+    Published because choosing between them is the caller's decision and the
+    whole quality of the result rests on it.
+    """
+    return {kind: KIND_HELP[kind] for kind in KINDS}
+
+
+@app.post(
+    "/v1/alt",
+    tags=["actions"],
+    operation_id="draft_alt_text",
+    summary="Draft alt text for one image with a local vision model",
+)
+def draft_alt_text(request: AltRequest) -> AltResponse:
+    """Draft alt text for one image.
+
+    Raises
+    ------
+    HTTPException
+        ``502`` when the local model cannot be reached or refuses the
+        request. Reported as a gateway error rather than a server error
+        because the failure is upstream of this process, and the fix is to
+        start Ollama rather than to retry here.
+    """
+    if not _ALT_READY:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "the drafting half is not installed. "
+                "pip install 'sprezzature-accessibility[alt]'"
+            ),
+        )
+    language = request.lang or detect_lang()
+    try:
+        alt = describe(
+            request.src,
+            kind=request.kind,
+            lang=language,
+            context=request.context,
+            resize=request.resize,
+            model=request.model,
+            vocabulary=request.vocabulary,
+        )
+        # No `vocabulary` here: `describe_long` does not take one. The long
+        # description is prose a reader will read in full, where a near-miss
+        # spelling is visible and correctable; the short alt is a single
+        # attribute nobody re-reads, which is where the bias earns its place.
+        long_text = (
+            describe_long(
+                request.src,
+                kind=request.kind,
+                lang=language,
+                context=request.context,
+                resize=request.resize,
+                model=request.model,
+            )
+            if request.long
+            else None
+        )
+    except SystemExit as exc:
+        # The script layer exits on an unreachable model; over HTTP that has
+        # to become a status code, not a dead worker.
+        raise HTTPException(
+            status_code=502,
+            detail=(
+                f"the local vision model could not be reached "
+                f"(exit {exc.code}). Is Ollama running, and is "
+                f"{DEFAULT_BASE} pulled?"
+            ),
+        ) from exc
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    return AltResponse(alt=alt, long=long_text, lang=language, kind=request.kind)

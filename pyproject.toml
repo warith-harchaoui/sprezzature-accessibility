@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sprezzature-accessibility"
-version = "1.0.3"
+version = "1.1.0"
 description = "Static HTML accessibility linter: 20 WCAG/WAI rules decidable from source, time-based media included, stdlib only, CI-ready."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -24,6 +24,24 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
+# The drafting half of this package — the "make" to the lint's "audit".
+#
+# An extra, not a hard dependency, and that is the whole design. The lint is
+# stdlib-only on purpose: it runs in milliseconds in a minimal CI container
+# and in a pre-commit hook, which is the reason anyone reaches for it over
+# axe-core. Putting a model client in `dependencies` would make every
+# pre-commit install pull a CLI framework and an LLM helper to run a check
+# that never calls either.
+#
+#   pip install sprezzature-accessibility          # the audit, 0 dependencies
+#   pip install "sprezzature-accessibility[alt]"   # audit + drafting
+alt = [
+    "click>=8.1",
+    # Every LLM/VLM call across sprezzature-* routes through
+    # best_engine_ai_helper.llm.chat; alt_from_ollama imports it at module
+    # level, so the drafter cannot start without it.
+    "best-engine-ai-helper>=0.4.0",
+]
 dev = ["pytest>=8.0", "ruff"]
 lang = ["langdetect>=1.0.9"]
 # HTTP surface (sprezzature_accessibility/api.py): the linter over HTTP, so
@@ -50,6 +68,11 @@ mcp = [
 sprezzature-accessibility-mcp = "sprezzature_accessibility.mcp:main"
 sprezzature-accessibility-lint = "sprezzature_accessibility_scripts.lint_a11y:main"
 sprezzature-accessibility-text-spacing = "sprezzature_accessibility_scripts.text_spacing_preset:main"
+# The drafting half, behind the [alt] extra. Two parsers over one engine, in
+# the house spelling: `make-X` is argparse, `sprezzature-X` the click twin.
+make-alt = "sprezzature_accessibility.alt_cli:main"
+sprezzature-accessibility-alt = "sprezzature_accessibility.alt_cli_click:main"
+sprezzature-accessibility-install-alt = "sprezzature_accessibility_scripts.install_alt_ai:main"
 
 [project.urls]
 Homepage = "https://sprezzature.ai/"
@@ -57,6 +80,9 @@ Repository = "https://github.com/warith-harchaoui/sprezzature-accessibility"
 
 [tool.setuptools]
 packages = ["sprezzature_accessibility", "sprezzature_accessibility_scripts"]
+
+[tool.setuptools.package-data]
+"sprezzature_accessibility_scripts" = ["prompts/*.yaml", "requirements-alt-text.txt"]
 
 [tool.setuptools.package-dir]
 "sprezzature_accessibility_scripts" = "scripts"
