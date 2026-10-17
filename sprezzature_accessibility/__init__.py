@@ -16,7 +16,7 @@ axe-core / Pa11y, which check the page after a browser has rendered it
 
 __version__ = "1.1.0"
 __author__ = "Warith HARCHAOUI"
-__email__ = "warith.harchaoui@gmail.com"
+__email__ = "warithmetics@deraison.ai"
 __license__ = "BSD-3-Clause"
 
 from sprezzature_accessibility_scripts.lint_a11y import (  # noqa: E402
