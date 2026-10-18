@@ -1,0 +1,61 @@
+# `docker compose up` is the whole onboarding. The Dockerfile beside this file
+# is a recipe; this is the way in — the port, the volume, the environment and
+# the command, declared rather than reconstructed by the next reader from a
+# `docker run` line in somebody's shell history.
+#
+#   docker compose up -d
+#   curl -s localhost:8000/health
+#   docker compose run --rm api sprezzature-accessibility-lint /work/public
+#   docker compose --profile alt up -d          # + the model the drafter needs
+#
+# The model server is a separate profile. The twenty static rules and the
+# text-spacing preset need nothing but this image; only the alt-text drafter
+# asks a local model, and someone who only wants the lint should not be made
+# to run one.
+
+services:
+  api:
+    build: .
+    image: sprezzature-accessibility:local
+    ports:
+      - "8000:8000"
+    environment:
+      # The package reads OLLAMA_URL; the ollama server reads OLLAMA_HOST.
+      # They are not interchangeable, and getting it wrong is invisible until
+      # the first call: the default http://localhost:11434 resolves to *this*
+      # container, so the API comes up healthy and fails on the first draft.
+      OLLAMA_URL: http://ollama:11434
+      # Drafted alt text is cached by image digest, under $HOME by default.
+      # Pointed at the named volume below so a `down` does not throw the work
+      # away and make every re-run pay the model again.
+      SPREZZATURE_CACHE_DIR: /cache
+    volumes:
+      # The pages to lint and the images to describe, and anything written
+      # beside them. Mounted rather than copied so the container never holds
+      # the only copy.
+      - ./work:/work
+      - alt-cache:/cache
+    working_dir: /work
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    # Only started with `--profile alt`, because one tool of six needs it.
+    profiles: ["alt"]
+    ports:
+      - "11434:11434"
+    volumes:
+      # Named volume, not a bind mount: the weights survive `down` and a
+      # rebuild, and are not something anyone wants in their working tree.
+      - ollama-models:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  alt-cache:
+  ollama-models:
