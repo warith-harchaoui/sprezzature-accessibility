@@ -126,6 +126,7 @@ install says what it is for.
 | `heading-skip` | error | headings skip levels downward |
 | `color-only-state` | warning | red/green token with no icon or text |
 | `motion-no-reduce-guard` | warning | animation without motion-reduce peer |
+| `body-text-tracking-tight` | warning | tight letter-spacing on running text |
 | `video-missing-captions` | error | `<video>` with audio and no `<track kind="captions">` (WCAG 1.2.2) |
 | `audio-missing-transcript` | error | `<audio>` with no text alternative (WCAG 1.2.1) |
 | `track-missing-srclang` | warning | `<track>` without `srclang`: caption language unknown |

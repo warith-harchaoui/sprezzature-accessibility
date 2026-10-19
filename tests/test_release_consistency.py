@@ -132,3 +132,31 @@ def test_quoted_rule_count_matches_the_linter(relative_path: str) -> None:
         f"ALL_RULES holds {len(ALL_RULES)} (and RULE_FIXERS {len(RULE_FIXERS)}). "
         f"Adding a rule without touching this file is how the count went stale."
     )
+
+
+def test_the_documented_rule_tables_list_every_rule() -> None:
+    """A rule the linter runs and no document names is a rule nobody expects.
+
+    The counts were already guarded — every "twenty rules" in prose is
+    compared against ``len(ALL_RULES)``. The *tables* were not, and they drift
+    the same way for the same reason: a rule is added to the registry, the
+    sentence above the table is updated because a number is easy to see, and
+    the row is forgotten.
+
+    Found on 2026-10-19: README.md listed nineteen of twenty, missing
+    ``body-text-tracking-tight`` — a rule that fires on running text, so the
+    first person to meet it meets it in a build.
+    """
+    import re
+    import sys
+
+    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    from lint_a11y import ALL_RULES
+
+    for name in ("README.md", "LISEZMOI.md"):
+        text = (REPO_ROOT / name).read_text(encoding="utf-8")
+        documented = set(re.findall(r"^\| `([a-z0-9-]+)`", text, re.M))
+        missing = sorted(set(ALL_RULES) - documented)
+        invented = sorted(documented - set(ALL_RULES))
+        assert not missing, f"{name} does not list {missing}"
+        assert not invented, f"{name} lists {invented}, which the linter does not run"

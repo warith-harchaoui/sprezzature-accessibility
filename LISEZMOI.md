@@ -119,6 +119,33 @@ sans navigateur ni modèle derrière lui. Tout ce qui est plus lourd est un
 extra, nommé d'après ce qui en a besoin, pour qu'une installation dise à quoi
 elle sert.
 
+## Les règles
+
+| Règle | Sévérité | Description |
+|---|---|---|
+| `img-missing-alt` | erreur | `<img>` sans attribut alt |
+| `img-redundant-aria` | avertissement | `alt=""` avec un role/aria-hidden redondant |
+| `a-missing-href` | erreur | `<a>` sans href (utiliser `<button>`) |
+| `a-empty` | erreur | `<a>` sans nom accessible |
+| `button-empty` | erreur | `<button>` sans nom accessible |
+| `div-onclick` | erreur | div/span avec onclick, sans role ni tabindex |
+| `input-missing-label` | erreur | `<input>` sans label associé |
+| `dialog-missing-close` | erreur | `<dialog>` sans moyen de fermeture |
+| `html-missing-lang` | erreur | `<html>` sans attribut lang |
+| `tabindex-positive` | erreur | tabindex ≥ 1 casse l'ordre du DOM |
+| `aria-hidden-interactive` | erreur | aria-hidden sur un élément interactif |
+| `heading-skip` | erreur | les titres sautent un niveau vers le bas |
+| `color-only-state` | avertissement | jeton rouge/vert sans icône ni texte |
+| `motion-no-reduce-guard` | avertissement | animation sans pair motion-reduce |
+| `body-text-tracking-tight` | avertissement | interlettrage resserré sur du texte de lecture |
+| `video-missing-captions` | erreur | `<video>` avec du son et sans `<track kind="captions">` (WCAG 1.2.2) |
+| `audio-missing-transcript` | erreur | `<audio>` sans alternative textuelle (WCAG 1.2.1) |
+| `track-missing-srclang` | avertissement | `<track>` sans `srclang` : langue des sous-titres inconnue |
+| `media-missing-controls` | erreur | `<video>`/`<audio>` sans rien à actionner au clavier (WCAG 2.1.1) |
+| `media-autoplay-sound` | erreur | `autoplay` non muet, qui couvre un lecteur d'écran (WCAG 1.4.2) |
+
+Six de ces règles portent aussi un correcteur mécanique, appliqué par `--fix`.
+
 ## Licence
 
 BSD-3-Clause. Copyright 2026 Warith HARCHAOUI.
