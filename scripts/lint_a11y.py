@@ -532,6 +532,36 @@ _MOTION_PAT: re.Pattern[str] = re.compile(
 _MOTION_REDUCE_PAT: re.Pattern[str] = re.compile(r"motion-reduce:")
 _TIGHT_TRACKING_PAT: re.Pattern[str] = re.compile(r"\btracking-tight(?:er)?\b")
 
+#: Type big enough to be display rather than running text. Tailwind's scale
+#: puts ``text-3xl`` at 30px; the arbitrary form ``text-[34px]`` is read too,
+#: because a design system that pins exact sizes should not lose the
+#: exemption for doing so.
+_DISPLAY_SIZE_PAT: re.Pattern[str] = re.compile(
+    r"\btext-(?:[3-9]xl|[1-9][0-9]*xl)\b|\btext-\[(\d+(?:\.\d+)?)(px|rem)\]"
+)
+
+
+def _is_display_type(cls: str) -> bool:
+    """Whether these Tailwind classes describe display type, not running text.
+
+    The tracking rule's evidence is about *continuous reading*: narrower
+    letter-spacing slows dyslexic readers through a paragraph. A 4xl figure in
+    a dashboard tile is not a paragraph — it is one glance — and tightening it
+    is ordinary typography rather than a readability cost.
+
+    The rule's docstring already promised this exemption for headings and nav
+    labels; it could not see it inside a ``<p>``. A KPI number marked up as a
+    paragraph is the common case, and it is what made this package's own
+    sibling fail its own lint.
+    """
+    match = _DISPLAY_SIZE_PAT.search(cls)
+    if match is None:
+        return False
+    if match.group(1) is None:
+        return True  # a named step, text-3xl and up
+    size = float(match.group(1))
+    return size >= (30.0 if match.group(2) == "px" else 1.875)
+
 #: Elements that carry continuous body text a reader scans line by line, as
 #: opposed to a short heading or label read as one glance. Zorzi et al.
 #: (2012) found dyslexic children read 20% faster once letter-spacing was
@@ -591,7 +621,13 @@ def check_body_text_tracking(root: Element) -> list[Finding]:
     only on elements that carry a paragraph's worth of running text
     (:data:`BODY_TEXT_TAGS`) — the same utility on a heading or nav label is
     a display-type choice with no comparable evidence of harm and is not
-    flagged. **Known limit**: this only catches the Tailwind utility class;
+    flagged. Nor is display *type*: a ``<p>`` set at ``text-3xl`` or larger is
+    a figure in a tile, not a paragraph, and the evidence behind this rule is
+    about continuous reading. That exemption was promised by this docstring
+    before it was implemented, and the gap made a sibling package's own
+    shipped card fail this lint for a KPI number.
+
+    **Known limit**: this only catches the Tailwind utility class;
     a literal ``letter-spacing`` CSS declaration in a ``<style>`` block or
     external stylesheet is invisible to this static, class-attribute-only
     check.
@@ -602,6 +638,9 @@ def check_body_text_tracking(root: Element) -> list[Finding]:
             continue
         cls: str = elem.attrs.get("class", "")
         if not _TIGHT_TRACKING_PAT.search(cls):
+            continue
+        if _is_display_type(cls):
+            # Display type, not running text. See :func:`_is_display_type`.
             continue
         findings.append(Finding(
             rule="body-text-tracking-tight",
