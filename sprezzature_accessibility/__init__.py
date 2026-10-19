@@ -14,7 +14,7 @@ axe-core / Pa11y, which check the page after a browser has rendered it
 (the "runtime DOM"), for the failures that only show up there.
 """
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"
 __author__ = "Warith HARCHAOUI"
 __email__ = "warithmetics@deraison.ai"
 __license__ = "BSD-3-Clause"

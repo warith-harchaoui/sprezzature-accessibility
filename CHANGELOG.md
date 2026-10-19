@@ -2,6 +2,24 @@
 
 All notable changes to sprezzature-accessibility are documented here.
 
+## [1.1.1] — 2026-10-19
+
+### Fixed
+
+- **The two Click commands named a module, not an extra.** On a bare install,
+  `sprezzature-accessibility-alt` and `-install-alt` answered
+  `ModuleNotFoundError: No module named 'click'` — a traceback about a
+  third-party package the reader never asked for, for a command their own
+  `pip install` had just created. Click is an extra here on purpose: the
+  argparse twin of every command needs nothing. They now name
+  `pip install 'sprezzature-accessibility[alt]'`.
+- **`body-text-tracking-tight` flagged display type.** A `<p>` at
+  `text-4xl tracking-tight` holding a KPI figure is one glance, not a
+  paragraph, and the evidence behind that rule is about continuous reading.
+  The rule's own docstring had promised the exemption for headings; it could
+  not see it inside a `<p>`. Found by `sprezzature-ui` — the package whose job
+  is to set the example — failing this lint on its own shipped card.
+
 ## [1.1.0] — 2026-10-17
 
 The package gains its missing half. It could say what a page got wrong about
