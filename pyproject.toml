@@ -116,3 +116,21 @@ ignore = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# `-m "not eval"` keeps the LLM-output quality suite out of the default run:
+# it needs a running Ollama and a pulled model, so on a machine without one it
+# skips every test and reports green for work it never did — and on a machine
+# *with* one it makes the default suite slow and non-deterministic. Opt in
+# with `pytest -m eval`.
+#
+# Missing until 2026-10-19, together with the marker declaration: `eval` was
+# an unknown mark here, which pytest warns about and then ignores, so the
+# seven tests under tests/eval/ ran in every default run. The sibling that
+# received the other half of these tests when the monorepo split,
+# sprezzature-publish, had the config; this repository did not, and the
+# pre-push step added here earlier the same day claimed in its own comment
+# that the default run excluded them. `--strict-markers` is the half that
+# would have said so out loud.
+addopts = '-ra -q --strict-markers -m "not eval"'
+markers = [
+    "eval: LLM-output quality tests under tests/eval/ (need Ollama running)",
+]

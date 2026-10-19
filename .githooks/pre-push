@@ -16,7 +16,7 @@ ruff check . || { echo "[pre-push] ruff failed - push aborted."; exit 1; }
 echo "[pre-push] mypy..."
 mypy sprezzature_accessibility && mypy scripts || { echo "[pre-push] mypy failed - push aborted."; exit 1; }
 
-# `-m eval` is excluded from the default run (see pytest.ini), so a syntax
+# `-m eval` is excluded from the default run (see pyproject.toml), so a syntax
 # error in one of those files is invisible until somebody asks for them by
 # name — which is to say, months later. Collecting them costs a second.
 #
