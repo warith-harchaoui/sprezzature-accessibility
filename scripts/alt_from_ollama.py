@@ -71,12 +71,31 @@ import urllib.request
 from pathlib import Path
 from typing import TextIO
 
+
 # Every LLM/VLM call across sprezzature-* routes through this one function —
 # no script imports an Ollama/OpenAI/LangChain client directly. It resolves
 # the backend and model tag from the SPREZZATURE_LLM_* environment variables
 # (SPREZZATURE_LLM_BACKEND defaults to "ollama"); the `model` argument passed
 # at each call site below is a per-call override on top of that.
-from best_engine_ai_helper.llm import chat as _llm_chat
+#
+# Resolved on first use, not at import. It used to be a module-level import,
+# and the cost of that was paid by the one person least able to read it:
+# somebody who ran `pip install sprezzature-accessibility` and then
+# `make-alt --help` got a ModuleNotFoundError naming `best_engine_ai_helper`,
+# a package they have never heard of and did not ask for. The command cannot
+# work without the extra — but `--help` can, and the message that replaces
+# the traceback names the extra rather than the dependency.
+def _llm_chat(*args: object, **kwargs: object) -> object:
+    """Call the suite's one LLM entry point, or say which extra is missing."""
+    try:
+        from best_engine_ai_helper.llm import chat
+    except ImportError as exc:
+        raise RuntimeError(
+            "drafting alt text needs a model client, which is an optional "
+            "extra so the lint stays dependency-free. Install it with:\n"
+            "    pip install 'sprezzature-accessibility[alt]'"
+        ) from exc
+    return chat(*args, **kwargs)
 
 # Vocabulary + language helpers — shared with the other Ollama-backed scripts.
 sys.path.insert(0, str(Path(__file__).parent))
