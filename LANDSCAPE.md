@@ -30,6 +30,14 @@ runtime-DOM.
 | Auto-fix | ⭐⭐⭐ | ⭐ | ⭐ | ⭐ |
 | False positives | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
 
+Other LANDSCAPE files in this suite put their table through
+[`standpoint`](https://github.com/warith-harchaoui/standpoint) and show a positioning
+map. This one does not, and the reason is the table's size: four options hold at most
+three independent directions, so two axes keep two of three. The projection was run to
+check, and it reports **99.4 % of the variance** — a number that reads as a strong result
+and is really arithmetic about having had almost nowhere to project from. The table above
+is small enough to read directly, which is the better instrument here.
+
 ## When to use what
 
 Use `sprezzature-accessibility` as a **first gate** in pre-commit and CI:

@@ -32,6 +32,15 @@ plupart fonctionnant en DOM dynamique.
 | Correction automatique | ⭐⭐⭐ | ⭐ | ⭐ | ⭐ |
 | Faux positifs | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
 
+D'autres fichiers PAYSAGE de cette suite passent leur table dans
+[`standpoint`](https://github.com/warith-harchaoui/standpoint) et montrent une carte de
+positionnement. Celui-ci non, et la raison tient à la taille de la table : quatre options
+ne portent au plus que trois directions indépendantes, donc deux axes en gardent deux sur
+trois. La projection a été faite pour vérifier : elle annonce **99,4 % de la variance** —
+un chiffre qui se lit comme un résultat fort et qui n'est qu'une arithmétique sur le fait
+de n'avoir presque rien eu à projeter. La table ci-dessus est assez petite pour être lue
+directement, et c'est le meilleur instrument ici.
+
 ## Quand utiliser quoi
 
 Utilisez `sprezzature-accessibility` comme **première porte** dans
