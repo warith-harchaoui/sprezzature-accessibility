@@ -19,6 +19,8 @@ __author__ = "Warith HARCHAOUI"
 __email__ = "warithmetics@deraison.ai"
 __license__ = "BSD-3-Clause"
 
+from typing import Any  # noqa: E402
+
 from sprezzature_accessibility_scripts.lint_a11y import (  # noqa: E402
     Finding,
     fix_file,
@@ -51,7 +53,7 @@ _ALT_EXPORTS = {
 }
 
 
-def __getattr__(name: str):
+def __getattr__(name: str) -> Any:
     """Resolve a drafting export on first use, per PEP 562.
 
     A caller who only lints never triggers this, and so never needs the extra.

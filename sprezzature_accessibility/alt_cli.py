@@ -21,6 +21,7 @@ Author
 
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -30,7 +31,7 @@ from sprezzature_accessibility_scripts.alt_from_ollama import run
 from . import KINDS
 
 
-def build_parser():
+def build_parser() -> argparse.ArgumentParser:
     """The parser, built separately so a test can read it without running it."""
     parser = make_parser(
         prog="make-alt",

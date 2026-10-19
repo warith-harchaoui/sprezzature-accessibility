@@ -16,6 +16,16 @@ ruff check . || { echo "[pre-push] ruff failed - push aborted."; exit 1; }
 echo "[pre-push] mypy..."
 mypy sprezzature_accessibility && mypy scripts || { echo "[pre-push] mypy failed - push aborted."; exit 1; }
 
+# `-m eval` is excluded from the default run (see pytest.ini), so a syntax
+# error in one of those files is invisible until somebody asks for them by
+# name — which is to say, months later. Collecting them costs a second.
+#
+# This step was in the monorepo's hook, pointing at an empty folder, long
+# after the eval modules moved here. A guard belongs where it can see the
+# thing it guards.
+echo "[pre-push] eval suite collects..."
+python3 -m pytest -m eval --collect-only -q || { echo "[pre-push] eval suite collects failed - push aborted."; exit 1; }
+
 echo "[pre-push] pytest..."
 python3 -m pytest -q || { echo "[pre-push] pytest failed - push aborted."; exit 1; }
 

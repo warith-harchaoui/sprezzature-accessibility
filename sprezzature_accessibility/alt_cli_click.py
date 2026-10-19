@@ -35,8 +35,16 @@ from pathlib import Path
 try:
     import click
 except ImportError:  # pragma: no cover - exercised by a bare install
-    def main() -> None:  # type: ignore[misc]
-        """Say which extra installs this command, and exit non-zero."""
+    def main(argv: list[str] | None = None) -> int:
+        """Say which extra installs this command, and exit non-zero.
+
+        The signature matches the real ``main`` exactly — same parameter,
+        same return type. Two conditional definitions that disagree are a
+        type error, and more to the point they are a trap: a caller who
+        imports ``main`` and passes an argv would get a TypeError on the
+        machine where the extra is missing and nowhere else.
+        """
+        del argv  # the message is the same whatever was asked for
         print(
             "sprezzature-accessibility-alt is built with Click, which this "
             "package installs with an extra:\n"
@@ -44,7 +52,7 @@ except ImportError:  # pragma: no cover - exercised by a bare install
             "The lint and the text-spacing commands need nothing.",
             file=sys.stderr,
         )
-        sys.exit(1)
+        return 1
 else:
     from sprezzature_accessibility_scripts._click import (
         run_command,
