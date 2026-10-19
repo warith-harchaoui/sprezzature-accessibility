@@ -14,7 +14,7 @@ Author
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import alt_from_ollama as alt
 import pytest
@@ -204,42 +204,41 @@ class TestCacheRoundTrip:
 
 class TestDescribe:
     def test_decorative_short_circuits(self, fresh_cache):
-        # No network call, no Pillow check, just "".
-        with patch("requests.post") as mock_post:
+        # No model call, no Pillow check, just "".
+        with patch.object(alt, "_llm_chat") as mock_chat:
             out = alt.describe("/no/such/path.jpg", kind="decorative")
         assert out == ""
-        mock_post.assert_not_called()
+        mock_chat.assert_not_called()
 
     def test_informative_calls_model_and_caches(self, fresh_cache, tiny_png):
-        mock_response = MagicMock()
-        mock_response.json.return_value = {"response": "  Teacher leading a class  "}
-        mock_response.raise_for_status = MagicMock()
-        with patch("requests.post", return_value=mock_response) as mock_post:
+        with patch.object(
+            alt, "_llm_chat", return_value="  Teacher leading a class  "
+        ) as mock_chat:
             out = alt.describe(str(tiny_png), kind="informative", lang="en",
                                 model="m:tag")
         # Output is post-processed (whitespace stripped).
         assert out == "Teacher leading a class"
-        mock_post.assert_called_once()
+        mock_chat.assert_called_once()
         # Second call hits the cache; the mock must not be called again.
-        with patch("requests.post") as mock_post2:
+        with patch.object(alt, "_llm_chat") as mock_chat2:
             second = alt.describe(str(tiny_png), kind="informative", lang="en",
                                     model="m:tag")
         assert second == out
-        mock_post2.assert_not_called()
+        mock_chat2.assert_not_called()
 
     def test_banned_prefix_stripped_from_response(self, fresh_cache, tiny_png):
-        mock_response = MagicMock()
-        mock_response.json.return_value = {"response": "Image of a teacher"}
-        mock_response.raise_for_status = MagicMock()
-        with patch("requests.post", return_value=mock_response):
+        with patch.object(alt, "_llm_chat", return_value="Image of a teacher"):
             out = alt.describe(str(tiny_png), kind="informative", lang="en", model="m")
         # The "Image of" prefix is gone after post_process.
         assert not out.lower().startswith("image of")
 
     def test_connection_error_exits_two(self, fresh_cache, tiny_png):
-        import requests as real_requests
-        with patch("requests.post",
-                    side_effect=real_requests.exceptions.ConnectionError()):
+        # `best_engine_ai_helper.llm.chat` wraps connection failures and HTTP
+        # errors alike into RuntimeError, whatever the backend — which is why
+        # the module has one `except RuntimeError` where it used to have two.
+        with patch.object(
+            alt, "_llm_chat", side_effect=RuntimeError("connection refused")
+        ):
             with pytest.raises(SystemExit) as excinfo:
                 alt.describe(str(tiny_png), kind="informative", lang="en", model="m")
         assert excinfo.value.code == 2
@@ -251,10 +250,7 @@ class TestDescribeLong:
     def test_does_not_post_process(self, fresh_cache, tiny_png):
         # Long descriptions preserve Markdown — a bullet list survives.
         markdown = "- Chart type: bar chart\n- X axis: weeks\n- Takeaway: growth."
-        mock_response = MagicMock()
-        mock_response.json.return_value = {"response": markdown}
-        mock_response.raise_for_status = MagicMock()
-        with patch("requests.post", return_value=mock_response):
+        with patch.object(alt, "_llm_chat", return_value=markdown):
             out = alt.describe_long(str(tiny_png), kind="complex", lang="en", model="m")
         # Markdown structure preserved verbatim.
         assert out == markdown
@@ -262,16 +258,9 @@ class TestDescribeLong:
     def test_distinct_cache_key_from_short(self, fresh_cache, tiny_png):
         # A long-description call must not hit a short-alt cache entry, and
         # vice versa, since the outputs are not interchangeable.
-        long_resp = MagicMock()
-        long_resp.json.return_value = {"response": "long body"}
-        long_resp.raise_for_status = MagicMock()
-        short_resp = MagicMock()
-        short_resp.json.return_value = {"response": "short alt"}
-        short_resp.raise_for_status = MagicMock()
-
-        with patch("requests.post", return_value=long_resp):
+        with patch.object(alt, "_llm_chat", return_value="long body"):
             long_out = alt.describe_long(str(tiny_png), kind="complex", lang="en", model="m")
-        with patch("requests.post", return_value=short_resp):
+        with patch.object(alt, "_llm_chat", return_value="short alt"):
             short_out = alt.describe(str(tiny_png), kind="complex", lang="en", model="m")
         assert long_out == "long body"
         assert short_out == "short alt"
