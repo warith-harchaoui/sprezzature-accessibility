@@ -72,6 +72,11 @@ _COUNT_CLAIMING_FILES = (
     "LISEZMOI.md",
     "references/lint-rules.md",
     "scripts/lint_a11y.py",
+    # The package docstring, which is what `help(sprezzature_accessibility)`
+    # and every IDE tooltip show. It said "fourteen" — a number the linter
+    # left behind two releases ago — while this very guard was green, because
+    # the list it reads had never included the file it is written in.
+    "sprezzature_accessibility/__init__.py",
 )
 
 #: Digits and the written-out forms this project actually uses, next to the

@@ -4,14 +4,23 @@ sprezzature-accessibility — static HTML accessibility linter.
 Two halves of one job — **audit** what a page gets wrong about
 accessibility, and **make** the content it is missing.
 
-The audit half: fourteen rules from WCAG (Web Content Accessibility Guidelines) and
+The audit half: twenty rules from WCAG (Web Content Accessibility Guidelines) and
 WAI-ARIA (the W3C's accessible-widget attribute vocabulary), each
 decidable by reading the HTML source alone, with no browser involved:
 missing alt text, unlabelled inputs, empty buttons, onclick divs,
 missing dialog close, lang attribute, heading order, color-only state,
-and motion-reduce guards. Stdlib only (Python 3.10+). Pairs with
-axe-core / Pa11y, which check the page after a browser has rendered it
-(the "runtime DOM"), for the failures that only show up there.
+motion-reduce guards, and five checks on time-based media (captions,
+track language, media controls). Six of the twenty also ship a
+mechanical fixer. Stdlib only (Python 3.10+). Pairs with axe-core /
+Pa11y, which check the page after a browser has rendered it (the
+"runtime DOM"), for the failures that only show up there.
+
+The make half, behind the ``[alt]`` extra: draft W3C-conformant alt text
+for an image with a local vision model, following the WAI image-purpose
+decision tree. It arrived when ``sprezzature-vision`` was folded in here
+— auditing a page for missing alt text and writing the alt text are two
+halves of one job, and splitting them across two packages meant the
+audit could only ever say what was wrong.
 """
 
 __version__ = "1.2.0"
