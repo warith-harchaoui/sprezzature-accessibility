@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sprezzature-accessibility"
-version = "1.1.1"
+version = "1.2.0"
 description = "Static HTML accessibility linter: 20 WCAG/WAI rules decidable from source, time-based media included, stdlib only, CI-ready."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -24,6 +24,14 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
+# The click front door only. The lint half of this package has no
+# dependencies at all, which is what makes it cheap enough for a pre-commit
+# hook — so click, which only one of the two front doors needs, is an extra
+# rather than a dependency. `make-a11y` needs nothing. (`[alt]` carries its
+# own click for the drafting command line; naming it here too means somebody
+# who wants the front door and not a vision model can have it.)
+click = ["click>=8.0"]
+
 # The drafting half of this package — the "make" to the lint's "audit".
 #
 # An extra, not a hard dependency, and that is the whole design. The lint is
@@ -65,6 +73,17 @@ mcp = [
 ]
 
 [project.scripts]
+# The two front doors, over the same four tools and the same table
+# (sprezzature_accessibility/cli.py). argparse because it is in the standard
+# library and therefore always there; click because its sub-commands carry the
+# shape without hand-rolling it.
+#
+# `sprezzature-accessibility` is also the command the suite's SKILL.md has
+# been naming since the monorepo split. Until 1.2.0 nothing installed it, so
+# an agent following that contract ran a command that did not exist and found
+# out at the shell. A guard in the monorepo now asks the question of all nine.
+make-a11y = "sprezzature_accessibility.cli:main"
+sprezzature-accessibility = "sprezzature_accessibility.cli_click:main"
 sprezzature-accessibility-mcp = "sprezzature_accessibility.mcp:main"
 sprezzature-accessibility-lint = "sprezzature_accessibility_scripts.lint_a11y:main"
 sprezzature-accessibility-text-spacing = "sprezzature_accessibility_scripts.text_spacing_preset:main"

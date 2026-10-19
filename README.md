@@ -78,19 +78,35 @@ sprezzature-accessibility-lint --fix public/
 sprezzature-accessibility-lint --fix --dry-run public/
 ```
 
+## Two front doors, four tools
+
+```bash
+make-a11y --help              # the four tools, with what each does
+make-a11y lint public/        # argparse — needs nothing
+sprezzature-accessibility lint public/   # click — needs [click]
+```
+
+Both read a single table (`sprezzature_accessibility/cli.py`), so a tool
+cannot appear in one and be missing from the other. The four are `lint`,
+`text-spacing`, `alt` and `install-alt`; each is also still its own command —
+`sprezzature-accessibility-lint`, `-text-spacing`, `-alt` — which is what a
+script should call, and what the examples above use.
+
 ## Install
 
 ```bash
-pip install sprezzature-accessibility
-# With language detection for the html-missing-lang fixer:
-pip install "sprezzature-accessibility[lang]"
+pip install sprezzature-accessibility                # the lint: no dependencies
+pip install "sprezzature-accessibility[lang]"        # + language detection for --fix
+pip install "sprezzature-accessibility[click]"       # + the click front door
+pip install "sprezzature-accessibility[alt]"         # + the drafting half (local vision model)
+pip install "sprezzature-accessibility[api,mcp]"     # + the HTTP and agent surfaces
 ```
 
-Or run directly without install:
-
-```bash
-sprezzature-accessibility-lint public/
-```
+That the lint itself has **no dependencies** is deliberate, and it is the
+reason this package is worth putting in a pre-commit hook: it runs in
+milliseconds in a minimal container, with no browser and no model behind it.
+Everything heavier is an extra, named after the thing that needs it, so an
+install says what it is for.
 
 ## Rules
 

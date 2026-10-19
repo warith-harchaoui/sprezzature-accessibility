@@ -2,6 +2,72 @@
 
 All notable changes to sprezzature-accessibility are documented here.
 
+## [1.2.0] - 2026-10-19: the front door the skill was already promising
+
+Since the monorepo split, this package's `SKILL.md` has told an agent the
+tools are "invoked as `sprezzature-accessibility …`". Nothing installed that
+command. An agent following the contract ran something that did not exist and
+found out at the shell; a guard in the monorepo caught it by comparing all
+nine skills against all nine `[project.scripts]` tables, and found two other
+packages in the same state on the way.
+
+### Added
+
+- **`make-a11y` (argparse) and `sprezzature-accessibility` (click)**, two
+  front doors over the same four tools — `lint`, `text-spacing`, `alt`,
+  `install-alt`. Both read a single table (`sprezzature_accessibility/cli.py`)
+  and share the one sentence said about a missing extra, so a tool cannot
+  appear in one and be missing from the other, nor be explained differently by
+  each. `make-a11y --help` prints the catalogue, which until now did not exist
+  anywhere: four commands on the PATH and nothing listing them together.
+
+  The table carries **full dotted module paths** rather than bare names,
+  because these four do not all live in one place — the audit half is in the
+  scripts package, the drafting half's command line is in the main one. A
+  table that assumed a single prefix would have quietly excluded `alt`.
+
+  Every per-tool command stays exactly where it was. Nothing here replaces
+  `sprezzature-accessibility-lint`, `-text-spacing`, `-alt` or `make-alt`,
+  which is what a script should keep calling.
+
+- **A `[click]` extra.** Click belongs to one of the two front doors, so it is
+  an extra rather than a dependency, and the import in `cli_click.py` is
+  **guarded**. The lint half of this package has no dependencies at all —
+  standard library, milliseconds, no browser — which is what makes it worth
+  putting in a pre-commit hook; a twin that imported click at module load
+  would end that silently, because the failure arrives at the console script
+  rather than at the install. A bare install gets a sentence naming the extra,
+  and is told `make-a11y` needs nothing.
+
+  The guard is checked by hiding click from a subprocess, and verified by
+  sabotage: with the `try/except` removed, three tests fail.
+
+### Fixed
+
+- **Two conditional definitions of `main` disagreed about their signature** in
+  `alt_cli_click.py` — `() -> None` against `(argv) -> int`. A caller who
+  imported `main` and passed an argv got a `TypeError` on the machine where
+  the extra was missing and nowhere else, which is the hardest kind of bug to
+  be told about: the person who hits it has the broken install and you have
+  the working one. The refusal now matches the real command exactly.
+
+- **The lazy export resolver had no return annotation.** `-> Any` is the PEP
+  562 convention; `-> object`, tried first, type-checks the module and breaks
+  every caller, since what comes back is called.
+
+- **The README's PyPI-safety check read code blocks as links**, so an example
+  containing a relative `href` failed the build. The rule is narrowed to the
+  prose rather than weakened by an allow-list, with a second test proving a
+  real relative link in prose still fails.
+
+### Infrastructure
+
+- The pre-push gate gained the step that checks the `eval` suite still
+  collects. `-m eval` is excluded from the default run, so a syntax error in
+  those files is invisible until somebody asks for them by name. The step was
+  in the monorepo, pointing at an empty folder, long after the eval modules
+  moved here.
+
 ## [1.1.1] — 2026-10-19
 
 ### Fixed

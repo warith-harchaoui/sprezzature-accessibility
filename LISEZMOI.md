@@ -88,19 +88,36 @@ sprezzature-accessibility-lint --fix public/
 sprezzature-accessibility-lint --fix --dry-run public/
 ```
 
+## Deux portes d'entrée, quatre outils
+
+```bash
+make-a11y --help              # les quatre outils, et ce que fait chacun
+make-a11y lint public/        # argparse — ne demande rien
+sprezzature-accessibility lint public/   # click — demande [click]
+```
+
+Les deux lisent **une seule** table (`sprezzature_accessibility/cli.py`), donc
+un outil ne peut pas apparaître dans l'une et manquer dans l'autre. Les quatre
+sont `lint`, `text-spacing`, `alt` et `install-alt` ; chacun reste aussi sa
+propre commande — `sprezzature-accessibility-lint`, `-text-spacing`, `-alt` —
+et c'est ce qu'un script devrait appeler, comme dans les exemples ci-dessus.
+
 ## Installation
 
 ```bash
-pip install sprezzature-accessibility
-# Avec détection de langue pour le correcteur html-missing-lang :
-pip install "sprezzature-accessibility[lang]"
+pip install sprezzature-accessibility                # le lint : aucune dépendance
+pip install "sprezzature-accessibility[lang]"        # + détection de langue pour --fix
+pip install "sprezzature-accessibility[click]"       # + la porte click
+pip install "sprezzature-accessibility[alt]"         # + la moitié rédactionnelle (modèle de vision local)
+pip install "sprezzature-accessibility[api,mcp]"     # + les surfaces HTTP et agent
 ```
 
-Ou exécution directe sans installation :
-
-```bash
-sprezzature-accessibility-lint public/
-```
+Que le lint lui-même n'ait **aucune dépendance** est délibéré, et c'est la
+raison pour laquelle ce paquet vaut la peine d'être mis dans un crochet de
+pré-commit : il tourne en quelques millisecondes dans un conteneur minimal,
+sans navigateur ni modèle derrière lui. Tout ce qui est plus lourd est un
+extra, nommé d'après ce qui en a besoin, pour qu'une installation dise à quoi
+elle sert.
 
 ## Licence
 
