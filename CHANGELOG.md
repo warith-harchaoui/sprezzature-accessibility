@@ -2,7 +2,7 @@
 
 All notable changes to sprezzature-accessibility are documented here.
 
-## [Unreleased]
+## [1.2.1] - 2026-10-21
 
 ### Fixed
 
@@ -14,6 +14,21 @@ All notable changes to sprezzature-accessibility are documented here.
   belonging elsewhere and stopped. Found by a new guard in the monorepo
   that reads every brick's `TRIGGERS.md` and checks each command and MCP
   tool name it quotes against what the nine packages actually install.
+
+- **Two counts of the rules disagreed with the rules.** The module
+  docstring said fourteen; there are twenty. The rules table was missing
+  from `LISEZMOI.md` entirely and one rule was missing from the English
+  one. A number quoted to a reader has to come from the thing it
+  describes, and three of them here did not.
+- **The alt-text tests called a real model.** They now do not, so the
+  default run needs nothing downloaded; the eval suite is excluded from
+  the default run as `sprezzature-publish` already did it.
+- **`httpx>=0.27` declared**, which starlette 1.9.0 needs for its
+  `TestClient`.
+- **The pre-push hook's mypy step was unpassable** on any machine with
+  numpy installed, on all nine bricks. The rule now tolerates exactly one
+  shape of failure, where every error reported lies outside the
+  repository, and nothing else.
 
 ## [1.2.0] - 2026-10-19: the front door the skill was already promising
 
