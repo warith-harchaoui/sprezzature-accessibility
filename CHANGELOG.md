@@ -2,6 +2,19 @@
 
 All notable changes to sprezzature-accessibility are documented here.
 
+## [Unreleased]
+
+### Fixed
+
+- **`TRIGGERS.md` routed an agent to a package that no longer exists.** The
+  file told a reader that drafting alt text was `sprezzature-vision`'s job.
+  That package was folded into this one; the command is
+  `sprezzature-accessibility-alt`, behind the `[alt]` extra. An agent
+  following the line ran nothing, or worse, reported the capability as
+  belonging elsewhere and stopped. Found by a new guard in the monorepo
+  that reads every brick's `TRIGGERS.md` and checks each command and MCP
+  tool name it quotes against what the nine packages actually install.
+
 ## [1.2.0] - 2026-10-19: the front door the skill was already promising
 
 Since the monorepo split, this package's `SKILL.md` has told an agent the

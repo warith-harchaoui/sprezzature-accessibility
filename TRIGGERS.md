@@ -54,8 +54,10 @@ what makes it fast enough for a pre-commit hook and is also its boundary:
 - It cannot compute **colour contrast** — that is `sprezzature-colors`
   (`check_contrast`), and a page can pass here and still be unreadable.
 - It cannot follow **focus order** or test a real keyboard traversal.
-- It does not draft **alt text**; it only reports that alt is missing.
-  Drafting is `sprezzature-vision`.
+- It does not draft **alt text** in the same pass; reporting that alt is
+  missing and writing it are two different jobs. Drafting is
+  `sprezzature-accessibility-alt`, behind the `[alt]` extra, which moved
+  into this package when the old sprezzature-vision package was folded in.
 
 So a clean result means "none of the listed rules fired", never "this page
 is accessible". Report it that way. It is a gate before a real audit
