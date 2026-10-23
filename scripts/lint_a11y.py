@@ -1078,18 +1078,25 @@ def lint_html(html: str, ignored: set[str] | None = None) -> list[Finding]:
     return findings
 
 
-def lint_file(path: Path, ignored: set[str]) -> list[Finding]:
+def lint_file(path: Path, ignored: set[str] | None = None) -> list[Finding]:
     """
     Run every enabled rule against one HTML file.
 
     Thin wrapper over :func:`lint_html`: reads the file, lints the text.
 
+    ``ignored`` defaults to suppressing nothing, which is what the command
+    line does when ``--ignore`` is absent. It had no default while
+    :func:`lint_html`, the function this one wraps, did -- so the file entry
+    point, the one a caller reaches for first, was strictly harder to call
+    than the string entry point behind it, and demanded an opinion about rule
+    suppression from a caller who has none.
+
     Parameters
     ----------
     path : Path
         HTML file to lint.
-    ignored : set of str
-        Rule identifiers to suppress.
+    ignored : set of str, optional
+        Rule identifiers to suppress. Default: suppress nothing.
 
     Returns
     -------

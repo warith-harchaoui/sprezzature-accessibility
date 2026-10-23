@@ -72,3 +72,25 @@ def test_an_arbitrary_pixel_size_earns_the_same_exemption(tmp_path):
     )
     findings = [f for f in lint_file(page, frozenset()) if f.rule == "body-text-tracking-tight"]
     assert len(findings) == 1, "the big figure is exempt, the small caption is not"
+
+
+def test_linting_a_file_needs_nothing_but_the_file(tmp_path):
+    """`lint_file(path)` suppresses nothing, like the CLI with no --ignore.
+
+    It had no default while `lint_html`, the function it wraps, did. So the
+    file entry point -- the one a caller reaches for first, and the one the
+    sibling repository's site guard tried to call -- was strictly harder to
+    call than the string entry point behind it, and demanded an opinion about
+    rule suppression from a caller who has none.
+    """
+    page = tmp_path / "bare.html"
+    page.write_text('<html><body><img src="a.png"></body></html>', encoding="utf-8")
+
+    rules = {f.rule for f in lint_file(page)}
+    assert {"img-missing-alt", "html-missing-lang"} <= rules, sorted(rules)
+
+    quiet = {f.rule for f in lint_file(page, {"img-missing-alt"})}
+    assert "img-missing-alt" not in quiet, (
+        "passing ignored= to lint_file no longer suppresses"
+    )
+    assert "html-missing-lang" in quiet, "it suppressed more than it was asked to"
