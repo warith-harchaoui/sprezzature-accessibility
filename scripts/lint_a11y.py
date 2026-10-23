@@ -45,7 +45,10 @@ Rule catalogue
                             (``<button>``, ``value="cancel"``, ``[autofocus]``).
 ``html-missing-lang``       ``<html>`` without ``lang``.
 ``tabindex-positive``       ``tabindex`` ≥ 1.
-``aria-hidden-interactive`` ``aria-hidden="true"`` on a button / link / input.
+``aria-hidden-interactive`` ``aria-hidden="true"`` on a button / link / input that
+                            is **still focusable**. Paired with ``tabindex="-1"``,
+                            ``disabled`` or ``inert`` it is the correct way to hide
+                            a duplicate control, and is not flagged.
 ``heading-skip``            Headings out of order (e.g. ``<h2>`` → ``<h4>``).
 ``color-only-state``        Tailwind ``*-red-*`` / ``*-green-*`` on a span
                             with no icon, label, or text sibling. Catches the
@@ -484,18 +487,58 @@ def check_tabindex_positive(root: Element) -> list[Finding]:
     return findings
 
 
+#: Tags that can take focus, and therefore can be tabbed into.
+_FOCUSABLE_TAGS: frozenset[str] = frozenset(
+    {"button", "a", "input", "select", "textarea"}
+)
+
+
+def _is_focusable(elem: Element) -> bool:
+    """Whether this element can still be reached with the Tab key.
+
+    ``aria-hidden="true"`` is only a failure on something a keyboard can land
+    on: the user tabs into a control that announces nothing. Paired with
+    ``tabindex="-1"`` it is the opposite — the documented way to hide the
+    *second* copy of a link that already exists next to it, which is what a
+    card with both a thumbnail link and a title link needs.
+
+    This rule flagged seventeen such pairs on one blog index, every one of them
+    correct, and ``--fix`` would have stripped the ``aria-hidden`` from all of
+    them and made a screen reader announce every article twice. A linter whose
+    automatic repair damages correct markup is worse than a missing rule.
+
+    Four ways out of the tab order are recognised: ``tabindex="-1"``,
+    ``disabled`` on a form control, ``inert``, and an ``<a>`` with no ``href``,
+    which is not a link at all.
+    """
+    if elem.attrs.get("tabindex", "").strip() == "-1":
+        return False
+    if "inert" in elem.attrs:
+        return False
+    if elem.tag == "a":
+        return bool(elem.attrs.get("href", "").strip())
+    return "disabled" not in elem.attrs
+
+
 def check_aria_hidden_interactive(root: Element) -> list[Finding]:
     """Rule ``aria-hidden-interactive``: hidden interactive elements are unreachable."""
     findings: list[Finding] = []
     for elem in walk(root):
-        if elem.tag not in {"button", "a", "input", "select", "textarea"}:
+        if elem.tag not in _FOCUSABLE_TAGS:
             continue
-        if elem.attrs.get("aria-hidden", "") == "true":
-            findings.append(Finding(
-                rule="aria-hidden-interactive",
-                line=elem.line,
-                message=f'<{elem.tag} aria-hidden="true"> removes the control from AT.',
-            ))
+        if elem.attrs.get("aria-hidden", "") != "true":
+            continue
+        if not _is_focusable(elem):
+            continue
+        findings.append(Finding(
+            rule="aria-hidden-interactive",
+            line=elem.line,
+            message=(
+                f'<{elem.tag} aria-hidden="true"> is still in the tab order: '
+                f"a keyboard lands on a control that announces nothing. Add "
+                f'tabindex="-1" if it is a duplicate of a neighbouring control.'
+            ),
+        ))
     return findings
 
 

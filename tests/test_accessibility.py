@@ -494,3 +494,61 @@ def test_audio_without_transcript_is_reported() -> None:
     """Prerecorded audio needs a text alternative — WCAG 1.2.1."""
     rules = _findings('<html lang="en"><body><audio src="p.mp3" controls></audio></body></html>')
     assert "audio-missing-transcript" in rules
+
+
+def test_aria_hidden_on_a_duplicate_link_is_not_a_finding() -> None:
+    """`aria-hidden="true"` plus `tabindex="-1"` is the correct pattern.
+
+    A card that links twice to the same article — once from the thumbnail,
+    once from the title — hides the second copy from assistive technology and
+    takes it out of the tab order at the same time. Both halves are needed and
+    both are present; the rule fired on the first and never looked at the
+    second.
+
+    It cost seventeen false findings on one blog index, every one correct, and
+    `--fix` strips `aria-hidden` — so the automatic repair would have made a
+    screen reader announce every article on that page twice. A linter whose
+    fixer damages correct markup is worse than a missing rule.
+    """
+    from lint_a11y import lint_html
+
+    correct = (
+        '<html lang="en"><body><div>'
+        '<a href="/post">A post</a>'
+        '<a class="thumb" href="/post" tabindex="-1" aria-hidden="true">'
+        '<img src="t.png" alt=""></a>'
+        "</div></body></html>"
+    )
+    assert not [
+        f for f in lint_html(correct) if f.rule == "aria-hidden-interactive"
+    ], "the documented duplicate-link pattern must not be flagged"
+
+
+def test_aria_hidden_on_a_reachable_control_is_still_a_finding() -> None:
+    """The narrowing must not silence the real defect it was written for."""
+    from lint_a11y import lint_html
+
+    for broken in (
+        '<button aria-hidden="true">Submit</button>',
+        '<a href="/x" aria-hidden="true">Go</a>',
+        '<input type="text" aria-label="q" aria-hidden="true">',
+    ):
+        page = f'<html lang="en"><body>{broken}</body></html>'
+        assert [
+            f for f in lint_html(page) if f.rule == "aria-hidden-interactive"
+        ], f"still focusable and still hidden, and not flagged: {broken}"
+
+
+def test_the_ways_out_of_the_tab_order_are_each_honoured() -> None:
+    """`disabled`, `inert` and an href-less `<a>` all remove focusability."""
+    from lint_a11y import lint_html
+
+    for exempt in (
+        '<button disabled aria-hidden="true">Submit</button>',
+        '<button inert aria-hidden="true">Submit</button>',
+        '<a aria-hidden="true">not a link</a>',
+    ):
+        page = f'<html lang="en"><body>{exempt}</body></html>'
+        assert not [
+            f for f in lint_html(page) if f.rule == "aria-hidden-interactive"
+        ], f"not reachable, so not a finding: {exempt}"
