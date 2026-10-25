@@ -19,6 +19,7 @@ import _vocab as v
 
 # ── extract_vocabulary ──────────────────────────────────────────────────────
 
+
 class TestExtractVocabulary:
     def test_backtick_spans_captured(self):
         terms = v.extract_vocabulary("Use `Tailwind` and `vanilla-JS` together.")
@@ -73,15 +74,12 @@ class TestExtractVocabulary:
 
 # ── read_vocab_file ─────────────────────────────────────────────────────────
 
+
 class TestReadVocabFile:
     def test_strips_comments_and_blanks(self, tmp_path: Path):
         path = tmp_path / "glossary.txt"
         path.write_text(
-            "# heading comment\n"
-            "Tailwind\n"
-            "\n"
-            "  vanilla-JS  \n"
-            "# trailing comment\n",
+            "# heading comment\nTailwind\n\n  vanilla-JS  \n# trailing comment\n",
             encoding="utf-8",
         )
         terms = v.read_vocab_file(path)
@@ -95,6 +93,7 @@ class TestReadVocabFile:
 
 
 # ── find_project_root ───────────────────────────────────────────────────────
+
 
 class TestFindProjectRoot:
     def test_finds_marker_in_ancestor(self, tmp_path: Path):
@@ -133,6 +132,7 @@ class TestFindProjectRoot:
 
 # ── collect_project_text ────────────────────────────────────────────────────
 
+
 class TestCollectProjectText:
     def test_reads_marker_files_first(self, tmp_path: Path):
         (tmp_path / "README.md").write_text("# Project\nReadme body.", encoding="utf-8")
@@ -165,6 +165,7 @@ class TestCollectProjectText:
 
 
 # ── surrounding_text ────────────────────────────────────────────────────────
+
 
 class TestSurroundingText:
     def test_returns_window_around_match(self, tmp_path: Path):
@@ -203,6 +204,7 @@ class TestSurroundingText:
 
 
 # ── resolve_vocab_terms ─────────────────────────────────────────────────────
+
 
 class TestResolveVocabTerms:
     def test_in_doc_takes_priority(self, tmp_path: Path):

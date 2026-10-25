@@ -90,7 +90,5 @@ def test_linting_a_file_needs_nothing_but_the_file(tmp_path):
     assert {"img-missing-alt", "html-missing-lang"} <= rules, sorted(rules)
 
     quiet = {f.rule for f in lint_file(page, {"img-missing-alt"})}
-    assert "img-missing-alt" not in quiet, (
-        "passing ignored= to lint_file no longer suppresses"
-    )
+    assert "img-missing-alt" not in quiet, "passing ignored= to lint_file no longer suppresses"
     assert "html-missing-lang" in quiet, "it suppressed more than it was asked to"

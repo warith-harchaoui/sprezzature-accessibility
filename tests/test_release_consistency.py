@@ -82,10 +82,22 @@ _COUNT_CLAIMING_FILES = (
 #: Digits and the written-out forms this project actually uses, next to the
 #: word "rule" / "règle" in either order.
 _WORDS = {
-    "fourteen": 14, "fifteen": 15, "sixteen": 16, "seventeen": 17,
-    "eighteen": 18, "nineteen": 19, "twenty": 20, "twenty-one": 21,
-    "quatorze": 14, "quinze": 15, "seize": 16, "dix-sept": 17,
-    "dix-huit": 18, "dix-neuf": 19, "vingt": 20, "vingt-et-une": 21,
+    "fourteen": 14,
+    "fifteen": 15,
+    "sixteen": 16,
+    "seventeen": 17,
+    "eighteen": 18,
+    "nineteen": 19,
+    "twenty": 20,
+    "twenty-one": 21,
+    "quatorze": 14,
+    "quinze": 15,
+    "seize": 16,
+    "dix-sept": 17,
+    "dix-huit": 18,
+    "dix-neuf": 19,
+    "vingt": 20,
+    "vingt-et-une": 21,
 }
 _CLAIM_RE = re.compile(
     r"\b(\d{1,3}|" + "|".join(_WORDS) + r")[\s-]+(?:rules?|règles?)\b"

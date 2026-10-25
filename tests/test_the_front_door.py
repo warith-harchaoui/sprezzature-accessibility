@@ -44,6 +44,37 @@ from sprezzature_accessibility.cli import (
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
+
+def _console_scripts() -> dict[str, str]:
+    """
+    ``[project.scripts]``, read with a regex rather than ``tomllib``.
+
+    ``tomllib`` is standard library only from 3.11 and this package supports
+    3.10, where the import alone fails -- in CI, while passing on every
+    developer machine. sprezzature-cli-gui's own test says exactly this in a
+    comment, and it was written there because it had already happened once.
+    """
+    text = (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    block = re.search(r"^\[project\.scripts\]\s*$(.*?)(?=^\[|\Z)", text, re.M | re.S)
+    if block is None:
+        return {}
+    return dict(re.findall(r'^([\w.-]+)\s*=\s*"([^"]+)"', block.group(1), re.M))
+
+
+def _base_dependencies() -> str:
+    """The ``dependencies = [...]`` block as text, comments stripped."""
+    text = (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    block = re.search(r"^dependencies\s*=\s*\[(.*?)\]", text, re.M | re.S)
+    return re.sub(r"#[^\n]*", "", block.group(1)) if block else ""
+
+
+def _extras() -> set[str]:
+    """The extras this package declares."""
+    text = (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    block = re.search(r"^\[project\.optional-dependencies\]\s*$(.*?)(?=^\[|\Z)", text, re.M | re.S)
+    return set(re.findall(r"^([\w.-]+)\s*=\s*\[", block.group(1), re.M)) if block else set()
+
+
 # Blocking an import from a subprocess needs `find_spec`, not `find_module`:
 # the legacy finder API was removed in Python 3.12, so a blocker written that
 # way is never consulted — the module imports normally and the test passes by
@@ -174,20 +205,15 @@ def test_the_two_spellings_are_one_callable() -> None:
     their own implementation is how the two drifted. Two names pointing at one
     function cannot.
     """
-    import tomllib
-
-    scripts = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text())["project"]["scripts"]
+    scripts = _console_scripts()
     assert scripts["make-a11y"] == scripts["sprezzature-accessibility"]
     assert scripts["make-alt"] == scripts["sprezzature-accessibility-alt"]
 
 
 def test_click_is_a_base_dependency_not_an_extra() -> None:
     """With argparse gone, no parser ships with Python."""
-    import tomllib
-
-    project = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text())["project"]
-    assert any(dep.startswith("click") for dep in project["dependencies"])
-    assert "click" not in project.get("optional-dependencies", {})
+    assert "click" in _base_dependencies()
+    assert "click" not in _extras()
 
 
 def test_no_second_parser_grows_back() -> None:

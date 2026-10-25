@@ -74,9 +74,7 @@ ENTRIES: list[dict] = [
             "https://upload.wikimedia.org/wikipedia/commons/thumb/"
             "c/c8/Marie_Curie_c._1920s.jpg/250px-Marie_Curie_c._1920s.jpg"
         ),
-        "expected_sha256": (
-            "f9dc314762fd4c5613361424934285eebdc064ab27dfd6c169b48dbc59214681"
-        ),
+        "expected_sha256": ("f9dc314762fd4c5613361424934285eebdc064ab27dfd6c169b48dbc59214681"),
         "slug": "marie-curie-portrait",
         "ext": "jpg",
         "kind": "informative",
@@ -96,9 +94,7 @@ ENTRIES: list[dict] = [
             "0/08/Global_Temperature_And_Forces_With_Fahrenheit.svg/"
             "330px-Global_Temperature_And_Forces_With_Fahrenheit.svg.png"
         ),
-        "expected_sha256": (
-            "bc3e4d824061b84cfedcaa14559617676cd7c5b934fabb4110d3cfb56d8c33a3"
-        ),
+        "expected_sha256": ("bc3e4d824061b84cfedcaa14559617676cd7c5b934fabb4110d3cfb56d8c33a3"),
         "slug": "climate-temperature-chart",
         "ext": "png",
         "kind": "complex",
@@ -129,9 +125,7 @@ ENTRIES: list[dict] = [
             "https://upload.wikimedia.org/wikipedia/en/thumb/"
             "8/80/Wikipedia-logo-v2.svg/250px-Wikipedia-logo-v2.svg.png"
         ),
-        "expected_sha256": (
-            "3fb41becf3b8f779cef08c3f3d01846b876643537055d5ec0c57a8fe37fbbea4"
-        ),
+        "expected_sha256": ("3fb41becf3b8f779cef08c3f3d01846b876643537055d5ec0c57a8fe37fbbea4"),
         "slug": "wikipedia-logo",
         "ext": "png",
         "kind": "functional",
@@ -162,9 +156,7 @@ ENTRIES: list[dict] = [
             "a/a8/Tour_Eiffel_Wikimedia_Commons.jpg/"
             "330px-Tour_Eiffel_Wikimedia_Commons.jpg"
         ),
-        "expected_sha256": (
-            "f9635eb74597b0cf1b3ad8e3dc80008df780f4f6219f5ce2d834b9f7a1807366"
-        ),
+        "expected_sha256": ("f9635eb74597b0cf1b3ad8e3dc80008df780f4f6219f5ce2d834b9f7a1807366"),
         "slug": "tour-eiffel",
         "ext": "jpg",
         "kind": "informative",

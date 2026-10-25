@@ -21,6 +21,7 @@ import pytest
 
 # ── Fixtures ────────────────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def fresh_cache(tmp_path, monkeypatch):
     """Redirect the module's cache dir at the tmp_path and re-enable caching."""
@@ -45,6 +46,7 @@ def tiny_png(tmp_path):
 
 # ── compose_vocabulary_hint ────────────────────────────────────────────────
 
+
 class TestComposeVocabularyHint:
     def test_empty_input_returns_empty(self):
         assert alt.compose_vocabulary_hint([]) == ""
@@ -66,6 +68,7 @@ class TestComposeVocabularyHint:
 
 # ── pick_default_model ─────────────────────────────────────────────────────
 
+
 class TestPickDefaultModel:
     def test_env_seam_wins(self, monkeypatch):
         # OLLAMA_MODEL is a TEST SEAM only (so the suite can point the resolver
@@ -83,6 +86,7 @@ class TestPickDefaultModel:
 
 
 # ── prompt_for ─────────────────────────────────────────────────────────────
+
 
 class TestPromptFor:
     @pytest.mark.parametrize("kind", ["informative", "functional", "text", "complex", "group"])
@@ -119,6 +123,7 @@ class TestPromptFor:
 
 # ── post_process ───────────────────────────────────────────────────────────
 
+
 class TestPostProcess:
     def test_strips_straight_quotes(self):
         assert alt.post_process('"A teacher leading a class"', "en") == "A teacher leading a class"
@@ -134,21 +139,32 @@ class TestPostProcess:
         # corrupting verbatim ``text``-kind output.
         assert alt.post_process("“Teacher”", "en") == "“Teacher”"
 
-    @pytest.mark.parametrize("raw,lang", [
-        ("Image of a teacher", "en"),
-        ("Picture of a chart", "en"),
-        ("Photo of: a dog", "en"),
-        ("Illustration of — a chart", "en"),
-        ("Image de la salle", "fr"),
-        ("Imagen de un perro", "es"),
-        ("Bild von einem Hund", "de"),
-    ])
+    @pytest.mark.parametrize(
+        "raw,lang",
+        [
+            ("Image of a teacher", "en"),
+            ("Picture of a chart", "en"),
+            ("Photo of: a dog", "en"),
+            ("Illustration of — a chart", "en"),
+            ("Image de la salle", "fr"),
+            ("Imagen de un perro", "es"),
+            ("Bild von einem Hund", "de"),
+        ],
+    )
     def test_strips_banned_prefixes(self, raw, lang):
         out = alt.post_process(raw, lang)
         # The cleaned text never starts with the banned phrase.
-        assert not out.lower().startswith(("image of", "picture of", "photo of",
-                                            "illustration of", "image de",
-                                            "imagen de", "bild von"))
+        assert not out.lower().startswith(
+            (
+                "image of",
+                "picture of",
+                "photo of",
+                "illustration of",
+                "image de",
+                "imagen de",
+                "bild von",
+            )
+        )
 
     def test_hard_cap_at_max_chars(self):
         # 200 chars of a single repeated word — well over the 150-char cap.
@@ -162,6 +178,7 @@ class TestPostProcess:
 
 # ── _cache_key + cache round-trip ──────────────────────────────────────────
 
+
 class TestCacheKey:
     def test_deterministic_for_same_inputs(self):
         k1 = alt._cache_key(b"img-bytes", "informative", "en", "ctx", "model:tag")
@@ -169,15 +186,23 @@ class TestCacheKey:
         assert k1 == k2
         assert len(k1) == 32
 
-    @pytest.mark.parametrize("attr,value", [
-        ("kind", "functional"),
-        ("lang", "fr"),
-        ("context", "different"),
-        ("model", "other:tag"),
-    ])
+    @pytest.mark.parametrize(
+        "attr,value",
+        [
+            ("kind", "functional"),
+            ("lang", "fr"),
+            ("context", "different"),
+            ("model", "other:tag"),
+        ],
+    )
     def test_key_changes_with_any_input(self, attr, value):
-        base = dict(image_bytes=b"img-bytes", kind="informative", lang="en",
-                    context="ctx", model="model:tag")
+        base = dict(
+            image_bytes=b"img-bytes",
+            kind="informative",
+            lang="en",
+            context="ctx",
+            model="model:tag",
+        )
         modified = dict(base)
         modified[attr] = value
         assert alt._cache_key(**base) != alt._cache_key(**modified)
@@ -202,6 +227,7 @@ class TestCacheRoundTrip:
 
 # ── describe ──────────────────────────────────────────────────────────────
 
+
 class TestDescribe:
     def test_decorative_short_circuits(self, fresh_cache):
         # No model call, no Pillow check, just "".
@@ -214,15 +240,13 @@ class TestDescribe:
         with patch.object(
             alt, "_llm_chat", return_value="  Teacher leading a class  "
         ) as mock_chat:
-            out = alt.describe(str(tiny_png), kind="informative", lang="en",
-                                model="m:tag")
+            out = alt.describe(str(tiny_png), kind="informative", lang="en", model="m:tag")
         # Output is post-processed (whitespace stripped).
         assert out == "Teacher leading a class"
         mock_chat.assert_called_once()
         # Second call hits the cache; the mock must not be called again.
         with patch.object(alt, "_llm_chat") as mock_chat2:
-            second = alt.describe(str(tiny_png), kind="informative", lang="en",
-                                    model="m:tag")
+            second = alt.describe(str(tiny_png), kind="informative", lang="en", model="m:tag")
         assert second == out
         mock_chat2.assert_not_called()
 
@@ -236,15 +260,14 @@ class TestDescribe:
         # `best_engine_ai_helper.llm.chat` wraps connection failures and HTTP
         # errors alike into RuntimeError, whatever the backend — which is why
         # the module has one `except RuntimeError` where it used to have two.
-        with patch.object(
-            alt, "_llm_chat", side_effect=RuntimeError("connection refused")
-        ):
+        with patch.object(alt, "_llm_chat", side_effect=RuntimeError("connection refused")):
             with pytest.raises(SystemExit) as excinfo:
                 alt.describe(str(tiny_png), kind="informative", lang="en", model="m")
         assert excinfo.value.code == 2
 
 
 # ── describe_long ─────────────────────────────────────────────────────────
+
 
 class TestDescribeLong:
     def test_does_not_post_process(self, fresh_cache, tiny_png):
@@ -267,6 +290,7 @@ class TestDescribeLong:
 
 
 # ── Pillow-disabled fallback ──────────────────────────────────────────────
+
 
 class TestPillowDisabled:
     def test_maybe_resize_returns_input_when_pillow_missing(self, monkeypatch):
