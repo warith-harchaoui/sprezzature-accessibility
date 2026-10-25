@@ -21,17 +21,20 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: Site Management",
     "Topic :: Software Development :: Quality Assurance",
 ]
-dependencies = []
+dependencies = [
+    # The command line, and the only one since 2026-10-25. The lint half of
+    # this package carried **no** dependencies at all, which is what made it
+    # cheap enough for a pre-commit hook, and click was an extra because only
+    # one of the two front doors needed it. With argparse gone there is no
+    # parser left that ships with Python, so an optional click would mean a
+    # `pip install sprezzature-accessibility` whose own commands do not run.
+    #
+    # The per-tool script `sprezzature-accessibility-lint` still needs nothing
+    # beyond this, so the pre-commit case stays millisecond-cheap.
+    "click>=8.1",
+]
 
 [project.optional-dependencies]
-# The click front door only. The lint half of this package has no
-# dependencies at all, which is what makes it cheap enough for a pre-commit
-# hook — so click, which only one of the two front doors needs, is an extra
-# rather than a dependency. `make-a11y` needs nothing. (`[alt]` carries its
-# own click for the drafting command line; naming it here too means somebody
-# who wants the front door and not a vision model can have it.)
-click = ["click>=8.0"]
-
 # The drafting half of this package — the "make" to the lint's "audit".
 #
 # An extra, not a hard dependency, and that is the whole design. The lint is
@@ -83,14 +86,14 @@ mcp = [
 # an agent following that contract ran a command that did not exist and found
 # out at the shell. A guard in the monorepo now asks the question of all nine.
 make-a11y = "sprezzature_accessibility.cli:main"
-sprezzature-accessibility = "sprezzature_accessibility.cli_click:main"
+sprezzature-accessibility = "sprezzature_accessibility.cli:main"
 sprezzature-accessibility-mcp = "sprezzature_accessibility.mcp:main"
 sprezzature-accessibility-lint = "sprezzature_accessibility_scripts.lint_a11y:main"
 sprezzature-accessibility-text-spacing = "sprezzature_accessibility_scripts.text_spacing_preset:main"
 # The drafting half, behind the [alt] extra. Two parsers over one engine, in
 # the house spelling: `make-X` is argparse, `sprezzature-X` the click twin.
 make-alt = "sprezzature_accessibility.alt_cli:main"
-sprezzature-accessibility-alt = "sprezzature_accessibility.alt_cli_click:main"
+sprezzature-accessibility-alt = "sprezzature_accessibility.alt_cli:main"
 sprezzature-accessibility-install-alt = "sprezzature_accessibility_scripts.install_alt_ai:main"
 
 [project.urls]

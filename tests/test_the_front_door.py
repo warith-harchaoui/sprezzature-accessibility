@@ -39,8 +39,7 @@ import pytest
 
 from sprezzature_accessibility.cli import (
     TOOLS,
-    _missing_extra_message,
-    build_parser,
+    missing_extra_message,
 )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -68,13 +67,6 @@ def _without_click(program: str) -> subprocess.CompletedProcess[str]:
         text=True,
         cwd=REPO_ROOT,
     )
-
-
-def test_both_front_doors_offer_exactly_the_same_tools() -> None:
-    """The click group's sub-commands are the table, no more and no less."""
-    from sprezzature_accessibility.cli_click import main as click_main
-
-    assert set(click_main.commands) == set(TOOLS)
 
 
 def test_every_tool_names_a_module_that_can_be_found() -> None:
@@ -107,13 +99,6 @@ def test_every_tool_has_a_summary_the_help_can_print() -> None:
         assert summary.rstrip().endswith("."), f"{tool}'s summary is not a sentence"
 
 
-def test_the_argparse_help_lists_every_tool() -> None:
-    """The epilog is built from the table, so this holds as tools are added."""
-    epilog = build_parser().epilog or ""
-    for tool in TOOLS:
-        assert tool in epilog, f"{tool} is in the table and not in the help"
-
-
 def test_an_extra_named_in_the_table_is_an_extra_that_exists() -> None:
     """`pip install 'sprezzature-accessibility[alt]'` has to be real advice."""
     pyproject = (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
@@ -142,19 +127,17 @@ def test_the_lint_needs_no_extra() -> None:
     assert TOOLS["text-spacing"][1] == ""
 
 
-def test_the_missing_extra_message_names_the_extra() -> None:
+def test_themissing_extra_message_names_the_extra() -> None:
     """Both front doors print this, so it has to carry the install line."""
-    said = _missing_extra_message("alt", "alt", ImportError("no module named click"))
+    said = missing_extra_message("alt", "alt", ImportError("no module named click"))
     assert "pip install 'sprezzature-accessibility[alt]'" in said
 
     # And when there is no extra, it must not invent one to recommend.
-    said = _missing_extra_message("lint", "", ImportError("boom"))
+    said = missing_extra_message("lint", "", ImportError("boom"))
     assert "pip install" not in said
 
 
-@pytest.mark.parametrize(
-    "front_door", ["make-a11y", "sprezzature-accessibility"]
-)
+@pytest.mark.parametrize("front_door", ["make-a11y", "sprezzature-accessibility"])
 def test_both_front_doors_are_declared_as_console_scripts(front_door: str) -> None:
     """A front door nobody can type is not a front door.
 
@@ -162,9 +145,7 @@ def test_both_front_doors_are_declared_as_console_scripts(front_door: str) -> No
     name, while the suite's SKILL.md promised it.
     """
     pyproject = (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    section = re.search(
-        r"^\[project\.scripts\]\s*$(.*?)(?=^\[|\Z)", pyproject, re.M | re.S
-    )
+    section = re.search(r"^\[project\.scripts\]\s*$(.*?)(?=^\[|\Z)", pyproject, re.M | re.S)
     assert section
     assert re.search(rf"^{re.escape(front_door)}\s*=", section.group(1), re.M)
 
@@ -181,45 +162,37 @@ def test_the_per_tool_commands_are_still_there() -> None:
         assert re.search(rf"^{re.escape(name)}\s*=", pyproject, re.M), name
 
 
-def test_the_click_twin_refuses_politely_when_click_is_missing() -> None:
-    """A bare install must get a sentence, not a traceback."""
-    done = _without_click(
-        "from sprezzature_accessibility.cli_click import main\nsys.exit(main())\n"
-    )
-    assert done.returncode == 1, done.stderr
-    assert "sprezzature-accessibility[click]" in done.stderr
-    assert "make-a11y" in done.stderr, (
-        "the refusal has to point at the front door that needs nothing"
-    )
-    assert "Traceback" not in done.stderr
+# ------------------------------------------------- one door, two spellings
 
 
-def test_the_refusal_and_the_real_command_agree_on_their_signature() -> None:
-    """Two conditional definitions that disagree are a trap.
-
-    A caller who imports ``main`` and passes an argv gets a TypeError on the
-    machine where click is missing and nowhere else — the hardest kind of bug
-    to be told about, because the person who hits it has the broken install
-    and you have the working one.
+def test_the_two_spellings_are_one_callable() -> None:
     """
-    done = _without_click(
-        "import inspect\n"
-        "from sprezzature_accessibility.cli_click import main\n"
-        "print(list(inspect.signature(main).parameters))\n"
-    )
-    assert done.returncode == 0, done.stderr
-    assert done.stdout.strip() == "['argv']"
+    ``make-a11y`` and ``sprezzature-accessibility`` must resolve to the same
+    target.
 
-
-def test_the_argparse_front_door_works_with_no_click_anywhere() -> None:
-    """`make-a11y lint` must run on a bare install.
-
-    In a subprocess, because by the time the suite is running click is
-    importable and this is a question about a machine where it is not.
+    This is the point of removing the second parser: two names that each had
+    their own implementation is how the two drifted. Two names pointing at one
+    function cannot.
     """
-    done = _without_click(
-        "from sprezzature_accessibility.cli import main\n"
-        "sys.exit(main(['lint', '--help']))\n"
-    )
-    assert done.returncode == 0, done.stderr
-    assert "Traceback" not in done.stderr
+    import tomllib
+
+    scripts = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text())["project"]["scripts"]
+    assert scripts["make-a11y"] == scripts["sprezzature-accessibility"]
+    assert scripts["make-alt"] == scripts["sprezzature-accessibility-alt"]
+
+
+def test_click_is_a_base_dependency_not_an_extra() -> None:
+    """With argparse gone, no parser ships with Python."""
+    import tomllib
+
+    project = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text())["project"]
+    assert any(dep.startswith("click") for dep in project["dependencies"])
+    assert "click" not in project.get("optional-dependencies", {})
+
+
+def test_no_second_parser_grows_back() -> None:
+    """A second front door would re-introduce the duplicate command list."""
+    pkg = REPO_ROOT / "sprezzature_accessibility"
+    assert not (pkg / "cli_click.py").exists()
+    assert not (pkg / "alt_cli_click.py").exists()
+    assert "import argparse" not in (pkg / "cli.py").read_text(encoding="utf-8")

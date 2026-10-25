@@ -1,18 +1,20 @@
 """
-The argparse command line — ``make-alt``.
+The click command line — ``sprezzature-accessibility``.
 
-Two parsers, one body. This module reads the flags with ``argparse``; the
-click command in ``sprezzature_accessibility_scripts.alt_from_ollama`` reads the same
-flags with ``click``; both then call the same :func:`run`, so they can differ
-in how ``--kind`` is spelled and cannot differ in what ``--kind`` does.
+The twin of ``sprezzature_accessibility.cli``: same options, same engine, a different
+parser. Both call :func:`sprezzature_accessibility_scripts.alt_from_ollama.run`, so
+they cannot disagree about what a flag does.
 
-Why both at all: ``argparse`` is in the standard library, so this command
-works in a container with nothing else installed and in any environment where
-adding a dependency is someone else's decision. ``click`` carries the richer
-shapes — ``Choice`` validation, path types — without hand-rolling them. The
-house contract (``SURFACES.md`` in the monorepo) asks for both wherever there
-is a command line, and the reason is this file: a surface that only exists in
-one flavour is a surface someone cannot reach.
+Why this lives here and not beside the engine
+---------------------------------------------
+It used to sit inside ``alt_from_ollama.py``, which the package's
+``__init__`` imports. That made ``import sprezzature_accessibility`` depend on click
+— a command-line framework pulled in by a caller who only wanted to describe
+an image from their own code. Worse, click was declared nowhere in
+``pyproject.toml``, so a clean ``pip install sprezzature-accessibility-alt`` produced a
+package whose library *and* whose main command both failed on the first
+import. Keeping the parser out of the engine module is what makes the library
+surface honest.
 
 Author
 ------
@@ -21,148 +23,163 @@ Author
 
 from __future__ import annotations
 
-import argparse
 import sys
 from pathlib import Path
 
-from sprezzature_accessibility_scripts._argparse import make_parser
+# Guarded, like every other Click front door in this suite. Click is an extra
+# here — the argparse twin needs nothing, which is the point of shipping both
+# — so a bare `pip install` leaves this command on PATH and unable to start.
+# Unguarded, what it printed was `ModuleNotFoundError: No module named
+# 'click'`: a traceback about a package the reader never asked for, for a
+# command their own install had just created.
+import click
+from sprezzature_accessibility_scripts._click import (
+    run_command,
+    sprezzature_command,
+)
 from sprezzature_accessibility_scripts.alt_from_ollama import run
 
-from . import KINDS
 
-
-def build_parser() -> argparse.ArgumentParser:
-    """The parser, built separately so a test can read it without running it."""
-    parser = make_parser(
-        prog="make-alt",
-        description=(
-            "Draft W3C-conformant alt text for an image with a local vision "
-            "model. Follows the WAI image-purpose decision tree "
-            "(informative / decorative / functional / text / complex / "
-            "group). No image leaves the machine."
-        ),
-        epilog=(
-            "Examples:\n"
-            "  make-alt --kind informative photo.jpg\n"
-            "  make-alt --kind functional "
-            "--context 'Submit form' icon.png\n"
-            "  make-alt --kind complex --in docs/chart.md "
-            "chart.png\n"
-            "\n"
-            "What comes back is a draft. A model cannot know that the "
-            "photograph on the About page is the founder, or that the chart "
-            "matters for its outlier rather than its trend. Read it before "
-            "committing it.\n"
-        ),
+@sprezzature_command(
+    "sprezzature-accessibility-alt",
+    help=(
+        "Generate W3C-compliant alt text for an image via a local Ollama "
+        "vision model. Matches the WAI image-purpose decision tree "
+        "(informative / decorative / functional / text / complex / group)."
+    ),
+    epilog=(
+        "Examples:\n"
+        "  sprezzature-accessibility-alt --kind informative photo.jpg\n"
+        "  sprezzature-accessibility-alt --kind functional --context 'Submit form' icon.png\n"
+        "  sprezzature-accessibility-alt --kind complex --in docs/chart.md chart.png\n"
+    ),
+)
+@click.argument("src")
+@click.option(
+    "--kind",
+    type=click.Choice(["informative", "decorative", "functional", "text", "complex", "group"]),
+    default="informative",
+    show_default=True,
+    help="Image purpose per W3C decision tree.",
+)
+@click.option(
+    "--lang",
+    "-l",
+    default=None,
+    help="BCP-47 base tag (en, fr, es, de, …).",
+)
+@click.option(
+    "--context",
+    "-c",
+    default="",
+    help="Page-context hint. For --kind functional, name the action/destination.",
+)
+@click.option(
+    "--resize",
+    type=int,
+    default=1024,
+    show_default=True,
+    help="Downscale long edge to N px before sending (Pillow). 0 disables.",
+)
+@click.option(
+    "--no-cache",
+    "no_cache",
+    is_flag=True,
+    default=False,
+    help="Bypass the on-disk cache for this run.",
+)
+@click.option(
+    "--longdesc",
+    is_flag=True,
+    default=False,
+    help=(
+        "ALSO generate a long description (for <figcaption> or "
+        "aria-describedby). Writes it to <src>.longdesc.md beside the "
+        "image. Only meaningful with --kind complex or group."
+    ),
+)
+# Vocabulary biasing — same shape as captions_from_whisper.py.
+@click.option(
+    "--in",
+    "in_doc",
+    type=click.Path(path_type=Path),
+    metavar="DOC",
+    default=None,
+    help=(
+        "Document the image is embedded in. The text around every "
+        "reference to the image inside DOC is used both as --context "
+        "and as a vocabulary source. Highest signal for alt text."
+    ),
+)
+@click.option(
+    "--vocab",
+    type=click.Path(path_type=Path),
+    default=None,
+    help="Glossary file; one term per line; '#' starts a comment.",
+)
+@click.option(
+    "--vocab-from",
+    "vocab_from",
+    type=click.Path(path_type=Path),
+    default=None,
+    help="File or directory whose text is mined for proper nouns and identifiers.",
+)
+@click.option(
+    "--auto-project",
+    "auto_project",
+    is_flag=True,
+    default=False,
+    help=(
+        "Walk upward from the source to find the project root, then "
+        "collect vocabulary from the whole tree."
+    ),
+)
+def _cli(
+    src: str,
+    kind: str,
+    lang: str | None,
+    context: str,
+    resize: int,
+    no_cache: bool,
+    longdesc: bool,
+    in_doc: Path | None,
+    vocab: Path | None,
+    vocab_from: Path | None,
+    auto_project: bool,
+) -> int:
+    """Click wrapper. The work is in :func:`run`, which argparse calls too."""
+    return run(
+        src,
+        kind=kind,
+        lang=lang,
+        context=context,
+        resize=resize,
+        no_cache=no_cache,
+        longdesc=longdesc,
+        in_doc=in_doc,
+        vocab=vocab,
+        vocab_from=vocab_from,
+        auto_project=auto_project,
     )
-    parser.add_argument("src", help="Path or URL to the image.")
-    parser.add_argument(
-        "--kind",
-        choices=KINDS,
-        default="informative",
-        help="Image purpose per the W3C decision tree (default: informative).",
-    )
-    parser.add_argument(
-        "-l", "--lang",
-        default=None,
-        help="BCP-47 base tag (en, fr, es, de, …). Detected when omitted.",
-    )
-    parser.add_argument(
-        "-c", "--context",
-        default="",
-        help=(
-            "Page-context hint. For --kind functional, name the action or "
-            "destination."
-        ),
-    )
-    parser.add_argument(
-        "--resize",
-        type=int,
-        default=1024,
-        metavar="N",
-        help="Downscale the long edge to N px before sending (default: 1024; "
-             "0 disables).",
-    )
-    parser.add_argument(
-        "--no-cache",
-        action="store_true",
-        help="Bypass the on-disk cache for this run.",
-    )
-    parser.add_argument(
-        "--longdesc",
-        action="store_true",
-        help=(
-            "ALSO write a long description to <src>.longdesc.md. Only "
-            "meaningful with --kind complex or group."
-        ),
-    )
-    parser.add_argument(
-        "--in",
-        dest="in_doc",
-        type=Path,
-        metavar="DOC",
-        default=None,
-        help=(
-            "Document the image is embedded in. The text around every "
-            "reference to it is used as context and as a vocabulary source. "
-            "Highest signal available."
-        ),
-    )
-    parser.add_argument(
-        "--vocab",
-        type=Path,
-        metavar="FILE",
-        default=None,
-        help="Glossary file; one term per line; '#' starts a comment.",
-    )
-    parser.add_argument(
-        "--vocab-from",
-        dest="vocab_from",
-        type=Path,
-        metavar="PATH",
-        default=None,
-        help="File or directory mined for proper nouns and identifiers.",
-    )
-    parser.add_argument(
-        "--auto-project",
-        dest="auto_project",
-        action="store_true",
-        help=(
-            "Walk upward from the image to the project root and collect "
-            "vocabulary from the whole tree."
-        ),
-    )
-    return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     """
-    Entry point for ``make-alt``.
+    CLI entry point.
 
     Parameters
     ----------
     argv : list of str or None, optional
-        Argument vector without ``argv[0]``. Reads ``sys.argv`` when ``None``.
+        Argument vector excluding ``argv[0]``. When ``None`` (default),
+        Click reads from ``sys.argv``.
 
     Returns
     -------
     int
-        ``0`` on success, ``2`` when the local model cannot be reached.
+        Process exit code. ``0`` on success, ``2`` on infrastructure failure
+        (Ollama unreachable / HTTP error or a usage error).
     """
-    args = build_parser().parse_args(argv)
-    return run(
-        args.src,
-        kind=args.kind,
-        lang=args.lang,
-        context=args.context,
-        resize=args.resize,
-        no_cache=args.no_cache,
-        longdesc=args.longdesc,
-        in_doc=args.in_doc,
-        vocab=args.vocab,
-        vocab_from=args.vocab_from,
-        auto_project=args.auto_project,
-    )
+    return run_command(_cli, argv)
 
 
 if __name__ == "__main__":

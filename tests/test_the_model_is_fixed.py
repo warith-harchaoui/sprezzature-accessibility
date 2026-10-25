@@ -40,7 +40,7 @@ DECLARERS = (
 #: added to either parser would be just as user-facing as one in the engine.
 REACHABLE = DECLARERS + (
     ROOT / "sprezzature_accessibility" / "alt_cli.py",
-    ROOT / "sprezzature_accessibility" / "alt_cli_click.py",
+    ROOT / "sprezzature_accessibility" / "alt_cli.py",
     ROOT / "sprezzature_accessibility" / "api.py",
 )
 
@@ -55,9 +55,7 @@ MODEL_FLAG = re.compile(r'"--(?:model|ai-hints-model)"')
 def test_the_declared_default_is_the_authorized_model(script: Path) -> None:
     """Each declarer names a ``qwen3-vl:`` tag, not some other family."""
     text = script.read_text(encoding="utf-8")
-    assert '"qwen3-vl:' in text, (
-        f"{script.name} must declare a qwen3-vl: tag as its default model"
-    )
+    assert '"qwen3-vl:' in text, f"{script.name} must declare a qwen3-vl: tag as its default model"
 
 
 @pytest.mark.parametrize("module", REACHABLE, ids=lambda p: p.name)
