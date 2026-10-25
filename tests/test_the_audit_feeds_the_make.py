@@ -95,7 +95,8 @@ def test_the_page_text_reaches_the_model(page: Path, spy) -> None:
 
     context = spy[0]["context"]
     assert "Serre-Ponçon" in context, (
-        f"the heading above the image never reached the model; context was {context!r}"
+        f"the heading above the image never reached the model; context was "
+        f"{context!r}"
     )
     assert "63 percent" in context or "usable capacity" in context, (
         "the paragraph beside the image never reached the model"
@@ -114,7 +115,8 @@ def test_the_document_vocabulary_reaches_the_model(page: Path, spy) -> None:
     terms = spy[0]["vocabulary"]
     assert terms, "no vocabulary was mined from the document at all"
     assert any("Serre" in term for term in terms), (
-        f"the document's own proper nouns are missing from the vocabulary hint: {terms}"
+        f"the document's own proper nouns are missing from the vocabulary "
+        f"hint: {terms}"
     )
 
 
@@ -158,8 +160,7 @@ def test_the_alt_is_escaped(page: Path, monkeypatch) -> None:
     import alt_from_ollama
 
     monkeypatch.setattr(
-        alt_from_ollama,
-        "describe",
+        alt_from_ollama, "describe",
         lambda src, **kw: 'A sign reading "No swimming" & a jetty',
     )
     monkeypatch.setattr(alt_from_ollama, "detect_lang", lambda: "en")

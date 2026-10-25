@@ -58,15 +58,15 @@ def fixtures_dir() -> Path:
 @pytest.fixture(scope="session")
 def image_fixture(fixtures_dir: Path) -> Callable[[str], Path]:
     """Return a callable mapping a basename ``foo`` to ``fixtures/images/foo.png|jpg``."""
-
     def _lookup(name: str) -> Path:
         for suffix in (".png", ".jpg", ".jpeg", ".webp"):
             p = fixtures_dir / "images" / f"{name}{suffix}"
             if p.exists():
                 return p
         pytest.skip(f"Image fixture missing: tests/fixtures/images/{name}.*")
-
     return _lookup
+
+
 
 
 # ── Ollama-availability helpers ─────────────────────────────────────────────

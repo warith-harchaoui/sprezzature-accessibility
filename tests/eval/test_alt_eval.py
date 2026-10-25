@@ -110,66 +110,22 @@ _ENTRIES: list[tuple[str, dict]] = sorted(_TRUTH.items())
 # vision models pick different words for the same scene.
 _SUBJECT_KEYWORDS: dict[str, tuple[str, ...]] = {
     "marie-curie-portrait.jpg": (
-        "woman",
-        "person",
-        "portrait",
-        "head",
-        "face",
-        "hair",
-        "photo",
-        "femme",
-        "personne",
-        "visage",
-        "portrait",
-        "tete",
+        "woman", "person", "portrait", "head", "face", "hair", "photo",
+        "femme", "personne", "visage", "portrait", "tete",
     ),
     "climate-temperature-chart.png": (
-        "chart",
-        "graph",
-        "plot",
-        "temperature",
-        "warming",
-        "climate",
-        "data",
-        "line",
-        "trend",
-        "axis",
-        "year",
-        "graphique",
-        "courbe",
-        "donnees",
-        "temperature",
-        "annee",
+        "chart", "graph", "plot", "temperature", "warming", "climate",
+        "data", "line", "trend", "axis", "year",
+        "graphique", "courbe", "donnees", "temperature", "annee",
     ),
     "wikipedia-logo.png": (
-        "logo",
-        "globe",
-        "sphere",
-        "puzzle",
-        "wikipedia",
-        "symbol",
-        "icon",
-        "letter",
-        "glyph",
-        "character",
-        "globe",
-        "sphere",
-        "logo",
-        "symbole",
+        "logo", "globe", "sphere", "puzzle", "wikipedia", "symbol",
+        "icon", "letter", "glyph", "character",
+        "globe", "sphere", "logo", "symbole",
     ),
     "tour-eiffel.jpg": (
-        "tour",
-        "eiffel",
-        "tower",
-        "monument",
-        "paris",
-        "metal",
-        "iron",
-        "structure",
-        "ciel",
-        "champ",
-        "mars",
-        "fer",
+        "tour", "eiffel", "tower", "monument", "paris", "metal", "iron",
+        "structure", "ciel", "champ", "mars", "fer",
     ),
     "decorative-pattern.png": (),  # decorative -> empty alt expected
 }
@@ -200,13 +156,12 @@ def _char_trigram_overlap(a: str, b: str) -> float:
     Returns 0.0 when either input has fewer than 3 characters of usable
     content (the metric is undefined in that regime).
     """
-
     def _trigrams(text: str) -> set[str]:
         cleaned = "".join(c.lower() if c.isalnum() else " " for c in text)
         cleaned = " ".join(cleaned.split())  # collapse runs of whitespace
         if len(cleaned) < 3:
             return set()
-        return {cleaned[i : i + 3] for i in range(len(cleaned) - 2)}
+        return {cleaned[i:i + 3] for i in range(len(cleaned) - 2)}
 
     ta, tb = _trigrams(a), _trigrams(b)
     if not ta or not tb:
@@ -284,16 +239,8 @@ def test_alt_quality(
     if lang == "fr":
         detected = detect_text_language(alt, fallback="en")
         french_markers = (
-            " le ",
-            " la ",
-            " les ",
-            " un ",
-            " une ",
-            " des ",
-            " et ",
-            " sur ",
-            " avec ",
-            " dans ",
+            " le ", " la ", " les ", " un ", " une ",
+            " des ", " et ", " sur ", " avec ", " dans ",
         )
         has_marker = any(m in f" {alt.lower()} " for m in french_markers)
         assert detected == "fr" or has_marker, (
@@ -317,12 +264,14 @@ def test_alt_quality(
         relevance = AnswerRelevancyMetric(threshold=0.4)
         relevance.measure(case)
         assert relevance.score is None or relevance.score >= 0.4, (
-            f"Relevance below 0.4 for {filename}: score={relevance.score}, alt={alt!r}"
+            f"Relevance below 0.4 for {filename}: "
+            f"score={relevance.score}, alt={alt!r}"
         )
         faithfulness = FaithfulnessMetric(threshold=0.4)
         faithfulness.measure(case)
         assert faithfulness.score is None or faithfulness.score >= 0.4, (
-            f"Faithfulness below 0.4 for {filename}: score={faithfulness.score}, alt={alt!r}"
+            f"Faithfulness below 0.4 for {filename}: "
+            f"score={faithfulness.score}, alt={alt!r}"
         )
     except Exception as exc:  # pragma: no cover - environment-dependent
         # DeepEval needs its own model wiring; on a vanilla Ollama install
@@ -351,5 +300,7 @@ def test_decorative_returns_empty() -> None:
     decorative = _FIXTURES_ROOT / "decorative-pattern.png"
     if not decorative.exists():
         pytest.skip(f"Decorative fixture missing: {decorative}")
-    out: str = alt_from_ollama.describe(str(decorative), kind="decorative", lang="en")
+    out: str = alt_from_ollama.describe(
+        str(decorative), kind="decorative", lang="en"
+    )
     assert out == "", f"Decorative image must return empty string, got {out!r}"

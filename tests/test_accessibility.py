@@ -109,13 +109,13 @@ def _findings_for(html: str) -> list:
 
 def test_check_button_empty() -> None:
     """A <button> with no text and no aria-label triggers button-empty."""
-    findings = _findings_for("<button></button>")
+    findings = _findings_for('<button></button>')
     assert any(f.rule == "button-empty" for f in findings)
 
 
 def test_check_button_with_icon_is_clean() -> None:
     """A <button> whose only content is an <svg> is not flagged."""
-    findings = _findings_for("<button><svg></svg></button>")
+    findings = _findings_for('<button><svg></svg></button>')
     assert not any(f.rule == "button-empty" for f in findings)
 
 
@@ -267,7 +267,11 @@ def test_fix_img_redundant_aria_role_presentation() -> None:
     <img alt=""> and preserves everything else on the line."""
     from lint_a11y import fix_file
 
-    html = '<html lang="en"><body><img src="deco.png" alt="" role="presentation"></body></html>\n'
+    html = (
+        '<html lang="en"><body>'
+        '<img src="deco.png" alt="" role="presentation">'
+        "</body></html>\n"
+    )
     with tempfile.NamedTemporaryFile(suffix=".html", mode="w", delete=False) as f:
         f.write(html)
         tmp = Path(f.name)
@@ -290,7 +294,11 @@ def test_fix_img_redundant_aria_aria_hidden() -> None:
     <img alt="">."""
     from lint_a11y import fix_file
 
-    html = '<html lang="en"><body><img src="deco.png" alt="" aria-hidden="true"></body></html>\n'
+    html = (
+        '<html lang="en"><body>'
+        '<img src="deco.png" alt="" aria-hidden="true">'
+        "</body></html>\n"
+    )
     with tempfile.NamedTemporaryFile(suffix=".html", mode="w", delete=False) as f:
         f.write(html)
         tmp = Path(f.name)
@@ -395,7 +403,7 @@ def test_text_spacing_preset_custom_attr_and_values() -> None:
         paragraph_spacing_em=2.5,
     )
     assert '[data-reading-mode="on"] p' in css
-    assert "[data-text-spacing" not in css
+    assert '[data-text-spacing' not in css
     assert "line-height: 1.8;" in css
     assert "letter-spacing: 0.2em;" in css
     assert "word-spacing: 0.3em;" in css
@@ -469,9 +477,7 @@ def test_muted_decorative_video_is_exempt() -> None:
 
 def test_autoplay_with_sound_is_reported() -> None:
     """Unmuted autoplay masks a screen reader — WCAG 1.4.2."""
-    rules = _findings(
-        '<html lang="en"><body><audio src="a.mp3" autoplay controls></audio></body></html>'
-    )
+    rules = _findings('<html lang="en"><body><audio src="a.mp3" autoplay controls></audio></body></html>')
     assert "media-autoplay-sound" in rules
 
 
@@ -513,9 +519,9 @@ def test_aria_hidden_on_a_duplicate_link_is_not_a_finding() -> None:
         '<img src="t.png" alt=""></a>'
         "</div></body></html>"
     )
-    assert not [f for f in lint_html(correct) if f.rule == "aria-hidden-interactive"], (
-        "the documented duplicate-link pattern must not be flagged"
-    )
+    assert not [
+        f for f in lint_html(correct) if f.rule == "aria-hidden-interactive"
+    ], "the documented duplicate-link pattern must not be flagged"
 
 
 def test_aria_hidden_on_a_reachable_control_is_still_a_finding() -> None:
@@ -528,9 +534,9 @@ def test_aria_hidden_on_a_reachable_control_is_still_a_finding() -> None:
         '<input type="text" aria-label="q" aria-hidden="true">',
     ):
         page = f'<html lang="en"><body>{broken}</body></html>'
-        assert [f for f in lint_html(page) if f.rule == "aria-hidden-interactive"], (
-            f"still focusable and still hidden, and not flagged: {broken}"
-        )
+        assert [
+            f for f in lint_html(page) if f.rule == "aria-hidden-interactive"
+        ], f"still focusable and still hidden, and not flagged: {broken}"
 
 
 def test_the_ways_out_of_the_tab_order_are_each_honoured() -> None:
@@ -543,6 +549,6 @@ def test_the_ways_out_of_the_tab_order_are_each_honoured() -> None:
         '<a aria-hidden="true">not a link</a>',
     ):
         page = f'<html lang="en"><body>{exempt}</body></html>'
-        assert not [f for f in lint_html(page) if f.rule == "aria-hidden-interactive"], (
-            f"not reachable, so not a finding: {exempt}"
-        )
+        assert not [
+            f for f in lint_html(page) if f.rule == "aria-hidden-interactive"
+        ], f"not reachable, so not a finding: {exempt}"

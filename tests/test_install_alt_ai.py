@@ -31,7 +31,6 @@ def _fail_proc(code: int = 1) -> SimpleNamespace:
 
 # ── pick_model ─────────────────────────────────────────────────────────────
 
-
 class TestPickModel:
     def test_env_seam_wins(self, monkeypatch):
         # OLLAMA_MODEL is a TEST SEAM only (never a user-facing model choice).
@@ -49,7 +48,6 @@ class TestPickModel:
 
 # ── install_ollama paths ───────────────────────────────────────────────────
 
-
 class TestInstallOllama:
     def test_no_op_when_already_installed(self, monkeypatch, capsys):
         monkeypatch.setattr(ia, "has", lambda c: c == "ollama")
@@ -62,11 +60,9 @@ class TestInstallOllama:
         monkeypatch.setattr(ia, "has", lambda c: c == "brew")
         monkeypatch.setattr(ia.platform, "system", lambda: "Darwin")
         calls: list[list[str]] = []
-
         def fake_run(cmd, **kw):
             calls.append(cmd)
             return _ok_proc()
-
         monkeypatch.setattr(ia, "run", fake_run)
         ia.install_ollama()
         assert calls == [["brew", "install", "ollama"]]
@@ -86,28 +82,18 @@ class TestInstallOllama:
 
         # Stub urllib.urlopen to return a fixed installer script.
         class FakeResp:
-            def __init__(self):
-                self._data = b"#!/bin/sh\necho ok\n"
-
-            def read(self):
-                return self._data
-
-            def __enter__(self):
-                return self
-
-            def __exit__(self, *a):
-                return False
-
+            def __init__(self): self._data = b"#!/bin/sh\necho ok\n"
+            def read(self): return self._data
+            def __enter__(self): return self
+            def __exit__(self, *a): return False
         monkeypatch.setattr(ia.urllib.request, "urlopen", lambda *a, **kw: FakeResp())
 
         # Stub subprocess.run for the ``sh`` invocation; capture stdin.
         seen: dict = {}
-
         def fake_run(argv, **kw):
             seen["argv"] = argv
             seen["input"] = kw.get("input")
             return _ok_proc()
-
         monkeypatch.setattr(ia.subprocess, "run", fake_run)
 
         ia.install_ollama()
@@ -126,11 +112,9 @@ class TestInstallOllama:
         monkeypatch.setattr(ia, "has", lambda c: c == "winget")
         monkeypatch.setattr(ia.platform, "system", lambda: "Windows")
         calls: list[list[str]] = []
-
         def fake_run(cmd, **kw):
             calls.append(cmd)
             return _ok_proc()
-
         monkeypatch.setattr(ia, "run", fake_run)
         ia.install_ollama()
         assert calls[0][0] == "winget"
@@ -145,23 +129,21 @@ class TestInstallOllama:
 
 # ── daemon_up + ensure_daemon ─────────────────────────────────────────────
 
-
 class TestDaemonUp:
     def test_true_when_ollama_list_succeeds(self, monkeypatch):
-        monkeypatch.setattr(ia.subprocess, "run", lambda *a, **kw: _ok_proc())
+        monkeypatch.setattr(ia.subprocess, "run",
+                            lambda *a, **kw: _ok_proc())
         assert ia.daemon_up() is True
 
     def test_false_when_missing_binary(self, monkeypatch):
         def boom(*a, **kw):
             raise FileNotFoundError
-
         monkeypatch.setattr(ia.subprocess, "run", boom)
         assert ia.daemon_up() is False
 
     def test_false_on_timeout(self, monkeypatch):
         def boom(*a, **kw):
             raise subprocess.TimeoutExpired(cmd="ollama", timeout=10)
-
         monkeypatch.setattr(ia.subprocess, "run", boom)
         assert ia.daemon_up() is False
 
@@ -178,7 +160,8 @@ class TestEnsureDaemon:
         states = iter([False, True])
         monkeypatch.setattr(ia, "daemon_up", lambda: next(states))
         popen_calls: list = []
-        monkeypatch.setattr(ia.subprocess, "Popen", lambda *a, **kw: popen_calls.append((a, kw)))
+        monkeypatch.setattr(ia.subprocess, "Popen",
+                            lambda *a, **kw: popen_calls.append((a, kw)))
         # Speed up the polling loop.
         monkeypatch.setattr(ia.time, "sleep", lambda s: None)
         ia.ensure_daemon()
@@ -190,7 +173,8 @@ class TestEnsureDaemon:
     def test_exits_after_ten_failed_retries(self, monkeypatch):
         # Daemon never comes up — every probe returns False.
         monkeypatch.setattr(ia, "daemon_up", lambda: False)
-        monkeypatch.setattr(ia.subprocess, "Popen", lambda *a, **kw: MagicMock())
+        monkeypatch.setattr(ia.subprocess, "Popen",
+                            lambda *a, **kw: MagicMock())
         monkeypatch.setattr(ia.time, "sleep", lambda s: None)
         with pytest.raises(SystemExit) as excinfo:
             ia.ensure_daemon()

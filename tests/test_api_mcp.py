@@ -57,13 +57,15 @@ def test_ignore_suppresses_a_rule() -> None:
     """Suppression is honoured, and only for the named rule."""
     html = '<img src="a.png">'
     before = client.post("/v1/lint", json={"html": html}).json()
-    after = client.post("/v1/lint", json={"html": html, "ignore": ["img-missing-alt"]}).json()
+    after = client.post(
+        "/v1/lint", json={"html": html, "ignore": ["img-missing-alt"]}
+    ).json()
     assert before["errors"] > after["errors"]
 
 
 def test_fragment_needs_no_document_wrapper() -> None:
     """Callers lint template fragments; requiring <html> would be useless."""
-    result = client.post("/v1/lint", json={"html": "<button></button>"}).json()
+    result = client.post("/v1/lint", json={"html": '<button></button>'}).json()
     assert any(f["rule"] == "button-empty" for f in result["findings"])
 
 
@@ -141,7 +143,6 @@ def test_every_tool_says_when_to_call_it() -> None:
 # table that had not been carried across. Reading the OpenAPI schema proves a
 # route is *declared*; only calling it proves it runs. ruff caught this one;
 # a test should not need ruff's help.
-
 
 def test_every_declared_get_route_answers() -> None:
     """A declared route that raises on call is worse than a missing one."""
