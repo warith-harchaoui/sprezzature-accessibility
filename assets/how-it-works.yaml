@@ -82,4 +82,4 @@ fr:
   outcome:
     label: Une page qu'un lecteur d'écran lit, qu'un clavier atteint, et qu'un réglage de mouvement réduit apaise
     note: Ce que seule une page rendue montre, l'ordre du focus et le contraste sur un vrai fond, reste du ressort d'axe-core, Pa11y ou Lighthouse. Ceci est la première barrière, la rapide, pas leur remplacement.
-  footer: Bibliothèque standard seule à l'exécution. Quelques millisecondes, dans un conteneur minimal, ce qui justifie de le mettre en crochet de pre-commit.
+  footer: Bibliothèque standard seule à l'exécution. Quelques millisecondes, dans un conteneur minimal, ce qui en fait un bon crochet de pre-commit.
