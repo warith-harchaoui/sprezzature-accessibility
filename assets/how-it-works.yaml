@@ -1,0 +1,85 @@
+# How this brick works, as drawn in README.md and LISEZMOI.md.
+#
+# The renderer lives in the hub, at sprezzature/scripts/make_brick_diagram.py,
+# because the ten bricks share one drawing and ten generators would have become
+# ten dialects of it. The content lives here, because the brick is what knows
+# what is true about itself.
+#
+# Redraw after any edit:
+#   python ~/sprezzature/scripts/make_brick_diagram.py sprezzature-accessibility
+package: sprezzature-accessibility
+
+en:
+  title: How sprezzature-accessibility works
+  subtitle: Twenty rules a browser never has to run, and the alt text they ask for.
+  alt: >-
+    Flow diagram. At the top, the HTML you are holding feeds two lanes. The left
+    lane makes: it reads the page around an image, asks a local vision model, and
+    writes the alt attribute back into the page. The right lane audits: it scans
+    the source text with no browser, decides twenty rules, and returns findings as
+    text or JSON with exit code 1 on any finding. Both lanes meet in one outcome, a
+    page a screen reader can read and a keyboard can reach.
+  input:
+    label: The HTML you are holding
+    note: one file, a folder, or a page somebody else wrote. No build step, no server, no page load.
+  lanes:
+    - title: "Make: write what is missing"
+      steps:
+        - label: Read the page around the image
+          note: the heading above it, the caption under it, the sentence it illustrates
+        - label: Ask a vision model on your own machine
+          note: Ollama, locally. No image is uploaded anywhere, so a private screenshot stays private.
+      result:
+        label: The alt text, written into the page
+        note: drafted against the W3C decision tree, and put in front of you to read before it ships
+    - title: "Audit: twenty rules, read from the text"
+      steps:
+        - label: Scan the source
+          note: no browser opens, no JavaScript runs, no document tree is built
+        - label: Decide each rule
+          note: missing alt, unlabelled input, empty button, clickable div, dialog with no close, heading order, state shown by colour alone, animation with no reduced-motion peer, video with no captions
+      result:
+        label: Findings, as text or JSON
+        note: exit 1 on any finding, so it gates a commit. Six of the twenty also carry a mechanical repair.
+  outcome:
+    label: A page a screen reader can read, a keyboard can reach, and a reduced-motion setting can calm
+    note: What only a rendered page shows, focus order and contrast against a real background, stays for axe-core, Pa11y or Lighthouse. This is the fast first gate, not a replacement for them.
+  footer: Standard library only at runtime. Milliseconds, in a minimal container, which is what makes it worth a pre-commit hook.
+
+fr:
+  title: Comment fonctionne sprezzature-accessibility
+  subtitle: Vingt règles qu'aucun navigateur n'a besoin d'exécuter, et le texte alternatif qu'elles réclament.
+  alt: >-
+    Schéma de flux. En haut, le HTML que vous tenez alimente deux voies. La voie de
+    gauche fabrique : elle lit la page autour d'une image, interroge un modèle de
+    vision local, et réécrit l'attribut alt dans la page. La voie de droite
+    contrôle : elle lit la source sans navigateur, tranche vingt règles, et rend
+    ses constats en texte ou en JSON, avec le code de sortie 1 dès qu'il y en a un.
+    Les deux voies se rejoignent en un seul résultat, une page qu'un lecteur
+    d'écran lit et qu'un clavier atteint.
+  input:
+    label: Le HTML que vous tenez
+    note: un fichier, un dossier, ou une page écrite par quelqu'un d'autre. Pas de compilation, pas de serveur, pas de chargement.
+  lanes:
+    - title: "Fabriquer : écrire ce qui manque"
+      steps:
+        - label: Lire la page autour de l'image
+          note: le titre au-dessus, la légende en dessous, la phrase qu'elle illustre
+        - label: Interroger un modèle de vision sur votre machine
+          note: Ollama, en local. Aucune image n'est envoyée ailleurs, une capture d'écran privée le reste.
+      result:
+        label: Un texte alternatif, écrit dans la page
+        note: rédigé selon l'arbre de décision du W3C, et soumis à votre lecture avant publication
+    - title: "Contrôler : vingt règles, lues dans le texte"
+      steps:
+        - label: Parcourir la source
+          note: aucun navigateur ne s'ouvre, aucun JavaScript ne tourne, aucun arbre de document n'est construit
+        - label: Trancher chaque règle
+          note: alt absent, champ sans étiquette, bouton vide, div cliquable, dialogue sans fermeture, hiérarchie de titres, état porté par la seule couleur, animation sans variante apaisée, vidéo sans sous-titres
+      result:
+        label: Des constats, en texte ou en JSON
+        note: code de sortie 1 au premier constat, ce qui en fait une barrière avant commit. Six règles sur vingt portent aussi leur réparation.
+  outcome:
+    label: Une page qu'un lecteur d'écran lit, qu'un clavier atteint, et qu'un réglage de mouvement réduit apaise
+    note: Ce que seule une page rendue montre, l'ordre du focus et le contraste sur un vrai fond, reste du ressort d'axe-core, Pa11y ou Lighthouse. Ceci est la première barrière, la rapide, pas leur remplacement.
+  footer: Bibliothèque standard seule à l'exécution. Quelques millisecondes, dans un conteneur minimal, ce qui justifie de le mettre en crochet de pre-commit.

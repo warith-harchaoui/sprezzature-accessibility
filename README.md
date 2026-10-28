@@ -40,6 +40,10 @@ Lighthouse, which drive a real browser, for that layer. The two are complementar
 interchangeable: this one is the fast, no-browser first gate; those are the slower,
 browser-accurate second pass.
 
+## How it works
+
+![Flow diagram. At the top, the HTML you are holding feeds two lanes. The left lane makes: it reads the page around an image, asks a local vision model, and writes the alt attribute back into the page. The right lane audits: it scans the source text with no browser, decides twenty rules, and returns findings as text or JSON with exit code 1 on any finding. Both lanes meet in one outcome, a page a screen reader can read and a keyboard can reach.](https://raw.githubusercontent.com/warith-harchaoui/sprezzature-accessibility/main/assets/how-it-works.svg)
+
 ## Features
 
 - 20 rules covering img, a, button, div/span, input, dialog, html, tabindex, aria,

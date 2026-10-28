@@ -47,6 +47,10 @@ navigateur, pour cette couche-là. Les deux approches se complètent, elles ne s
 remplacent pas : celui-ci est la porte rapide sans navigateur ; les autres sont la
 passe plus lente mais fidèle au rendu réel.
 
+## Comment ça marche
+
+![Schéma de flux. En haut, le HTML que vous tenez alimente deux voies. La voie de gauche fabrique : elle lit la page autour d'une image, interroge un modèle de vision local, et réécrit l'attribut alt dans la page. La voie de droite contrôle : elle lit la source sans navigateur, tranche vingt règles, et rend ses constats en texte ou en JSON, avec le code de sortie 1 dès qu'il y en a un. Les deux voies se rejoignent en un seul résultat, une page qu'un lecteur d'écran lit et qu'un clavier atteint.](https://raw.githubusercontent.com/warith-harchaoui/sprezzature-accessibility/main/assets/comment-ca-marche.svg)
+
 ## Fonctionnalités
 
 - 20 règles couvrant img, a, button, div/span, input, dialog, html, tabindex, aria,
