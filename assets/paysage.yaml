@@ -1,0 +1,597 @@
+meta:
+  reference: sprezzature-accessibility
+  rotation_deg: 43.097
+  explained_variance_ratio:
+  - 0.3384
+  - 0.2656
+  cumulative_variance: 0.604
+  n_approaches: 23
+  attributes:
+  - Sans navigateur
+  - Vitesse en intégration continue
+  - Adapté au pré-commit
+  - Légèreté de l'installation
+  - Désigne la ligne source
+  - Correction mécanique automatique
+  - Rédige le texte alternatif manquant
+  - Couverture des règles WCAG
+  - Couverture des médias temporels
+  - Détecte les défauts au rendu
+  - Précision du signal
+  - Gratuité ou ouverture
+  - Local et hors ligne
+  - Maturité et écosystème
+  - Support commercial
+  lower_is_better: []
+  imputed_cells: []
+axes:
+  axis_1:
+    name: Fiabilité ↔ Efficacité
+    pole_left: Fiabilité
+    pole_right: Efficacité
+    loadings:
+      Sans navigateur: 0.377
+      Vitesse en intégration continue: 0.1648
+      Adapté au pré-commit: 0.1624
+      Légèreté de l'installation: 0.3128
+      Désigne la ligne source: 0.1697
+      Correction mécanique automatique: 0.3213
+      Rédige le texte alternatif manquant: 0.3062
+      Couverture des règles WCAG: -0.3538
+      Couverture des médias temporels: -0.1149
+      Détecte les défauts au rendu: -0.4104
+      Précision du signal: -0.1672
+      Gratuité ou ouverture: -0.167
+      Local et hors ligne: -0.2208
+      Maturité et écosystème: -0.2587
+      Support commercial: 0.0482
+  axis_2:
+    name: Soutien ↔ Agilité
+    pole_bottom: Soutien
+    pole_top: Agilité
+    loadings:
+      Sans navigateur: 0.152
+      Vitesse en intégration continue: 0.3853
+      Adapté au pré-commit: 0.3629
+      Légèreté de l'installation: -0.1189
+      Désigne la ligne source: 0.361
+      Correction mécanique automatique: 0.0384
+      Rédige le texte alternatif manquant: -0.2057
+      Couverture des règles WCAG: -0.0216
+      Couverture des médias temporels: 0.1958
+      Détecte les défauts au rendu: -0.1036
+      Précision du signal: 0.2344
+      Gratuité ou ouverture: 0.396
+      Local et hors ligne: 0.3855
+      Maturité et écosystème: -0.0932
+      Support commercial: -0.2999
+approaches:
+- name: sprezzature-accessibility
+  coordinates:
+    axis_1: 3.3196
+    axis_2: 3.4642
+  role: best
+  color: '#FF3B30'
+  attributes:
+    Sans navigateur: 5.0
+    Vitesse en intégration continue: 5.0
+    Adapté au pré-commit: 5.0
+    Légèreté de l'installation: 5.0
+    Désigne la ligne source: 5.0
+    Correction mécanique automatique: 4.0
+    Rédige le texte alternatif manquant: 5.0
+    Couverture des règles WCAG: 2.0
+    Couverture des médias temporels: 5.0
+    Détecte les défauts au rendu: 1.0
+    Précision du signal: 3.0
+    Gratuité ou ouverture: 5.0
+    Local et hors ligne: 5.0
+    Maturité et écosystème: 1.0
+    Support commercial: 1.0
+  imputed_attributes: []
+- name: axe-core
+  coordinates:
+    axis_1: -3.0813
+    axis_2: 0.6658
+  role: competitor
+  color: '#A07CCF'
+  attributes:
+    Sans navigateur: 1.0
+    Vitesse en intégration continue: 3.0
+    Adapté au pré-commit: 2.0
+    Légèreté de l'installation: 2.0
+    Désigne la ligne source: 2.0
+    Correction mécanique automatique: 1.0
+    Rédige le texte alternatif manquant: 1.0
+    Couverture des règles WCAG: 5.0
+    Couverture des médias temporels: 2.0
+    Détecte les défauts au rendu: 5.0
+    Précision du signal: 5.0
+    Gratuité ou ouverture: 5.0
+    Local et hors ligne: 5.0
+    Maturité et écosystème: 5.0
+    Support commercial: 5.0
+  imputed_attributes: []
+- name: axe DevTools Linter
+  coordinates:
+    axis_1: 1.3071
+    axis_2: 0.8659
+  role: competitor
+  color: '#7CD494'
+  attributes:
+    Sans navigateur: 5.0
+    Vitesse en intégration continue: 4.0
+    Adapté au pré-commit: 4.0
+    Légèreté de l'installation: 3.0
+    Désigne la ligne source: 5.0
+    Correction mécanique automatique: 2.0
+    Rédige le texte alternatif manquant: 1.0
+    Couverture des règles WCAG: 4.0
+    Couverture des médias temporels: 1.0
+    Détecte les défauts au rendu: 1.0
+    Précision du signal: 4.0
+    Gratuité ou ouverture: 2.0
+    Local et hors ligne: 2.0
+    Maturité et écosystème: 4.0
+    Support commercial: 5.0
+  imputed_attributes: []
+- name: Pa11y
+  coordinates:
+    axis_1: -3.3196
+    axis_2: 0.5507
+  role: competitor
+  color: '#BB69A0'
+  attributes:
+    Sans navigateur: 1.0
+    Vitesse en intégration continue: 2.0
+    Adapté au pré-commit: 1.0
+    Légèreté de l'installation: 1.0
+    Désigne la ligne source: 2.0
+    Correction mécanique automatique: 1.0
+    Rédige le texte alternatif manquant: 1.0
+    Couverture des règles WCAG: 5.0
+    Couverture des médias temporels: 2.0
+    Détecte les défauts au rendu: 5.0
+    Précision du signal: 3.0
+    Gratuité ou ouverture: 5.0
+    Local et hors ligne: 5.0
+    Maturité et écosystème: 5.0
+    Support commercial: 1.0
+  imputed_attributes: []
+- name: Lighthouse
+  coordinates:
+    axis_1: -2.8666
+    axis_2: 0.5165
+  role: competitor
+  color: '#CD8DD6'
+  attributes:
+    Sans navigateur: 1.0
+    Vitesse en intégration continue: 2.0
+    Adapté au pré-commit: 1.0
+    Légèreté de l'installation: 2.0
+    Désigne la ligne source: 1.0
+    Correction mécanique automatique: 1.0
+    Rédige le texte alternatif manquant: 1.0
+    Couverture des règles WCAG: 3.0
+    Couverture des médias temporels: 2.0
+    Détecte les défauts au rendu: 5.0
+    Précision du signal: 4.0
+    Gratuité ou ouverture: 5.0
+    Local et hors ligne: 5.0
+    Maturité et écosystème: 5.0
+    Support commercial: 1.0
+  imputed_attributes: []
+- name: WAVE
+  coordinates:
+    axis_1: -2.231
+    axis_2: -0.8856
+  role: competitor
+  color: '#C26383'
+  attributes:
+    Sans navigateur: 1.0
+    Vitesse en intégration continue: 1.0
+    Adapté au pré-commit: 1.0
+    Légèreté de l'installation: 4.0
+    Désigne la ligne source: 2.0
+    Correction mécanique automatique: 1.0
+    Rédige le texte alternatif manquant: 1.0
+    Couverture des règles WCAG: 4.0
+    Couverture des médias temporels: 3.0
+    Détecte les défauts au rendu: 5.0
+    Précision du signal: 3.0
+    Gratuité ou ouverture: 3.0
+    Local et hors ligne: 4.0
+    Maturité et écosystème: 5.0
+    Support commercial: 3.0
+  imputed_attributes: []
+- name: IBM Equal Access
+  coordinates:
+    axis_1: -3.0387
+    axis_2: 1.0217
+  role: competitor
+  color: '#6BBAFD'
+  attributes:
+    Sans navigateur: 1.0
+    Vitesse en intégration continue: 2.0
+    Adapté au pré-commit: 2.0
+    Légèreté de l'installation: 2.0
+    Désigne la ligne source: 2.0
+    Correction mécanique automatique: 1.0
+    Rédige le texte alternatif manquant: 1.0
+    Couverture des règles WCAG: 5.0
+    Couverture des médias temporels: 3.0
+    Détecte les défauts au rendu: 5.0
+    Précision du signal: 4.0
+    Gratuité ou ouverture: 5.0
+    Local et hors ligne: 5.0
+    Maturité et écosystème: 4.0
+    Support commercial: 2.0
+  imputed_attributes: []
+- name: Accessibility Insights
+  coordinates:
+    axis_1: -2.4779
+    axis_2: 0.6682
+  role: competitor
+  color: '#BBB9FF'
+  attributes:
+    Sans navigateur: 1.0
+    Vitesse en intégration continue: 2.0
+    Adapté au pré-commit: 1.0
+    Légèreté de l'installation: 4.0
+    Désigne la ligne source: 2.0
+    Correction mécanique automatique: 1.0
+    Rédige le texte alternatif manquant: 1.0
+    Couverture des règles WCAG: 4.0
+    Couverture des médias temporels: 2.0
+    Détecte les défauts au rendu: 5.0
+    Précision du signal: 5.0
+    Gratuité ou ouverture: 5.0
+    Local et hors ligne: 5.0
+    Maturité et écosystème: 4.0
+    Support commercial: 2.0
+  imputed_attributes: []
+- name: HTML_CodeSniffer
+  coordinates:
+    axis_1: -1.0763
+    axis_2: 0.3595
+  role: competitor
+  color: '#8FB4FF'
+  attributes:
+    Sans navigateur: 1.0
+    Vitesse en intégration continue: 2.0
+    Adapté au pré-commit: 1.0
+    Légèreté de l'installation: 4.0
+    Désigne la ligne source: 2.0
+    Correction mécanique automatique: 1.0
+    Rédige le texte alternatif manquant: 1.0
+    Couverture des règles WCAG: 3.0
+    Couverture des médias temporels: 2.0
+    Détecte les défauts au rendu: 4.0
+    Précision du signal: 2.0
+    Gratuité ou ouverture: 5.0
+    Local et hors ligne: 5.0
+    Maturité et écosystème: 2.0
+    Support commercial: 1.0
+  imputed_attributes: []
+- name: eslint-plugin-jsx-a11y
+  coordinates:
+    axis_1: 1.2204
+    axis_2: 3.4177
+  role: competitor
+  color: '#3FD7EB'
+  attributes:
+    Sans navigateur: 5.0
+    Vitesse en intégration continue: 4.0
+    Adapté au pré-commit: 5.0
+    Légèreté de l'installation: 4.0
+    Désigne la ligne source: 5.0
+    Correction mécanique automatique: 2.0
+    Rédige le texte alternatif manquant: 1.0
+    Couverture des règles WCAG: 2.0
+    Couverture des médias temporels: 2.0
+    Détecte les défauts au rendu: 1.0
+    Précision du signal: 4.0
+    Gratuité ou ouverture: 5.0
+    Local et hors ligne: 5.0
+    Maturité et écosystème: 4.0
+    Support commercial: 1.0
+  imputed_attributes: []
+- name: Biome
+  coordinates:
+    axis_1: 1.9771
+    axis_2: 3.4642
+  role: top
+  color: '#AF52DE'
+  attributes:
+    Sans navigateur: 5.0
+    Vitesse en intégration continue: 5.0
+    Adapté au pré-commit: 5.0
+    Légèreté de l'installation: 5.0
+    Désigne la ligne source: 5.0
+    Correction mécanique automatique: 3.0
+    Rédige le texte alternatif manquant: 1.0
+    Couverture des règles WCAG: 2.0
+    Couverture des médias temporels: 2.0
+    Détecte les défauts au rendu: 1.0
+    Précision du signal: 4.0
+    Gratuité ou ouverture: 5.0
+    Local et hors ligne: 5.0
+    Maturité et écosystème: 4.0
+    Support commercial: 2.0
+  imputed_attributes: []
+- name: html-validate
+  coordinates:
+    axis_1: 0.7475
+    axis_2: 3.0054
+  role: competitor
+  color: '#3EBBE9'
+  attributes:
+    Sans navigateur: 5.0
+    Vitesse en intégration continue: 4.0
+    Adapté au pré-commit: 4.0
+    Légèreté de l'installation: 4.0
+    Désigne la ligne source: 5.0
+    Correction mécanique automatique: 1.0
+    Rédige le texte alternatif manquant: 1.0
+    Couverture des règles WCAG: 3.0
+    Couverture des médias temporels: 2.0
+    Détecte les défauts au rendu: 1.0
+    Précision du signal: 4.0
+    Gratuité ou ouverture: 5.0
+    Local et hors ligne: 5.0
+    Maturité et écosystème: 3.0
+    Support commercial: 2.0
+  imputed_attributes: []
+- name: htmlhint
+  coordinates:
+    axis_1: 1.975
+    axis_2: 3.2144
+  role: competitor
+  color: '#1DAC88'
+  attributes:
+    Sans navigateur: 5.0
+    Vitesse en intégration continue: 5.0
+    Adapté au pré-commit: 5.0
+    Légèreté de l'installation: 5.0
+    Désigne la ligne source: 5.0
+    Correction mécanique automatique: 1.0
+    Rédige le texte alternatif manquant: 1.0
+    Couverture des règles WCAG: 1.0
+    Couverture des médias temporels: 1.0
+    Détecte les défauts au rendu: 1.0
+    Précision du signal: 3.0
+    Gratuité ou ouverture: 5.0
+    Local et hors ligne: 5.0
+    Maturité et écosystème: 3.0
+    Support commercial: 1.0
+  imputed_attributes: []
+- name: AccessLint
+  coordinates:
+    axis_1: 1.1295
+    axis_2: 0.6245
+  role: competitor
+  color: '#7FAE5A'
+  attributes:
+    Sans navigateur: 4.0
+    Vitesse en intégration continue: 3.0
+    Adapté au pré-commit: 2.0
+    Légèreté de l'installation: 5.0
+    Désigne la ligne source: 5.0
+    Correction mécanique automatique: 1.0
+    Rédige le texte alternatif manquant: 1.0
+    Couverture des règles WCAG: 4.0
+    Couverture des médias temporels: 2.0
+    Détecte les défauts au rendu: 1.0
+    Précision du signal: 4.0
+    Gratuité ou ouverture: 3.0
+    Local et hors ligne: 1.0
+    Maturité et écosystème: 2.0
+    Support commercial: 3.0
+  imputed_attributes: []
+- name: A11yInspect
+  coordinates:
+    axis_1: 0.3092
+    axis_2: 0.7161
+  role: competitor
+  color: '#00B9B2'
+  attributes:
+    Sans navigateur: 3.0
+    Vitesse en intégration continue: 3.0
+    Adapté au pré-commit: 4.0
+    Légèreté de l'installation: 4.0
+    Désigne la ligne source: 4.0
+    Correction mécanique automatique: 1.0
+    Rédige le texte alternatif manquant: 1.0
+    Couverture des règles WCAG: 4.0
+    Couverture des médias temporels: 2.0
+    Détecte les défauts au rendu: 3.0
+    Précision du signal: 3.0
+    Gratuité ou ouverture: 3.0
+    Local et hors ligne: 3.0
+    Maturité et écosystème: 2.0
+    Support commercial: 4.0
+  imputed_attributes: []
+- name: Siteimprove
+  coordinates:
+    axis_1: -1.6864
+    axis_2: -2.6296
+  role: worst
+  color: '#A52A2A'
+  attributes:
+    Sans navigateur: 1.0
+    Vitesse en intégration continue: 1.0
+    Adapté au pré-commit: 1.0
+    Légèreté de l'installation: 5.0
+    Désigne la ligne source: 1.0
+    Correction mécanique automatique: 1.0
+    Rédige le texte alternatif manquant: 2.0
+    Couverture des règles WCAG: 5.0
+    Couverture des médias temporels: 3.0
+    Détecte les défauts au rendu: 5.0
+    Précision du signal: 4.0
+    Gratuité ou ouverture: 1.0
+    Local et hors ligne: 1.0
+    Maturité et écosystème: 5.0
+    Support commercial: 5.0
+  imputed_attributes: []
+- name: QualiBooth
+  coordinates:
+    axis_1: 0.0192
+    axis_2: -1.6117
+  role: competitor
+  color: '#E88385'
+  attributes:
+    Sans navigateur: 2.0
+    Vitesse en intégration continue: 2.0
+    Adapté au pré-commit: 2.0
+    Légèreté de l'installation: 5.0
+    Désigne la ligne source: 2.0
+    Correction mécanique automatique: 1.0
+    Rédige le texte alternatif manquant: 1.0
+    Couverture des règles WCAG: 4.0
+    Couverture des médias temporels: 2.0
+    Détecte les défauts au rendu: 4.0
+    Précision du signal: 3.0
+    Gratuité ou ouverture: 1.0
+    Local et hors ligne: 1.0
+    Maturité et écosystème: 2.0
+    Support commercial: 4.0
+  imputed_attributes: []
+- name: accessiBe
+  coordinates:
+    axis_1: 0.8095
+    axis_2: -3.4642
+  role: competitor
+  color: '#D08142'
+  attributes:
+    Sans navigateur: 1.0
+    Vitesse en intégration continue: 1.0
+    Adapté au pré-commit: 1.0
+    Légèreté de l'installation: 5.0
+    Désigne la ligne source: 1.0
+    Correction mécanique automatique: 2.0
+    Rédige le texte alternatif manquant: 3.0
+    Couverture des règles WCAG: 3.0
+    Couverture des médias temporels: 1.0
+    Détecte les défauts au rendu: 3.0
+    Précision du signal: 1.0
+    Gratuité ou ouverture: 1.0
+    Local et hors ligne: 1.0
+    Maturité et écosystème: 4.0
+    Support commercial: 4.0
+  imputed_attributes: []
+- name: UserWay
+  coordinates:
+    axis_1: 0.0506
+    axis_2: -3.0453
+  role: competitor
+  color: '#CC6F53'
+  attributes:
+    Sans navigateur: 1.0
+    Vitesse en intégration continue: 1.0
+    Adapté au pré-commit: 1.0
+    Légèreté de l'installation: 5.0
+    Désigne la ligne source: 1.0
+    Correction mécanique automatique: 2.0
+    Rédige le texte alternatif manquant: 3.0
+    Couverture des règles WCAG: 4.0
+    Couverture des médias temporels: 1.0
+    Détecte les défauts au rendu: 4.0
+    Précision du signal: 2.0
+    Gratuité ou ouverture: 2.0
+    Local et hors ligne: 1.0
+    Maturité et écosystème: 4.0
+    Support commercial: 4.0
+  imputed_attributes: []
+- name: AltText.ai
+  coordinates:
+    axis_1: 3.3196
+    axis_2: -1.7065
+  role: right
+  color: '#007AFF'
+  attributes:
+    Sans navigateur: 5.0
+    Vitesse en intégration continue: 2.0
+    Adapté au pré-commit: 1.0
+    Légèreté de l'installation: 5.0
+    Désigne la ligne source: 2.0
+    Correction mécanique automatique: 3.0
+    Rédige le texte alternatif manquant: 5.0
+    Couverture des règles WCAG: 1.0
+    Couverture des médias temporels: 1.0
+    Détecte les défauts au rendu: 1.0
+    Précision du signal: 3.0
+    Gratuité ou ouverture: 2.0
+    Local et hors ligne: 1.0
+    Maturité et écosystème: 3.0
+    Support commercial: 3.0
+  imputed_attributes: []
+- name: AutoAlt.ai
+  coordinates:
+    axis_1: 3.2155
+    axis_2: -1.2396
+  role: competitor
+  color: '#9AA23D'
+  attributes:
+    Sans navigateur: 5.0
+    Vitesse en intégration continue: 2.0
+    Adapté au pré-commit: 1.0
+    Légèreté de l'installation: 5.0
+    Désigne la ligne source: 2.0
+    Correction mécanique automatique: 3.0
+    Rédige le texte alternatif manquant: 4.0
+    Couverture des règles WCAG: 1.0
+    Couverture des médias temporels: 1.0
+    Détecte les défauts au rendu: 1.0
+    Précision du signal: 3.0
+    Gratuité ou ouverture: 3.0
+    Local et hors ligne: 1.0
+    Maturité et écosystème: 2.0
+    Support commercial: 3.0
+  imputed_attributes: []
+- name: Azure AI Vision
+  coordinates:
+    axis_1: 2.008
+    axis_2: -2.6777
+  role: competitor
+  color: '#DCA34A'
+  attributes:
+    Sans navigateur: 5.0
+    Vitesse en intégration continue: 2.0
+    Adapté au pré-commit: 1.0
+    Légèreté de l'installation: 5.0
+    Désigne la ligne source: 1.0
+    Correction mécanique automatique: 1.0
+    Rédige le texte alternatif manquant: 4.0
+    Couverture des règles WCAG: 1.0
+    Couverture des médias temporels: 1.0
+    Détecte les défauts au rendu: 1.0
+    Précision du signal: 3.0
+    Gratuité ou ouverture: 1.0
+    Local et hors ligne: 1.0
+    Maturité et écosystème: 5.0
+    Support commercial: 5.0
+  imputed_attributes: []
+- name: Qwen3-VL via Ollama
+  coordinates:
+    axis_1: 0.3235
+    axis_2: -0.163
+  role: competitor
+  color: '#D3B852'
+  attributes:
+    Sans navigateur: 5.0
+    Vitesse en intégration continue: 1.0
+    Adapté au pré-commit: 1.0
+    Légèreté de l'installation: 1.0
+    Désigne la ligne source: 1.0
+    Correction mécanique automatique: 1.0
+    Rédige le texte alternatif manquant: 4.0
+    Couverture des règles WCAG: 1.0
+    Couverture des médias temporels: 1.0
+    Détecte les défauts au rendu: 1.0
+    Précision du signal: 2.0
+    Gratuité ou ouverture: 5.0
+    Local et hors ligne: 5.0
+    Maturité et écosystème: 4.0
+    Support commercial: 1.0
+  imputed_attributes: []

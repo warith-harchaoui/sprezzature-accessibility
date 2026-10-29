@@ -1,0 +1,691 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1224" height="946" viewBox="0 0 1224 946" role="img" aria-labelledby="sp-title sp-desc" font-family="Roboto, -apple-system, Helvetica, Arial, sans-serif"><rect width="1224" height="946" fill="#FFFFFF"/><title id="sp-title">Outils dans le quadrant</title><desc id="sp-desc">A 2D positioning map of 23 outils, Fiabilité to Efficacité on the horizontal axis, Soutien to Agilité on the vertical axis.</desc><style>.sp-dot{cursor:pointer}.sp-dot:hover circle,.sp-dot:focus circle{stroke-width:2.4}.sp-dot:hover,.sp-dot:focus{filter:brightness(1.08);outline:none}</style><line x1="184.8" y1="484.0" x2="1026.4" y2="484.0" stroke="#C7C7CC" stroke-width="1.2" stroke-dasharray="2,4"/><line x1="612.0" y1="866.0" x2="612.0" y2="102.0" stroke="#C7C7CC" stroke-width="1.2" stroke-dasharray="2,4"/><text data-pole="right" x="1164.0" y="491.7" font-size="22" font-style="italic" fill="#6E6E73" text-anchor="end">Efficacité</text><text data-pole="left" x="60.0" y="491.7" font-size="22" font-style="italic" fill="#6E6E73" text-anchor="start">Fiabilité</text><text data-pole="top" x="612.0" y="65.4" font-size="22" font-style="italic" fill="#6E6E73" text-anchor="middle">Agilité</text><text data-pole="bottom" x="612.0" y="915.6" font-size="22" font-style="italic" fill="#6E6E73" text-anchor="middle">Soutien</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: sprezzature-accessibility
+Sans navigateur: 5
+Vitesse en intégration continue: 5
+Adapté au pré-commit: 5
+Légèreté de l'installation: 5
+Désigne la ligne source: 5
+Correction mécanique automatique: 4
+Rédige le texte alternatif manquant: 5
+Couverture des règles WCAG: 2
+Couverture des médias temporels: 5
+Détecte les défauts au rendu: 1
+Précision du signal: 3
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 1
+Support commercial: 1"><circle cx="912.0" cy="259.0" r="7.36" fill="#FF3B30" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: sprezzature-accessibility
+Sans navigateur: 5
+Vitesse en intégration continue: 5
+Adapté au pré-commit: 5
+Légèreté de l'installation: 5
+Désigne la ligne source: 5
+Correction mécanique automatique: 4
+Rédige le texte alternatif manquant: 5
+Couverture des règles WCAG: 2
+Couverture des médias temporels: 5
+Détecte les défauts au rendu: 1
+Précision du signal: 3
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 1
+Support commercial: 1</title></g><text x="912.0" y="243.0" font-size="14" fill="#1C1C1E" text-anchor="middle">sprezzature-accessibility</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: axe-core
+Sans navigateur: 1
+Vitesse en intégration continue: 3
+Adapté au pré-commit: 2
+Légèreté de l'installation: 2
+Désigne la ligne source: 2
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 5
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 5
+Précision du signal: 5
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 5
+Support commercial: 5"><circle cx="333.5" cy="440.8" r="7.36" fill="#A07CCF" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: axe-core
+Sans navigateur: 1
+Vitesse en intégration continue: 3
+Adapté au pré-commit: 2
+Légèreté de l'installation: 2
+Désigne la ligne source: 2
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 5
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 5
+Précision du signal: 5
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 5
+Support commercial: 5</title></g><text x="346.0" y="476.4" font-size="14" fill="#1C1C1E" text-anchor="start">axe-core</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: axe DevTools Linter
+Sans navigateur: 5
+Vitesse en intégration continue: 4
+Adapté au pré-commit: 4
+Légèreté de l'installation: 3
+Désigne la ligne source: 5
+Correction mécanique automatique: 2
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 4
+Couverture des médias temporels: 1
+Détecte les défauts au rendu: 1
+Précision du signal: 4
+Gratuité ou ouverture: 2
+Local et hors ligne: 2
+Maturité et écosystème: 4
+Support commercial: 5"><circle cx="730.1" cy="427.8" r="7.36" fill="#7CD494" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: axe DevTools Linter
+Sans navigateur: 5
+Vitesse en intégration continue: 4
+Adapté au pré-commit: 4
+Légèreté de l'installation: 3
+Désigne la ligne source: 5
+Correction mécanique automatique: 2
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 4
+Couverture des médias temporels: 1
+Détecte les défauts au rendu: 1
+Précision du signal: 4
+Gratuité ou ouverture: 2
+Local et hors ligne: 2
+Maturité et écosystème: 4
+Support commercial: 5</title></g><text x="742.6" y="432.7" font-size="14" fill="#1C1C1E" text-anchor="start">axe DevTools Linter</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: Pa11y
+Sans navigateur: 1
+Vitesse en intégration continue: 2
+Adapté au pré-commit: 1
+Légèreté de l'installation: 1
+Désigne la ligne source: 2
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 5
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 5
+Précision du signal: 3
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 5
+Support commercial: 1"><circle cx="312.0" cy="448.2" r="7.36" fill="#BB69A0" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: Pa11y
+Sans navigateur: 1
+Vitesse en intégration continue: 2
+Adapté au pré-commit: 1
+Légèreté de l'installation: 1
+Désigne la ligne source: 2
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 5
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 5
+Précision du signal: 3
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 5
+Support commercial: 1</title></g><text x="299.5" y="453.1" font-size="14" fill="#1C1C1E" text-anchor="end">Pa11y</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: Lighthouse
+Sans navigateur: 1
+Vitesse en intégration continue: 2
+Adapté au pré-commit: 1
+Légèreté de l'installation: 2
+Désigne la ligne source: 1
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 3
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 5
+Précision du signal: 4
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 5
+Support commercial: 1"><circle cx="352.9" cy="450.5" r="7.36" fill="#CD8DD6" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: Lighthouse
+Sans navigateur: 1
+Vitesse en intégration continue: 2
+Adapté au pré-commit: 1
+Légèreté de l'installation: 2
+Désigne la ligne source: 1
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 3
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 5
+Précision du signal: 4
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 5
+Support commercial: 1</title></g><text x="340.4" y="486.1" font-size="14" fill="#1C1C1E" text-anchor="end">Lighthouse</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: WAVE
+Sans navigateur: 1
+Vitesse en intégration continue: 1
+Adapté au pré-commit: 1
+Légèreté de l'installation: 4
+Désigne la ligne source: 2
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 4
+Couverture des médias temporels: 3
+Détecte les défauts au rendu: 5
+Précision du signal: 3
+Gratuité ou ouverture: 3
+Local et hors ligne: 4
+Maturité et écosystème: 5
+Support commercial: 3"><circle cx="410.4" cy="541.5" r="7.36" fill="#C26383" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: WAVE
+Sans navigateur: 1
+Vitesse en intégration continue: 1
+Adapté au pré-commit: 1
+Légèreté de l'installation: 4
+Désigne la ligne source: 2
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 4
+Couverture des médias temporels: 3
+Détecte les défauts au rendu: 5
+Précision du signal: 3
+Gratuité ou ouverture: 3
+Local et hors ligne: 4
+Maturité et écosystème: 5
+Support commercial: 3</title></g><text x="422.9" y="546.4" font-size="14" fill="#1C1C1E" text-anchor="start">WAVE</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: IBM Equal Access
+Sans navigateur: 1
+Vitesse en intégration continue: 2
+Adapté au pré-commit: 2
+Légèreté de l'installation: 2
+Désigne la ligne source: 2
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 5
+Couverture des médias temporels: 3
+Détecte les défauts au rendu: 5
+Précision du signal: 4
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 4
+Support commercial: 2"><circle cx="337.4" cy="417.6" r="7.36" fill="#6BBAFD" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: IBM Equal Access
+Sans navigateur: 1
+Vitesse en intégration continue: 2
+Adapté au pré-commit: 2
+Légèreté de l'installation: 2
+Désigne la ligne source: 2
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 5
+Couverture des médias temporels: 3
+Détecte les défauts au rendu: 5
+Précision du signal: 4
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 4
+Support commercial: 2</title></g><text x="349.9" y="422.5" font-size="14" fill="#1C1C1E" text-anchor="start">IBM Equal Access</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: Accessibility Insights
+Sans navigateur: 1
+Vitesse en intégration continue: 2
+Adapté au pré-commit: 1
+Légèreté de l'installation: 4
+Désigne la ligne source: 2
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 4
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 5
+Précision du signal: 5
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 4
+Support commercial: 2"><circle cx="388.1" cy="440.6" r="7.36" fill="#BBB9FF" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: Accessibility Insights
+Sans navigateur: 1
+Vitesse en intégration continue: 2
+Adapté au pré-commit: 1
+Légèreté de l'installation: 4
+Désigne la ligne source: 2
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 4
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 5
+Précision du signal: 5
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 4
+Support commercial: 2</title></g><text x="400.6" y="445.5" font-size="14" fill="#1C1C1E" text-anchor="start">Accessibility Insights</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: HTML_CodeSniffer
+Sans navigateur: 1
+Vitesse en intégration continue: 2
+Adapté au pré-commit: 1
+Légèreté de l'installation: 4
+Désigne la ligne source: 2
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 3
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 4
+Précision du signal: 2
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 2
+Support commercial: 1"><circle cx="514.7" cy="460.7" r="7.36" fill="#8FB4FF" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: HTML_CodeSniffer
+Sans navigateur: 1
+Vitesse en intégration continue: 2
+Adapté au pré-commit: 1
+Légèreté de l'installation: 4
+Désigne la ligne source: 2
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 3
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 4
+Précision du signal: 2
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 2
+Support commercial: 1</title></g><text x="514.7" y="485.1" font-size="14" fill="#1C1C1E" text-anchor="middle">HTML_CodeSniffer</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: eslint-plugin-jsx-a11y
+Sans navigateur: 5
+Vitesse en intégration continue: 4
+Adapté au pré-commit: 5
+Légèreté de l'installation: 4
+Désigne la ligne source: 5
+Correction mécanique automatique: 2
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 2
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 1
+Précision du signal: 4
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 4
+Support commercial: 1"><circle cx="722.3" cy="262.0" r="7.36" fill="#3FD7EB" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: eslint-plugin-jsx-a11y
+Sans navigateur: 5
+Vitesse en intégration continue: 4
+Adapté au pré-commit: 5
+Légèreté de l'installation: 4
+Désigne la ligne source: 5
+Correction mécanique automatique: 2
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 2
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 1
+Précision du signal: 4
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 4
+Support commercial: 1</title></g><text x="709.8" y="266.9" font-size="14" fill="#1C1C1E" text-anchor="end">eslint-plugin-jsx-a11y</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: Biome
+Sans navigateur: 5
+Vitesse en intégration continue: 5
+Adapté au pré-commit: 5
+Légèreté de l'installation: 5
+Désigne la ligne source: 5
+Correction mécanique automatique: 3
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 2
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 1
+Précision du signal: 4
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 4
+Support commercial: 2"><circle cx="790.7" cy="259.0" r="7.36" fill="#AF52DE" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: Biome
+Sans navigateur: 5
+Vitesse en intégration continue: 5
+Adapté au pré-commit: 5
+Légèreté de l'installation: 5
+Désigne la ligne source: 5
+Correction mécanique automatique: 3
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 2
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 1
+Précision du signal: 4
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 4
+Support commercial: 2</title></g><text x="778.2" y="263.9" font-size="14" fill="#1C1C1E" text-anchor="end">Biome</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: html-validate
+Sans navigateur: 5
+Vitesse en intégration continue: 4
+Adapté au pré-commit: 4
+Légèreté de l'installation: 4
+Désigne la ligne source: 5
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 3
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 1
+Précision du signal: 4
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 3
+Support commercial: 2"><circle cx="679.6" cy="288.8" r="7.36" fill="#3EBBE9" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: html-validate
+Sans navigateur: 5
+Vitesse en intégration continue: 4
+Adapté au pré-commit: 4
+Légèreté de l'installation: 4
+Désigne la ligne source: 5
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 3
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 1
+Précision du signal: 4
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 3
+Support commercial: 2</title></g><text x="667.1" y="293.7" font-size="14" fill="#1C1C1E" text-anchor="end">html-validate</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: htmlhint
+Sans navigateur: 5
+Vitesse en intégration continue: 5
+Adapté au pré-commit: 5
+Légèreté de l'installation: 5
+Désigne la ligne source: 5
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 1
+Couverture des médias temporels: 1
+Détecte les défauts au rendu: 1
+Précision du signal: 3
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 3
+Support commercial: 1"><circle cx="790.5" cy="275.2" r="7.36" fill="#1DAC88" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: htmlhint
+Sans navigateur: 5
+Vitesse en intégration continue: 5
+Adapté au pré-commit: 5
+Légèreté de l'installation: 5
+Désigne la ligne source: 5
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 1
+Couverture des médias temporels: 1
+Détecte les défauts au rendu: 1
+Précision du signal: 3
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 3
+Support commercial: 1</title></g><text x="803.0" y="280.1" font-size="14" fill="#1C1C1E" text-anchor="start">htmlhint</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: AccessLint
+Sans navigateur: 4
+Vitesse en intégration continue: 3
+Adapté au pré-commit: 2
+Légèreté de l'installation: 5
+Désigne la ligne source: 5
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 4
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 1
+Précision du signal: 4
+Gratuité ou ouverture: 3
+Local et hors ligne: 1
+Maturité et écosystème: 2
+Support commercial: 3"><circle cx="714.1" cy="443.4" r="7.36" fill="#7FAE5A" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: AccessLint
+Sans navigateur: 4
+Vitesse en intégration continue: 3
+Adapté au pré-commit: 2
+Légèreté de l'installation: 5
+Désigne la ligne source: 5
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 4
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 1
+Précision du signal: 4
+Gratuité ou ouverture: 3
+Local et hors ligne: 1
+Maturité et écosystème: 2
+Support commercial: 3</title></g><text x="726.6" y="479.0" font-size="14" fill="#1C1C1E" text-anchor="start">AccessLint</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: A11yInspect
+Sans navigateur: 3
+Vitesse en intégration continue: 3
+Adapté au pré-commit: 4
+Légèreté de l'installation: 4
+Désigne la ligne source: 4
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 4
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 3
+Précision du signal: 3
+Gratuité ou ouverture: 3
+Local et hors ligne: 3
+Maturité et écosystème: 2
+Support commercial: 4"><circle cx="639.9" cy="437.5" r="7.36" fill="#00B9B2" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: A11yInspect
+Sans navigateur: 3
+Vitesse en intégration continue: 3
+Adapté au pré-commit: 4
+Légèreté de l'installation: 4
+Désigne la ligne source: 4
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 4
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 3
+Précision du signal: 3
+Gratuité ou ouverture: 3
+Local et hors ligne: 3
+Maturité et écosystème: 2
+Support commercial: 4</title></g><text x="619.0" y="421.5" font-size="14" fill="#1C1C1E" text-anchor="end">A11yInspect</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: Siteimprove
+Sans navigateur: 1
+Vitesse en intégration continue: 1
+Adapté au pré-commit: 1
+Légèreté de l'installation: 5
+Désigne la ligne source: 1
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 2
+Couverture des règles WCAG: 5
+Couverture des médias temporels: 3
+Détecte les défauts au rendu: 5
+Précision du signal: 4
+Gratuité ou ouverture: 1
+Local et hors ligne: 1
+Maturité et écosystème: 5
+Support commercial: 5"><circle cx="459.6" cy="654.8" r="7.36" fill="#A52A2A" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: Siteimprove
+Sans navigateur: 1
+Vitesse en intégration continue: 1
+Adapté au pré-commit: 1
+Légèreté de l'installation: 5
+Désigne la ligne source: 1
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 2
+Couverture des règles WCAG: 5
+Couverture des médias temporels: 3
+Détecte les défauts au rendu: 5
+Précision du signal: 4
+Gratuité ou ouverture: 1
+Local et hors ligne: 1
+Maturité et écosystème: 5
+Support commercial: 5</title></g><text x="472.1" y="659.7" font-size="14" fill="#1C1C1E" text-anchor="start">Siteimprove</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: QualiBooth
+Sans navigateur: 2
+Vitesse en intégration continue: 2
+Adapté au pré-commit: 2
+Légèreté de l'installation: 5
+Désigne la ligne source: 2
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 4
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 4
+Précision du signal: 3
+Gratuité ou ouverture: 1
+Local et hors ligne: 1
+Maturité et écosystème: 2
+Support commercial: 4"><circle cx="613.7" cy="588.7" r="7.36" fill="#E88385" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: QualiBooth
+Sans navigateur: 2
+Vitesse en intégration continue: 2
+Adapté au pré-commit: 2
+Légèreté de l'installation: 5
+Désigne la ligne source: 2
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 1
+Couverture des règles WCAG: 4
+Couverture des médias temporels: 2
+Détecte les défauts au rendu: 4
+Précision du signal: 3
+Gratuité ou ouverture: 1
+Local et hors ligne: 1
+Maturité et écosystème: 2
+Support commercial: 4</title></g><text x="626.2" y="593.6" font-size="14" fill="#1C1C1E" text-anchor="start">QualiBooth</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: accessiBe
+Sans navigateur: 1
+Vitesse en intégration continue: 1
+Adapté au pré-commit: 1
+Légèreté de l'installation: 5
+Désigne la ligne source: 1
+Correction mécanique automatique: 2
+Rédige le texte alternatif manquant: 3
+Couverture des règles WCAG: 3
+Couverture des médias temporels: 1
+Détecte les défauts au rendu: 3
+Précision du signal: 1
+Gratuité ou ouverture: 1
+Local et hors ligne: 1
+Maturité et écosystème: 4
+Support commercial: 4"><circle cx="685.2" cy="709.0" r="7.36" fill="#D08142" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: accessiBe
+Sans navigateur: 1
+Vitesse en intégration continue: 1
+Adapté au pré-commit: 1
+Légèreté de l'installation: 5
+Désigne la ligne source: 1
+Correction mécanique automatique: 2
+Rédige le texte alternatif manquant: 3
+Couverture des règles WCAG: 3
+Couverture des médias temporels: 1
+Détecte les défauts au rendu: 3
+Précision du signal: 1
+Gratuité ou ouverture: 1
+Local et hors ligne: 1
+Maturité et écosystème: 4
+Support commercial: 4</title></g><text x="697.7" y="713.9" font-size="14" fill="#1C1C1E" text-anchor="start">accessiBe</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: UserWay
+Sans navigateur: 1
+Vitesse en intégration continue: 1
+Adapté au pré-commit: 1
+Légèreté de l'installation: 5
+Désigne la ligne source: 1
+Correction mécanique automatique: 2
+Rédige le texte alternatif manquant: 3
+Couverture des règles WCAG: 4
+Couverture des médias temporels: 1
+Détecte les défauts au rendu: 4
+Précision du signal: 2
+Gratuité ou ouverture: 2
+Local et hors ligne: 1
+Maturité et écosystème: 4
+Support commercial: 4"><circle cx="616.6" cy="681.8" r="7.36" fill="#CC6F53" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: UserWay
+Sans navigateur: 1
+Vitesse en intégration continue: 1
+Adapté au pré-commit: 1
+Légèreté de l'installation: 5
+Désigne la ligne source: 1
+Correction mécanique automatique: 2
+Rédige le texte alternatif manquant: 3
+Couverture des règles WCAG: 4
+Couverture des médias temporels: 1
+Détecte les défauts au rendu: 4
+Précision du signal: 2
+Gratuité ou ouverture: 2
+Local et hors ligne: 1
+Maturité et écosystème: 4
+Support commercial: 4</title></g><text x="629.1" y="686.7" font-size="14" fill="#1C1C1E" text-anchor="start">UserWay</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: AltText.ai
+Sans navigateur: 5
+Vitesse en intégration continue: 2
+Adapté au pré-commit: 1
+Légèreté de l'installation: 5
+Désigne la ligne source: 2
+Correction mécanique automatique: 3
+Rédige le texte alternatif manquant: 5
+Couverture des règles WCAG: 1
+Couverture des médias temporels: 1
+Détecte les défauts au rendu: 1
+Précision du signal: 3
+Gratuité ou ouverture: 2
+Local et hors ligne: 1
+Maturité et écosystème: 3
+Support commercial: 3"><circle cx="912.0" cy="594.8" r="7.36" fill="#007AFF" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: AltText.ai
+Sans navigateur: 5
+Vitesse en intégration continue: 2
+Adapté au pré-commit: 1
+Légèreté de l'installation: 5
+Désigne la ligne source: 2
+Correction mécanique automatique: 3
+Rédige le texte alternatif manquant: 5
+Couverture des règles WCAG: 1
+Couverture des médias temporels: 1
+Détecte les défauts au rendu: 1
+Précision du signal: 3
+Gratuité ou ouverture: 2
+Local et hors ligne: 1
+Maturité et écosystème: 3
+Support commercial: 3</title></g><text x="924.5" y="599.7" font-size="14" fill="#1C1C1E" text-anchor="start">AltText.ai</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: AutoAlt.ai
+Sans navigateur: 5
+Vitesse en intégration continue: 2
+Adapté au pré-commit: 1
+Légèreté de l'installation: 5
+Désigne la ligne source: 2
+Correction mécanique automatique: 3
+Rédige le texte alternatif manquant: 4
+Couverture des règles WCAG: 1
+Couverture des médias temporels: 1
+Détecte les défauts au rendu: 1
+Précision du signal: 3
+Gratuité ou ouverture: 3
+Local et hors ligne: 1
+Maturité et écosystème: 2
+Support commercial: 3"><circle cx="902.6" cy="564.5" r="7.36" fill="#9AA23D" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: AutoAlt.ai
+Sans navigateur: 5
+Vitesse en intégration continue: 2
+Adapté au pré-commit: 1
+Légèreté de l'installation: 5
+Désigne la ligne source: 2
+Correction mécanique automatique: 3
+Rédige le texte alternatif manquant: 4
+Couverture des règles WCAG: 1
+Couverture des médias temporels: 1
+Détecte les défauts au rendu: 1
+Précision du signal: 3
+Gratuité ou ouverture: 3
+Local et hors ligne: 1
+Maturité et écosystème: 2
+Support commercial: 3</title></g><text x="915.1" y="569.4" font-size="14" fill="#1C1C1E" text-anchor="start">AutoAlt.ai</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: Azure AI Vision
+Sans navigateur: 5
+Vitesse en intégration continue: 2
+Adapté au pré-commit: 1
+Légèreté de l'installation: 5
+Désigne la ligne source: 1
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 4
+Couverture des règles WCAG: 1
+Couverture des médias temporels: 1
+Détecte les défauts au rendu: 1
+Précision du signal: 3
+Gratuité ou ouverture: 1
+Local et hors ligne: 1
+Maturité et écosystème: 5
+Support commercial: 5"><circle cx="793.5" cy="657.9" r="7.36" fill="#DCA34A" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: Azure AI Vision
+Sans navigateur: 5
+Vitesse en intégration continue: 2
+Adapté au pré-commit: 1
+Légèreté de l'installation: 5
+Désigne la ligne source: 1
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 4
+Couverture des règles WCAG: 1
+Couverture des médias temporels: 1
+Détecte les défauts au rendu: 1
+Précision du signal: 3
+Gratuité ou ouverture: 1
+Local et hors ligne: 1
+Maturité et écosystème: 5
+Support commercial: 5</title></g><text x="806.0" y="662.8" font-size="14" fill="#1C1C1E" text-anchor="start">Azure AI Vision</text><g class="sp-dot" tabindex="0" role="img" aria-label="Outils: Qwen3-VL via Ollama
+Sans navigateur: 5
+Vitesse en intégration continue: 1
+Adapté au pré-commit: 1
+Légèreté de l'installation: 1
+Désigne la ligne source: 1
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 4
+Couverture des règles WCAG: 1
+Couverture des médias temporels: 1
+Détecte les défauts au rendu: 1
+Précision du signal: 2
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 4
+Support commercial: 1"><circle cx="641.2" cy="494.6" r="7.36" fill="#D3B852" stroke="white" stroke-width="1" opacity="0.95"/><title>Outils: Qwen3-VL via Ollama
+Sans navigateur: 5
+Vitesse en intégration continue: 1
+Adapté au pré-commit: 1
+Légèreté de l'installation: 1
+Désigne la ligne source: 1
+Correction mécanique automatique: 1
+Rédige le texte alternatif manquant: 4
+Couverture des règles WCAG: 1
+Couverture des médias temporels: 1
+Détecte les défauts au rendu: 1
+Précision du signal: 2
+Gratuité ou ouverture: 5
+Local et hors ligne: 5
+Maturité et écosystème: 4
+Support commercial: 1</title></g><text x="653.7" y="530.2" font-size="14" fill="#1C1C1E" text-anchor="start">Qwen3-VL via Ollama</text><text x="612.0" y="26" font-size="18" font-weight="bold" fill="#000" text-anchor="middle">Outils dans le quadrant</text></svg>

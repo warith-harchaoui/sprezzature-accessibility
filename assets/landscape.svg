@@ -1,0 +1,691 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1224" height="946" viewBox="0 0 1224 946" role="img" aria-labelledby="sp-title sp-desc" font-family="Roboto, -apple-system, Helvetica, Arial, sans-serif"><title id="sp-title">Tools in the Quadrant</title><desc id="sp-desc">A 2D positioning map of 23 tools, Thoroughness to Efficiency on the horizontal axis, Stability to Agility on the vertical axis.</desc><style>.sp-dot{cursor:pointer}.sp-dot:hover circle,.sp-dot:focus circle{stroke-width:2.4}.sp-dot:hover,.sp-dot:focus{filter:brightness(1.08);outline:none}</style><line x1="223.1" y1="484.0" x2="1026.4" y2="484.0" stroke="#C7C7CC" stroke-width="1.2" stroke-dasharray="2,4"/><line x1="612.0" y1="866.0" x2="612.0" y2="102.0" stroke="#C7C7CC" stroke-width="1.2" stroke-dasharray="2,4"/><text data-pole="right" x="1164.0" y="491.7" font-size="22" font-style="italic" fill="#6E6E73" text-anchor="end">Efficiency</text><text data-pole="left" x="60.0" y="491.7" font-size="22" font-style="italic" fill="#6E6E73" text-anchor="start">Thoroughness</text><text data-pole="top" x="612.0" y="65.4" font-size="22" font-style="italic" fill="#6E6E73" text-anchor="middle">Agility</text><text data-pole="bottom" x="612.0" y="915.6" font-size="22" font-style="italic" fill="#6E6E73" text-anchor="middle">Stability</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: sprezzature-accessibility
+Runs without a browser: 5
+Speed in continuous integration: 5
+Fit for a pre-commit hook: 5
+Install lightness: 5
+Points at the source line: 5
+Mechanical auto-fix: 4
+Drafts the missing alt text: 5
+WCAG rule coverage: 2
+Time-based media coverage: 5
+Catches rendered-page defects: 1
+Signal precision: 3
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 1
+Commercial support: 1"><circle cx="912.0" cy="259.0" r="7.36" fill="#FF3B30" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: sprezzature-accessibility
+Runs without a browser: 5
+Speed in continuous integration: 5
+Fit for a pre-commit hook: 5
+Install lightness: 5
+Points at the source line: 5
+Mechanical auto-fix: 4
+Drafts the missing alt text: 5
+WCAG rule coverage: 2
+Time-based media coverage: 5
+Catches rendered-page defects: 1
+Signal precision: 3
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 1
+Commercial support: 1</title></g><text x="912.0" y="243.0" font-size="14" fill="#1C1C1E" text-anchor="middle">sprezzature-accessibility</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: axe-core
+Runs without a browser: 1
+Speed in continuous integration: 3
+Fit for a pre-commit hook: 2
+Install lightness: 2
+Points at the source line: 2
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 5
+Time-based media coverage: 2
+Catches rendered-page defects: 5
+Signal precision: 5
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 5
+Commercial support: 5"><circle cx="333.5" cy="440.8" r="7.36" fill="#A07CCF" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: axe-core
+Runs without a browser: 1
+Speed in continuous integration: 3
+Fit for a pre-commit hook: 2
+Install lightness: 2
+Points at the source line: 2
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 5
+Time-based media coverage: 2
+Catches rendered-page defects: 5
+Signal precision: 5
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 5
+Commercial support: 5</title></g><text x="346.0" y="476.4" font-size="14" fill="#1C1C1E" text-anchor="start">axe-core</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: axe DevTools Linter
+Runs without a browser: 5
+Speed in continuous integration: 4
+Fit for a pre-commit hook: 4
+Install lightness: 3
+Points at the source line: 5
+Mechanical auto-fix: 2
+Drafts the missing alt text: 1
+WCAG rule coverage: 4
+Time-based media coverage: 1
+Catches rendered-page defects: 1
+Signal precision: 4
+Free or open source: 2
+Local and offline: 2
+Maturity and ecosystem: 4
+Commercial support: 5"><circle cx="730.1" cy="427.8" r="7.36" fill="#7CD494" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: axe DevTools Linter
+Runs without a browser: 5
+Speed in continuous integration: 4
+Fit for a pre-commit hook: 4
+Install lightness: 3
+Points at the source line: 5
+Mechanical auto-fix: 2
+Drafts the missing alt text: 1
+WCAG rule coverage: 4
+Time-based media coverage: 1
+Catches rendered-page defects: 1
+Signal precision: 4
+Free or open source: 2
+Local and offline: 2
+Maturity and ecosystem: 4
+Commercial support: 5</title></g><text x="742.6" y="432.7" font-size="14" fill="#1C1C1E" text-anchor="start">axe DevTools Linter</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Pa11y
+Runs without a browser: 1
+Speed in continuous integration: 2
+Fit for a pre-commit hook: 1
+Install lightness: 1
+Points at the source line: 2
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 5
+Time-based media coverage: 2
+Catches rendered-page defects: 5
+Signal precision: 3
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 5
+Commercial support: 1"><circle cx="312.0" cy="448.2" r="7.36" fill="#BB69A0" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Pa11y
+Runs without a browser: 1
+Speed in continuous integration: 2
+Fit for a pre-commit hook: 1
+Install lightness: 1
+Points at the source line: 2
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 5
+Time-based media coverage: 2
+Catches rendered-page defects: 5
+Signal precision: 3
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 5
+Commercial support: 1</title></g><text x="299.5" y="453.1" font-size="14" fill="#1C1C1E" text-anchor="end">Pa11y</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Lighthouse
+Runs without a browser: 1
+Speed in continuous integration: 2
+Fit for a pre-commit hook: 1
+Install lightness: 2
+Points at the source line: 1
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 3
+Time-based media coverage: 2
+Catches rendered-page defects: 5
+Signal precision: 4
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 5
+Commercial support: 1"><circle cx="352.9" cy="450.5" r="7.36" fill="#CD8DD6" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Lighthouse
+Runs without a browser: 1
+Speed in continuous integration: 2
+Fit for a pre-commit hook: 1
+Install lightness: 2
+Points at the source line: 1
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 3
+Time-based media coverage: 2
+Catches rendered-page defects: 5
+Signal precision: 4
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 5
+Commercial support: 1</title></g><text x="340.4" y="486.1" font-size="14" fill="#1C1C1E" text-anchor="end">Lighthouse</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: WAVE
+Runs without a browser: 1
+Speed in continuous integration: 1
+Fit for a pre-commit hook: 1
+Install lightness: 4
+Points at the source line: 2
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 4
+Time-based media coverage: 3
+Catches rendered-page defects: 5
+Signal precision: 3
+Free or open source: 3
+Local and offline: 4
+Maturity and ecosystem: 5
+Commercial support: 3"><circle cx="410.4" cy="541.5" r="7.36" fill="#C26383" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: WAVE
+Runs without a browser: 1
+Speed in continuous integration: 1
+Fit for a pre-commit hook: 1
+Install lightness: 4
+Points at the source line: 2
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 4
+Time-based media coverage: 3
+Catches rendered-page defects: 5
+Signal precision: 3
+Free or open source: 3
+Local and offline: 4
+Maturity and ecosystem: 5
+Commercial support: 3</title></g><text x="422.9" y="546.4" font-size="14" fill="#1C1C1E" text-anchor="start">WAVE</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: IBM Equal Access
+Runs without a browser: 1
+Speed in continuous integration: 2
+Fit for a pre-commit hook: 2
+Install lightness: 2
+Points at the source line: 2
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 5
+Time-based media coverage: 3
+Catches rendered-page defects: 5
+Signal precision: 4
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 4
+Commercial support: 2"><circle cx="337.4" cy="417.6" r="7.36" fill="#6BBAFD" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: IBM Equal Access
+Runs without a browser: 1
+Speed in continuous integration: 2
+Fit for a pre-commit hook: 2
+Install lightness: 2
+Points at the source line: 2
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 5
+Time-based media coverage: 3
+Catches rendered-page defects: 5
+Signal precision: 4
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 4
+Commercial support: 2</title></g><text x="349.9" y="422.5" font-size="14" fill="#1C1C1E" text-anchor="start">IBM Equal Access</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Accessibility Insights
+Runs without a browser: 1
+Speed in continuous integration: 2
+Fit for a pre-commit hook: 1
+Install lightness: 4
+Points at the source line: 2
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 4
+Time-based media coverage: 2
+Catches rendered-page defects: 5
+Signal precision: 5
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 4
+Commercial support: 2"><circle cx="388.1" cy="440.6" r="7.36" fill="#BBB9FF" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Accessibility Insights
+Runs without a browser: 1
+Speed in continuous integration: 2
+Fit for a pre-commit hook: 1
+Install lightness: 4
+Points at the source line: 2
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 4
+Time-based media coverage: 2
+Catches rendered-page defects: 5
+Signal precision: 5
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 4
+Commercial support: 2</title></g><text x="400.6" y="445.5" font-size="14" fill="#1C1C1E" text-anchor="start">Accessibility Insights</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: HTML_CodeSniffer
+Runs without a browser: 1
+Speed in continuous integration: 2
+Fit for a pre-commit hook: 1
+Install lightness: 4
+Points at the source line: 2
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 3
+Time-based media coverage: 2
+Catches rendered-page defects: 4
+Signal precision: 2
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 2
+Commercial support: 1"><circle cx="514.7" cy="460.7" r="7.36" fill="#8FB4FF" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: HTML_CodeSniffer
+Runs without a browser: 1
+Speed in continuous integration: 2
+Fit for a pre-commit hook: 1
+Install lightness: 4
+Points at the source line: 2
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 3
+Time-based media coverage: 2
+Catches rendered-page defects: 4
+Signal precision: 2
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 2
+Commercial support: 1</title></g><text x="514.7" y="485.1" font-size="14" fill="#1C1C1E" text-anchor="middle">HTML_CodeSniffer</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: eslint-plugin-jsx-a11y
+Runs without a browser: 5
+Speed in continuous integration: 4
+Fit for a pre-commit hook: 5
+Install lightness: 4
+Points at the source line: 5
+Mechanical auto-fix: 2
+Drafts the missing alt text: 1
+WCAG rule coverage: 2
+Time-based media coverage: 2
+Catches rendered-page defects: 1
+Signal precision: 4
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 4
+Commercial support: 1"><circle cx="722.3" cy="262.0" r="7.36" fill="#3FD7EB" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: eslint-plugin-jsx-a11y
+Runs without a browser: 5
+Speed in continuous integration: 4
+Fit for a pre-commit hook: 5
+Install lightness: 4
+Points at the source line: 5
+Mechanical auto-fix: 2
+Drafts the missing alt text: 1
+WCAG rule coverage: 2
+Time-based media coverage: 2
+Catches rendered-page defects: 1
+Signal precision: 4
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 4
+Commercial support: 1</title></g><text x="709.8" y="266.9" font-size="14" fill="#1C1C1E" text-anchor="end">eslint-plugin-jsx-a11y</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Biome
+Runs without a browser: 5
+Speed in continuous integration: 5
+Fit for a pre-commit hook: 5
+Install lightness: 5
+Points at the source line: 5
+Mechanical auto-fix: 3
+Drafts the missing alt text: 1
+WCAG rule coverage: 2
+Time-based media coverage: 2
+Catches rendered-page defects: 1
+Signal precision: 4
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 4
+Commercial support: 2"><circle cx="790.7" cy="259.0" r="7.36" fill="#AF52DE" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Biome
+Runs without a browser: 5
+Speed in continuous integration: 5
+Fit for a pre-commit hook: 5
+Install lightness: 5
+Points at the source line: 5
+Mechanical auto-fix: 3
+Drafts the missing alt text: 1
+WCAG rule coverage: 2
+Time-based media coverage: 2
+Catches rendered-page defects: 1
+Signal precision: 4
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 4
+Commercial support: 2</title></g><text x="778.2" y="263.9" font-size="14" fill="#1C1C1E" text-anchor="end">Biome</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: html-validate
+Runs without a browser: 5
+Speed in continuous integration: 4
+Fit for a pre-commit hook: 4
+Install lightness: 4
+Points at the source line: 5
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 3
+Time-based media coverage: 2
+Catches rendered-page defects: 1
+Signal precision: 4
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 3
+Commercial support: 2"><circle cx="679.6" cy="288.8" r="7.36" fill="#3EBBE9" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: html-validate
+Runs without a browser: 5
+Speed in continuous integration: 4
+Fit for a pre-commit hook: 4
+Install lightness: 4
+Points at the source line: 5
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 3
+Time-based media coverage: 2
+Catches rendered-page defects: 1
+Signal precision: 4
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 3
+Commercial support: 2</title></g><text x="667.1" y="293.7" font-size="14" fill="#1C1C1E" text-anchor="end">html-validate</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: htmlhint
+Runs without a browser: 5
+Speed in continuous integration: 5
+Fit for a pre-commit hook: 5
+Install lightness: 5
+Points at the source line: 5
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 1
+Time-based media coverage: 1
+Catches rendered-page defects: 1
+Signal precision: 3
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 3
+Commercial support: 1"><circle cx="790.5" cy="275.2" r="7.36" fill="#1DAC88" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: htmlhint
+Runs without a browser: 5
+Speed in continuous integration: 5
+Fit for a pre-commit hook: 5
+Install lightness: 5
+Points at the source line: 5
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 1
+Time-based media coverage: 1
+Catches rendered-page defects: 1
+Signal precision: 3
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 3
+Commercial support: 1</title></g><text x="803.0" y="280.1" font-size="14" fill="#1C1C1E" text-anchor="start">htmlhint</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: AccessLint
+Runs without a browser: 4
+Speed in continuous integration: 3
+Fit for a pre-commit hook: 2
+Install lightness: 5
+Points at the source line: 5
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 4
+Time-based media coverage: 2
+Catches rendered-page defects: 1
+Signal precision: 4
+Free or open source: 3
+Local and offline: 1
+Maturity and ecosystem: 2
+Commercial support: 3"><circle cx="714.1" cy="443.4" r="7.36" fill="#7FAE5A" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: AccessLint
+Runs without a browser: 4
+Speed in continuous integration: 3
+Fit for a pre-commit hook: 2
+Install lightness: 5
+Points at the source line: 5
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 4
+Time-based media coverage: 2
+Catches rendered-page defects: 1
+Signal precision: 4
+Free or open source: 3
+Local and offline: 1
+Maturity and ecosystem: 2
+Commercial support: 3</title></g><text x="726.6" y="479.0" font-size="14" fill="#1C1C1E" text-anchor="start">AccessLint</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: A11yInspect
+Runs without a browser: 3
+Speed in continuous integration: 3
+Fit for a pre-commit hook: 4
+Install lightness: 4
+Points at the source line: 4
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 4
+Time-based media coverage: 2
+Catches rendered-page defects: 3
+Signal precision: 3
+Free or open source: 3
+Local and offline: 3
+Maturity and ecosystem: 2
+Commercial support: 4"><circle cx="639.9" cy="437.5" r="7.36" fill="#00B9B2" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: A11yInspect
+Runs without a browser: 3
+Speed in continuous integration: 3
+Fit for a pre-commit hook: 4
+Install lightness: 4
+Points at the source line: 4
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 4
+Time-based media coverage: 2
+Catches rendered-page defects: 3
+Signal precision: 3
+Free or open source: 3
+Local and offline: 3
+Maturity and ecosystem: 2
+Commercial support: 4</title></g><text x="619.0" y="421.5" font-size="14" fill="#1C1C1E" text-anchor="end">A11yInspect</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Siteimprove
+Runs without a browser: 1
+Speed in continuous integration: 1
+Fit for a pre-commit hook: 1
+Install lightness: 5
+Points at the source line: 1
+Mechanical auto-fix: 1
+Drafts the missing alt text: 2
+WCAG rule coverage: 5
+Time-based media coverage: 3
+Catches rendered-page defects: 5
+Signal precision: 4
+Free or open source: 1
+Local and offline: 1
+Maturity and ecosystem: 5
+Commercial support: 5"><circle cx="459.6" cy="654.8" r="7.36" fill="#A52A2A" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Siteimprove
+Runs without a browser: 1
+Speed in continuous integration: 1
+Fit for a pre-commit hook: 1
+Install lightness: 5
+Points at the source line: 1
+Mechanical auto-fix: 1
+Drafts the missing alt text: 2
+WCAG rule coverage: 5
+Time-based media coverage: 3
+Catches rendered-page defects: 5
+Signal precision: 4
+Free or open source: 1
+Local and offline: 1
+Maturity and ecosystem: 5
+Commercial support: 5</title></g><text x="472.1" y="659.7" font-size="14" fill="#1C1C1E" text-anchor="start">Siteimprove</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: QualiBooth
+Runs without a browser: 2
+Speed in continuous integration: 2
+Fit for a pre-commit hook: 2
+Install lightness: 5
+Points at the source line: 2
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 4
+Time-based media coverage: 2
+Catches rendered-page defects: 4
+Signal precision: 3
+Free or open source: 1
+Local and offline: 1
+Maturity and ecosystem: 2
+Commercial support: 4"><circle cx="613.7" cy="588.7" r="7.36" fill="#E88385" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: QualiBooth
+Runs without a browser: 2
+Speed in continuous integration: 2
+Fit for a pre-commit hook: 2
+Install lightness: 5
+Points at the source line: 2
+Mechanical auto-fix: 1
+Drafts the missing alt text: 1
+WCAG rule coverage: 4
+Time-based media coverage: 2
+Catches rendered-page defects: 4
+Signal precision: 3
+Free or open source: 1
+Local and offline: 1
+Maturity and ecosystem: 2
+Commercial support: 4</title></g><text x="626.2" y="593.6" font-size="14" fill="#1C1C1E" text-anchor="start">QualiBooth</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: accessiBe
+Runs without a browser: 1
+Speed in continuous integration: 1
+Fit for a pre-commit hook: 1
+Install lightness: 5
+Points at the source line: 1
+Mechanical auto-fix: 2
+Drafts the missing alt text: 3
+WCAG rule coverage: 3
+Time-based media coverage: 1
+Catches rendered-page defects: 3
+Signal precision: 1
+Free or open source: 1
+Local and offline: 1
+Maturity and ecosystem: 4
+Commercial support: 4"><circle cx="685.2" cy="709.0" r="7.36" fill="#D08142" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: accessiBe
+Runs without a browser: 1
+Speed in continuous integration: 1
+Fit for a pre-commit hook: 1
+Install lightness: 5
+Points at the source line: 1
+Mechanical auto-fix: 2
+Drafts the missing alt text: 3
+WCAG rule coverage: 3
+Time-based media coverage: 1
+Catches rendered-page defects: 3
+Signal precision: 1
+Free or open source: 1
+Local and offline: 1
+Maturity and ecosystem: 4
+Commercial support: 4</title></g><text x="697.7" y="713.9" font-size="14" fill="#1C1C1E" text-anchor="start">accessiBe</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: UserWay
+Runs without a browser: 1
+Speed in continuous integration: 1
+Fit for a pre-commit hook: 1
+Install lightness: 5
+Points at the source line: 1
+Mechanical auto-fix: 2
+Drafts the missing alt text: 3
+WCAG rule coverage: 4
+Time-based media coverage: 1
+Catches rendered-page defects: 4
+Signal precision: 2
+Free or open source: 2
+Local and offline: 1
+Maturity and ecosystem: 4
+Commercial support: 4"><circle cx="616.6" cy="681.8" r="7.36" fill="#CC6F53" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: UserWay
+Runs without a browser: 1
+Speed in continuous integration: 1
+Fit for a pre-commit hook: 1
+Install lightness: 5
+Points at the source line: 1
+Mechanical auto-fix: 2
+Drafts the missing alt text: 3
+WCAG rule coverage: 4
+Time-based media coverage: 1
+Catches rendered-page defects: 4
+Signal precision: 2
+Free or open source: 2
+Local and offline: 1
+Maturity and ecosystem: 4
+Commercial support: 4</title></g><text x="629.1" y="686.7" font-size="14" fill="#1C1C1E" text-anchor="start">UserWay</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: AltText.ai
+Runs without a browser: 5
+Speed in continuous integration: 2
+Fit for a pre-commit hook: 1
+Install lightness: 5
+Points at the source line: 2
+Mechanical auto-fix: 3
+Drafts the missing alt text: 5
+WCAG rule coverage: 1
+Time-based media coverage: 1
+Catches rendered-page defects: 1
+Signal precision: 3
+Free or open source: 2
+Local and offline: 1
+Maturity and ecosystem: 3
+Commercial support: 3"><circle cx="912.0" cy="594.8" r="7.36" fill="#007AFF" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: AltText.ai
+Runs without a browser: 5
+Speed in continuous integration: 2
+Fit for a pre-commit hook: 1
+Install lightness: 5
+Points at the source line: 2
+Mechanical auto-fix: 3
+Drafts the missing alt text: 5
+WCAG rule coverage: 1
+Time-based media coverage: 1
+Catches rendered-page defects: 1
+Signal precision: 3
+Free or open source: 2
+Local and offline: 1
+Maturity and ecosystem: 3
+Commercial support: 3</title></g><text x="924.5" y="599.7" font-size="14" fill="#1C1C1E" text-anchor="start">AltText.ai</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: AutoAlt.ai
+Runs without a browser: 5
+Speed in continuous integration: 2
+Fit for a pre-commit hook: 1
+Install lightness: 5
+Points at the source line: 2
+Mechanical auto-fix: 3
+Drafts the missing alt text: 4
+WCAG rule coverage: 1
+Time-based media coverage: 1
+Catches rendered-page defects: 1
+Signal precision: 3
+Free or open source: 3
+Local and offline: 1
+Maturity and ecosystem: 2
+Commercial support: 3"><circle cx="902.6" cy="564.5" r="7.36" fill="#9AA23D" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: AutoAlt.ai
+Runs without a browser: 5
+Speed in continuous integration: 2
+Fit for a pre-commit hook: 1
+Install lightness: 5
+Points at the source line: 2
+Mechanical auto-fix: 3
+Drafts the missing alt text: 4
+WCAG rule coverage: 1
+Time-based media coverage: 1
+Catches rendered-page defects: 1
+Signal precision: 3
+Free or open source: 3
+Local and offline: 1
+Maturity and ecosystem: 2
+Commercial support: 3</title></g><text x="915.1" y="569.4" font-size="14" fill="#1C1C1E" text-anchor="start">AutoAlt.ai</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Azure AI Vision
+Runs without a browser: 5
+Speed in continuous integration: 2
+Fit for a pre-commit hook: 1
+Install lightness: 5
+Points at the source line: 1
+Mechanical auto-fix: 1
+Drafts the missing alt text: 4
+WCAG rule coverage: 1
+Time-based media coverage: 1
+Catches rendered-page defects: 1
+Signal precision: 3
+Free or open source: 1
+Local and offline: 1
+Maturity and ecosystem: 5
+Commercial support: 5"><circle cx="793.5" cy="657.9" r="7.36" fill="#DCA34A" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Azure AI Vision
+Runs without a browser: 5
+Speed in continuous integration: 2
+Fit for a pre-commit hook: 1
+Install lightness: 5
+Points at the source line: 1
+Mechanical auto-fix: 1
+Drafts the missing alt text: 4
+WCAG rule coverage: 1
+Time-based media coverage: 1
+Catches rendered-page defects: 1
+Signal precision: 3
+Free or open source: 1
+Local and offline: 1
+Maturity and ecosystem: 5
+Commercial support: 5</title></g><text x="806.0" y="662.8" font-size="14" fill="#1C1C1E" text-anchor="start">Azure AI Vision</text><g class="sp-dot" tabindex="0" role="img" aria-label="Tools: Qwen3-VL via Ollama
+Runs without a browser: 5
+Speed in continuous integration: 1
+Fit for a pre-commit hook: 1
+Install lightness: 1
+Points at the source line: 1
+Mechanical auto-fix: 1
+Drafts the missing alt text: 4
+WCAG rule coverage: 1
+Time-based media coverage: 1
+Catches rendered-page defects: 1
+Signal precision: 2
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 4
+Commercial support: 1"><circle cx="641.2" cy="494.6" r="7.36" fill="#D3B852" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Qwen3-VL via Ollama
+Runs without a browser: 5
+Speed in continuous integration: 1
+Fit for a pre-commit hook: 1
+Install lightness: 1
+Points at the source line: 1
+Mechanical auto-fix: 1
+Drafts the missing alt text: 4
+WCAG rule coverage: 1
+Time-based media coverage: 1
+Catches rendered-page defects: 1
+Signal precision: 2
+Free or open source: 5
+Local and offline: 5
+Maturity and ecosystem: 4
+Commercial support: 1</title></g><text x="653.7" y="530.2" font-size="14" fill="#1C1C1E" text-anchor="start">Qwen3-VL via Ollama</text><text x="612.0" y="26" font-size="18" font-weight="bold" fill="#000" text-anchor="middle">Tools in the Quadrant</text></svg>
