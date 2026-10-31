@@ -15,8 +15,14 @@
 #                            functional without it.
 #   - best-engine-ai-helper: routes the actual LLM/VLM call (Ollama by
 #                            default; see SPREZZATURE_LLM_* env vars).
+#   - wallet-helper        : memoizes those calls — content-addressed, bounded,
+#                            and single-flight across processes, which is the
+#                            one of the four the cache written here could not
+#                            do: three runs started together on one cold image
+#                            called the model three times.
 
 click>=8.1
 langdetect>=1.0.9
 Pillow>=10.0.0
 best-engine-ai-helper>=1.4
+wallet-helper>=1.3,<2

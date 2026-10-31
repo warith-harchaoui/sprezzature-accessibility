@@ -45,9 +45,11 @@ Notes
   (used to downscale images before sending; if missing, the original is sent).
 * Model: ``qwen3-vl:8b`` — the one authorized LLM (multimodal, via Ollama).
 * Default Ollama endpoint: ``http://localhost:11434``. Override with ``OLLAMA_URL``.
-* On-disk cache lives under ``~/.cache/sprezzature-skill/alt/`` by default. Override
-  with ``SPREZZATURE_CACHE_DIR``; disable globally with ``SPREZZATURE_NO_CACHE=1`` or for
-  a single run with ``--no-cache``.
+* On-disk cache lives under ``~/.cache/sprezzature-skill/alt/`` by default, now as a
+  ``wallet-helper`` ledger. Override the directory with ``SPREZZATURE_CACHE_DIR``;
+  disable globally with ``SPREZZATURE_NO_CACHE=1`` or for a single run with
+  ``--no-cache``. Two runs started together on the same image share one model
+  call instead of each paying for it — see the note above the cache helpers.
 
 Author
 ------
@@ -68,8 +70,9 @@ import os
 import re
 import sys
 import urllib.request
+from collections.abc import Callable
 from pathlib import Path
-from typing import TextIO
+from typing import Any, TextIO
 
 
 # Every LLM/VLM call across sprezzature-* routes through this one function —
@@ -135,8 +138,52 @@ CACHE_DIR: Path = Path(
 #: Toggled at runtime by ``--no-cache`` or globally by ``SPREZZATURE_NO_CACHE``.
 NO_CACHE: bool = bool(os.environ.get("SPREZZATURE_NO_CACHE") or os.environ.get("FRONT_NO_CACHE"))
 
+#: Ledger scope, so a key from this module cannot collide with another
+#: wallet user's key that happens to hash the same way.
+CACHE_NAMESPACE: str = "sprezzature_accessibility.alt"
 
-# ── Cache helpers ────────────────────────────────────────────────────────────
+#: Cap on stored drafts; past it the ledger evicts the oldest. An entry is one
+#: line of alt text — the real cache on this machine held four of them in 16 KB
+#: after two weeks of use — so this is a bound on the ledger file, not a disk
+#: budget. It exists because "grows forever" is not a property to ship, not
+#: because the growth was measured to hurt.
+CACHE_MAX_ENTRIES: int = 20_000
+
+
+# ── Cache ────────────────────────────────────────────────────────────────────
+#
+# A model call is the thing you only ever want to pay for once, and this module
+# has cached them since it was written: ``_cache_key`` below hashed the image
+# bytes into a file name under ``CACHE_DIR`` and the next run read it back.
+# Measured against the four properties a memo for a paid call needs, that
+# hand-rolled version held two:
+#
+#   content-addressed  YES, and this is the half worth keeping. The key is
+#                      sha256 of the bytes actually sent, not of the path, so
+#                      overwriting ``hero.jpg`` with a different picture under
+#                      the same name produced a second model call rather than
+#                      yesterday's answer about yesterday's picture.
+#                      ``_cache_key`` is unchanged and is still the key.
+#   restart-surviving  YES. Files on disk, read back by the next process.
+#   single-flight      NO. Three drafting runs started together on one cold
+#                      image called the model three times, 7 ms apart: all
+#                      three missed, all three paid. Three sessions working in
+#                      parallel is a normal afternoon on this machine, not a
+#                      thought experiment.
+#   bounded            NO. Nothing expired and nothing was evicted.
+#
+# ``wallet-helper`` is the suite's answer to exactly this shape of problem, and
+# its SQLite ledger brings the property the files could not have without
+# growing a lease protocol of their own: a claim, so callers arriving on a key
+# somebody else is already computing wait for that answer instead of starting
+# a second run. Same experiment, same three processes, one model call.
+#
+# It lands in the ``[alt]`` extra beside ``best-engine-ai-helper`` and is
+# imported on first use, never at module import, for the same reason
+# ``_llm_chat`` is: the lint half of this package must stay installable and
+# runnable with nothing but ``click``, which is the whole reason anyone reaches
+# for it in a pre-commit hook. ``tests/test_the_lint_stays_out_of_the_extra.py``
+# is the guard that says so out loud.
 
 def _cache_key(image_bytes: bytes, kind: str, lang: str, context: str, model: str) -> str:
     """
@@ -162,7 +209,7 @@ def _cache_key(image_bytes: bytes, kind: str, lang: str, context: str, model: st
     Returns
     -------
     str
-        32 hex characters, suitable as a filename stem.
+        32 hex characters, unique to this combination of inputs.
     """
     h = hashlib.sha256()
     h.update(image_bytes)
@@ -172,37 +219,73 @@ def _cache_key(image_bytes: bytes, kind: str, lang: str, context: str, model: st
     return h.hexdigest()[:32]
 
 
-def _cache_get(key: str) -> str | None:
-    """
-    Return the cached alt text for ``key``, or ``None`` on a miss.
+#: Resolved wallet, paired with the ledger path it was opened on.
+_WALLET: tuple[Path, Any] | None = None
 
-    Cache reads are silent on any error and behave as a miss; the model call
-    will run and (best-effort) refresh the entry.
+
+def _wallet() -> Any:
+    """
+    The memo wallet over :data:`CACHE_DIR`, or say which extra is missing.
+
+    Resolved on first use rather than at import, and re-resolved whenever
+    :data:`CACHE_DIR` moves. The second half is not hygiene: the tests point
+    ``CACHE_DIR`` at a fresh ``tmp_path`` per test, and a wallet memoized on
+    the module alone would hand the second test the first test's ledger —
+    which is a cache hit the test never asked for and cannot see.
+
+    Returns
+    -------
+    wallet_helper.Wallet
+        Backed by a SQLite ledger at ``CACHE_DIR / "ledger.db"``.
+
+    Raises
+    ------
+    RuntimeError
+        When ``wallet-helper`` is absent, naming the extra rather than the
+        package nobody asked for.
+    """
+    global _WALLET
+    db = CACHE_DIR / "ledger.db"
+    if _WALLET is None or _WALLET[0] != db:
+        try:
+            from wallet_helper import SqliteLedger, Wallet
+        except ImportError as exc:
+            raise RuntimeError(
+                "drafting alt text memoizes its model calls through "
+                "wallet-helper, which is an optional extra so the lint stays "
+                "dependency-free. Install it with:\n"
+                "    pip install 'sprezzature-accessibility[alt]'"
+            ) from exc
+        _WALLET = (db, Wallet(SqliteLedger(db, max_entries=CACHE_MAX_ENTRIES)))
+    return _WALLET[1]
+
+
+def _run_once(key: str, work: Callable[[], str]) -> str:
+    """
+    Return the stored draft for ``key``, or run ``work`` exactly once.
+
+    "Exactly once" includes across processes: a run arriving on a key another
+    process is still spending seconds of model time on waits for that answer
+    instead of starting a second call. A raising ``work`` stores nothing, so a
+    failed draft is never served back later as a good one.
+
+    Parameters
+    ----------
+    key : str
+        Output of :func:`_cache_key` — everything that changes the answer.
+    work : callable
+        Zero-argument callable that talks to the model. Run at most once per
+        key, per machine, ever.
+
+    Returns
+    -------
+    str
+        The draft, whether this call produced it or waited for it.
     """
     if NO_CACHE:
-        return None
-    path = CACHE_DIR / f"{key}.txt"
-    if path.is_file():
-        # Strip the trailing newline written by ``_cache_set``.
-        return path.read_text(encoding="utf-8").rstrip("\n")
-    return None
-
-
-def _cache_set(key: str, text: str) -> None:
-    """
-    Store ``text`` in the cache under ``key``. Failures are swallowed.
-
-    The cache is opportunistic — a read-only filesystem or a quota exhaustion
-    must not break the user's primary action.
-    """
-    if NO_CACHE:
-        return
-    try:
-        CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        (CACHE_DIR / f"{key}.txt").write_text(text + "\n", encoding="utf-8")
-    except OSError:
-        # Intentional silent fail — see docstring.
-        pass
+        return work()
+    text, _from_cache = _wallet().call(CACHE_NAMESPACE, key, work)
+    return str(text)
 
 
 # ── Model + language helpers ────────────────────────────────────────────────
@@ -598,43 +681,40 @@ def describe_long(
     # The cache key distinguishes long descriptions from short alt by
     # appending ``"long"`` to the parameter mix.
     key = _cache_key(data, f"{kind}:long", lang, context, model)
-    cached = _cache_get(key)
-    if cached is not None:
-        return cached
 
-    image_b64: str = base64.b64encode(data).decode("ascii")
-    payload: dict = {
-        "model": model,
-        "prompt": long_prompt_for(kind, lang, context),
-        "images": [image_b64],
-        "stream": False,
-        # Long descriptions need more tokens than short alt — 400 words
-        # comfortably fits in 600 tokens for most languages.
-        "options": {"temperature": 0.25, "num_predict": 600},
-    }
+    def work() -> str:
+        """The expensive half, inside the claim so it runs once per key."""
+        image_b64: str = base64.b64encode(data).decode("ascii")
+        payload: dict = {
+            "model": model,
+            "prompt": long_prompt_for(kind, lang, context),
+            "images": [image_b64],
+            "stream": False,
+            # Long descriptions need more tokens than short alt — 400 words
+            # comfortably fits in 600 tokens for most languages.
+            "options": {"temperature": 0.25, "num_predict": 600},
+        }
+        try:
+            # Long descriptions are NOT post-processed by ``post_process`` —
+            # that would strip Markdown bullets and clip mid-list.
+            return str(_llm_chat(payload["prompt"], images=[data], model=model)).strip()
+        except RuntimeError as e:
+            # best_engine_ai_helper.llm.chat wraps both connection failures and
+            # HTTP error responses into RuntimeError (not requests.exceptions.*)
+            # regardless of backend, so both cases are one except clause now.
+            sys.stderr.write(
+                f"Cannot reach Ollama at {OLLAMA_URL}, or it returned an error: {e}\n"
+                # Names the installed command, not a repo path: this module now
+                # ships as a wheel, where `scripts/install_alt_ai.py` does not
+                # exist. The fallback keeps the path for anyone running from a
+                # clone, where the console script may not be on PATH.
+                f"Start the daemon (`ollama serve`) or run:\n"
+                f"    sprezzature-accessibility-install-alt\n"
+                f"    (from a clone: python scripts/install_alt_ai.py)\n"
+            )
+            sys.exit(2)
 
-    try:
-        text: str = str(_llm_chat(payload["prompt"], images=[data], model=model)).strip()
-    except RuntimeError as e:
-        # best_engine_ai_helper.llm.chat wraps both connection failures and
-        # HTTP error responses into RuntimeError (not requests.exceptions.*)
-        # regardless of backend, so both cases are one except clause now.
-        sys.stderr.write(
-            f"Cannot reach Ollama at {OLLAMA_URL}, or it returned an error: {e}\n"
-            # Names the installed command, not a repo path: this module now
-            # ships as a wheel, where `scripts/install_alt_ai.py` does not
-            # exist. The fallback keeps the path for anyone running from a
-            # clone, where the console script may not be on PATH.
-            f"Start the daemon (`ollama serve`) or run:\n"
-            f"    sprezzature-accessibility-install-alt\n"
-            f"    (from a clone: python scripts/install_alt_ai.py)\n"
-        )
-        sys.exit(2)
-
-    # Long descriptions are NOT post-processed by ``post_process`` — that
-    # would strip Markdown bullets and clip mid-list. They are still cached.
-    _cache_set(key, text)
-    return text
+    return _run_once(key, work)
 
 
 def compose_vocabulary_hint(terms: list[str]) -> str:
@@ -741,45 +821,43 @@ def describe(
     vocab_suffix: str = compose_vocabulary_hint(vocabulary or [])
 
     key = _cache_key(data, kind, lang, context + vocab_suffix, model)
-    cached = _cache_get(key)
-    if cached is not None:
-        # Cache hit — return immediately, no network round-trip.
-        return cached
 
-    # Encode the image once. Base64 is what Ollama's REST API expects in the
-    # ``images`` array.
-    image_b64: str = base64.b64encode(data).decode("ascii")
+    def work() -> str:
+        """The expensive half, inside the claim so it runs once per key."""
+        # Encode the image once. Base64 is what Ollama's REST API expects in
+        # the ``images`` array.
+        image_b64: str = base64.b64encode(data).decode("ascii")
+        payload: dict = {
+            "model": model,
+            "prompt": prompt_for(kind, lang, context) + vocab_suffix,
+            "images": [image_b64],
+            "stream": False,
+            # ``temperature`` low to make the output reproducible across runs.
+            # ``num_predict`` bounds the model output token count; alt text is
+            # short so 120 tokens is generous.
+            "options": {"temperature": 0.2, "num_predict": 120},
+        }
+        try:
+            return post_process(
+                str(_llm_chat(payload["prompt"], images=[data], model=model)), lang
+            )
+        except RuntimeError as e:
+            # best_engine_ai_helper.llm.chat wraps both connection failures and
+            # HTTP error responses into RuntimeError (not requests.exceptions.*)
+            # regardless of backend, so both cases are one except clause now.
+            sys.stderr.write(
+                f"Cannot reach Ollama at {OLLAMA_URL}, or it returned an error: {e}\n"
+                # Names the installed command, not a repo path: this module now
+                # ships as a wheel, where `scripts/install_alt_ai.py` does not
+                # exist. The fallback keeps the path for anyone running from a
+                # clone, where the console script may not be on PATH.
+                f"Start the daemon (`ollama serve`) or run:\n"
+                f"    sprezzature-accessibility-install-alt\n"
+                f"    (from a clone: python scripts/install_alt_ai.py)\n"
+            )
+            sys.exit(2)
 
-    payload: dict = {
-        "model": model,
-        "prompt": prompt_for(kind, lang, context) + vocab_suffix,
-        "images": [image_b64],
-        "stream": False,
-        # ``temperature`` low to make the output reproducible across runs.
-        # ``num_predict`` bounds the model output token count; alt text is short
-        # so 120 tokens is generous.
-        "options": {"temperature": 0.2, "num_predict": 120},
-    }
-
-    try:
-        text = post_process(str(_llm_chat(payload["prompt"], images=[data], model=model)), lang)
-    except RuntimeError as e:
-        # best_engine_ai_helper.llm.chat wraps both connection failures and
-        # HTTP error responses into RuntimeError (not requests.exceptions.*)
-        # regardless of backend, so both cases are one except clause now.
-        sys.stderr.write(
-            f"Cannot reach Ollama at {OLLAMA_URL}, or it returned an error: {e}\n"
-            # Names the installed command, not a repo path: this module now
-            # ships as a wheel, where `scripts/install_alt_ai.py` does not
-            # exist. The fallback keeps the path for anyone running from a
-            # clone, where the console script may not be on PATH.
-            f"Start the daemon (`ollama serve`) or run:\n"
-            f"    sprezzature-accessibility-install-alt\n"
-            f"    (from a clone: python scripts/install_alt_ai.py)\n"
-        )
-        sys.exit(2)
-    _cache_set(key, text)
-    return text
+    return _run_once(key, work)
 
 
 # ── CLI ─────────────────────────────────────────────────────────────────────

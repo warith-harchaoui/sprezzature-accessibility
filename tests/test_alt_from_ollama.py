@@ -160,7 +160,7 @@ class TestPostProcess:
         assert not out.endswith(",") and not out.endswith("…")
 
 
-# ── _cache_key + cache round-trip ──────────────────────────────────────────
+# ── _cache_key + the memo it keys ──────────────────────────────────────────
 
 class TestCacheKey:
     def test_deterministic_for_same_inputs(self):
@@ -183,21 +183,81 @@ class TestCacheKey:
         assert alt._cache_key(**base) != alt._cache_key(**modified)
 
 
-class TestCacheRoundTrip:
-    def test_set_then_get(self, fresh_cache):
-        alt._cache_set("abc123", "stored alt text")
-        assert alt._cache_get("abc123") == "stored alt text"
+class TestCacheKeyHashesTheBytesNotThePath:
+    def test_the_same_name_holding_a_different_picture_is_a_different_key(self):
+        """The property that decides whether a cache can go stale.
 
-    def test_miss_returns_none(self, fresh_cache):
-        assert alt._cache_get("nonexistent") is None
+        A cache keyed on the path answers yesterday's question about
+        yesterday's picture the first time somebody re-exports ``hero.jpg``,
+        and is silent about it. This one is keyed on the bytes actually sent.
+        """
+        before = alt._cache_key(b"\x89PNG-one", "informative", "en", "", "m:tag")
+        after = alt._cache_key(b"\x89PNG-two", "informative", "en", "", "m:tag")
+        assert before != after
 
-    def test_no_cache_disables_both_directions(self, fresh_cache, monkeypatch):
+
+class TestRunOnce:
+    def test_the_work_runs_once_and_is_served_back(self, fresh_cache):
+        calls = []
+
+        def work():
+            calls.append(1)
+            return "stored alt text"
+
+        assert alt._run_once("abc123", work) == "stored alt text"
+        assert alt._run_once("abc123", work) == "stored alt text"
+        assert len(calls) == 1
+
+    def test_a_distinct_key_is_a_distinct_run(self, fresh_cache):
+        assert alt._run_once("k1", lambda: "one") == "one"
+        assert alt._run_once("k2", lambda: "two") == "two"
+
+    def test_no_cache_neither_reads_nor_writes(self, fresh_cache, monkeypatch):
         monkeypatch.setattr(alt, "NO_CACHE", True)
-        alt._cache_set("k", "v")
-        # Cache writes are skipped entirely.
-        assert not (fresh_cache / "k.txt").exists()
-        # And reads always miss.
-        assert alt._cache_get("k") is None
+        calls = []
+
+        def work():
+            calls.append(1)
+            return "v"
+
+        assert alt._run_once("k", work) == "v"
+        assert alt._run_once("k", work) == "v"
+        assert len(calls) == 2, "--no-cache must bypass the ledger in both directions"
+        # Nothing was opened, let alone written: `--no-cache` on a read-only
+        # home must not fail for a cache the run said it did not want.
+        assert not (fresh_cache / "ledger.db").exists()
+
+    def test_a_failed_run_is_not_stored(self, fresh_cache):
+        def boom():
+            raise RuntimeError("Ollama is not running")
+
+        with pytest.raises(RuntimeError):
+            alt._run_once("k", boom)
+        # The claim was released and nothing was kept, so the retry is a real
+        # retry rather than a replay of the failure.
+        assert alt._run_once("k", lambda: "good") == "good"
+
+    def test_the_ledger_outlives_the_wallet(self, fresh_cache, monkeypatch):
+        """What a second ``make-alt`` invocation sees: the same file, reopened."""
+        alt._run_once("persist", lambda: "from the first run")
+        monkeypatch.setattr(alt, "_WALLET", None)
+        calls = []
+        assert alt._run_once("persist", lambda: calls.append(1) or "recomputed") == (
+            "from the first run"
+        )
+        assert calls == []
+
+    def test_moving_the_cache_dir_moves_the_ledger(self, fresh_cache, tmp_path, monkeypatch):
+        """``SPREZZATURE_CACHE_DIR`` has to mean something after the first call.
+
+        The wallet is resolved once and kept, so without re-resolving it on a
+        changed ``CACHE_DIR`` every test after the first would read the first
+        test's ledger — and so would anyone pointing the variable at a shared
+        cache halfway through a session.
+        """
+        alt._run_once("k", lambda: "in the first directory")
+        monkeypatch.setattr(alt, "CACHE_DIR", tmp_path / "elsewhere")
+        assert alt._run_once("k", lambda: "in the second") == "in the second"
 
 
 # ── describe ──────────────────────────────────────────────────────────────

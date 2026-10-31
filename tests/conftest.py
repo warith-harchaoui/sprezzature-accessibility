@@ -45,7 +45,7 @@ def no_content_scan(monkeypatch):
     """
     Keep the content-safety scan out of unit tests that mock the transport.
 
-    ``lint_a11y`` or The drafting half calls ``best_engine_ai_helper.llm.chat``, which since
+    The drafting half calls ``best_engine_ai_helper.llm.chat``, which since
     1.4 scans every prompt and response through an NSFW classifier before the
     request leaves — on by default for local engines too. The classifier is an
     optional extra (``[filtered]``), so a bare install falls back to a keyword

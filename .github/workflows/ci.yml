@@ -39,7 +39,15 @@ jobs:
           # The package editable, with the surfaces it advertises: without
           # the extras every test of the HTTP and MCP surfaces skips, and CI
           # was green on code nobody ran.
-          pip install -e ".[lang,api,mcp]" -r requirements-dev.txt
+          #
+          # wallet-helper by name rather than the whole `[alt]` extra, which is
+          # the deliberately narrower statement: the drafting tests mock the
+          # model, so nothing else in `[alt]` is reachable from them, but the
+          # memo around that model call is real code and the guard on it
+          # (tests/test_two_drafts_of_one_image_cost_one_call.py) spawns three
+          # interpreters to measure it. Without this line that guard raises
+          # "install the extra" and a check with teeth reads as a skip.
+          pip install -e ".[lang,api,mcp]" "wallet-helper>=1.3,<2" -r requirements-dev.txt
       - name: Ruff
         run: ruff check .
       # The type half of the gate. Added after running mypy by hand found
