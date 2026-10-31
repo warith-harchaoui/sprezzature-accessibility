@@ -10,3 +10,17 @@ build/
 .mypy_cache/
 .DS_Store
 .private/
+
+# Wikimedia image bytes fetched on demand by
+# tests/fixtures/images/fetch_wikipedia.py. The fixtures README has
+# described them as gitignored since the set was created, but no rule
+# existed: two of them sat untracked in the tree for days, and one of
+# the catalogue's entries is the Wikipedia globe — a Wikimedia
+# trademark kept under fair use for test fixtures only, which is
+# exactly the kind of byte that must not reach a published sdist by
+# accident.
+#
+# wiki/truth.json stays tracked on purpose: the manifest is the source
+# of truth, and the bytes are hash-pinned and regenerable from the CDN.
+tests/fixtures/images/wiki/*.jpg
+tests/fixtures/images/wiki/*.png

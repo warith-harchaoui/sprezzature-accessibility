@@ -76,12 +76,38 @@ re-distribution.
 - Forces every contributor's environment through the same fetch path,
   so a broken URL surfaces immediately rather than via a hash mismatch
   on someone's CI months later.
-- Mirrors the audio fixtures convention (`tests/fixtures/audio/`:
-  manifest + fetcher committed, WAVs gitignored).
+- Mirrors the audio fixtures convention, which lives in the hub rather
+  than here — `sprezzature/tests/fixtures/audio/` keeps `MANIFEST.json`
+  and `fetch.py` tracked and the WAVs untracked. The bare path
+  `tests/fixtures/audio/` used to be written here as if it resolved in
+  this repository; it does not, and only looks right to someone with
+  the whole suite checked out side by side.
 
 ### Test behaviour without the fixtures
 
 If `wiki/truth.json` is missing, `tests/eval/test_alt_eval.py`
 skips the module with a message pointing the contributor at the
-fetcher. Running the fetcher is a one-time contributor step; CI
-performs it as part of the eval-suite job.
+fetcher. Running the fetcher is a one-time contributor step.
+
+**CI does not run this suite, and there is no eval-suite job.** This
+paragraph claimed one for months. `.github/workflows/ci.yml` defines a
+single `test` job whose last step is `pytest -q`, and `addopts` in
+`pyproject.toml` carries `-m "not eval"`, so every test in
+`tests/eval/` is deselected there. Nothing in CI ever calls the
+fetcher either. The eval suite is a deliberate local opt-in — it needs
+a running Ollama daemon, the `qwen3-vl:8b` weights and `deepeval`, none
+of which belong in a gentle, network-free gate:
+
+```bash
+python3 tests/fixtures/images/fetch_wikipedia.py   # once
+pytest -m eval
+```
+
+Two consequences worth keeping in mind. The manifest is the only thing
+that decides what gets evaluated, so a *partial* `truth.json` — the
+fetcher writes whatever succeeded, by design — quietly shrinks the
+catalogue: lose the chart and the logo and `pytest -m eval` still goes
+green, having silently stopped covering the `complex` and `functional`
+branches. And because the suite is opt-in, that shrinkage can sit
+unnoticed indefinitely. After any fetch that reports a failure, check
+that `truth.json` still lists all five entries of `ENTRIES`.
