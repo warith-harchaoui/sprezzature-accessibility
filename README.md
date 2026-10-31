@@ -82,16 +82,21 @@ sprezzature-accessibility-lint --fix public/
 sprezzature-accessibility-lint --fix --dry-run public/
 ```
 
-## Two front doors, four tools
+## One front door, two spellings, four tools
 
 ```bash
-make-a11y --help              # the four tools, with what each does
-make-a11y lint public/        # argparse — needs nothing
-sprezzature-accessibility lint public/   # click — needs [click]
+make-a11y --help                         # the four tools, with what each does
+make-a11y lint public/                   # the historical name
+sprezzature-accessibility lint public/   # the suite-wide name
 ```
 
-Both read a single table (`sprezzature_accessibility/cli.py`), so a tool
-cannot appear in one and be missing from the other. The four are `lint`,
+Both names resolve to the same callable over a single table
+(`sprezzature_accessibility/cli.py`), so a tool cannot appear in one and be
+missing from the other. There were two parsers until 2026-10-25, an argparse
+one and a click one sharing that table, and every sub-command had to be
+written twice; click is the only one now, and a base dependency rather than
+an extra, because with argparse gone no parser ships with Python. The four
+are `lint`,
 `text-spacing`, `alt` and `install-alt`; each is also still its own command —
 `sprezzature-accessibility-lint`, `-text-spacing`, `-alt` — which is what a
 script should call, and what the examples above use.
@@ -99,16 +104,16 @@ script should call, and what the examples above use.
 ## Install
 
 ```bash
-pip install sprezzature-accessibility                # the lint: no dependencies
+pip install sprezzature-accessibility                # the lint, and click for the command line
 pip install "sprezzature-accessibility[lang]"        # + language detection for --fix
-pip install "sprezzature-accessibility[click]"       # + the click front door
 pip install "sprezzature-accessibility[alt]"         # + the drafting half (local vision model)
 pip install "sprezzature-accessibility[api,mcp]"     # + the HTTP and agent surfaces
 ```
 
-That the lint itself has **no dependencies** is deliberate, and it is the
-reason this package is worth putting in a pre-commit hook: it runs in
+That the lint itself is **standard library only** is deliberate, and it is
+the reason this package is worth putting in a pre-commit hook: it runs in
 milliseconds in a minimal container, with no browser and no model behind it.
+The one base dependency is click, bought on purpose for the command line.
 Everything heavier is an extra, named after the thing that needs it, so an
 install says what it is for.
 

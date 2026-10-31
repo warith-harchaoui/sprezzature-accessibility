@@ -92,16 +92,21 @@ sprezzature-accessibility-lint --fix public/
 sprezzature-accessibility-lint --fix --dry-run public/
 ```
 
-## Deux portes d'entrée, quatre outils
+## Une porte d'entrée, deux orthographes, quatre outils
 
 ```bash
-make-a11y --help              # les quatre outils, et ce que fait chacun
-make-a11y lint public/        # argparse — ne demande rien
-sprezzature-accessibility lint public/   # click — demande [click]
+make-a11y --help                         # les quatre outils, et ce que fait chacun
+make-a11y lint public/                   # le nom historique
+sprezzature-accessibility lint public/   # le nom de la suite
 ```
 
-Les deux lisent **une seule** table (`sprezzature_accessibility/cli.py`), donc
-un outil ne peut pas apparaître dans l'une et manquer dans l'autre. Les quatre
+Les deux noms résolvent vers le même appelable, sur une table unique
+(`sprezzature_accessibility/cli.py`), donc un outil ne peut pas apparaître
+dans l'un et manquer dans l'autre. Il y a eu deux analyseurs jusqu'au
+2026-10-25, un argparse et un click qui partageaient cette table, et chaque
+sous-commande devait être écrite deux fois ; click est désormais le seul, et
+une dépendance de base plutôt qu'une option, parce qu'avec argparse parti
+plus aucun analyseur n'est livré avec Python. Les quatre
 sont `lint`, `text-spacing`, `alt` et `install-alt` ; chacun reste aussi sa
 propre commande — `sprezzature-accessibility-lint`, `-text-spacing`, `-alt` —
 et c'est ce qu'un script devrait appeler, comme dans les exemples ci-dessus.
@@ -109,17 +114,17 @@ et c'est ce qu'un script devrait appeler, comme dans les exemples ci-dessus.
 ## Installation
 
 ```bash
-pip install sprezzature-accessibility                # le lint : aucune dépendance
+pip install sprezzature-accessibility                # le lint, et click pour la ligne de commande
 pip install "sprezzature-accessibility[lang]"        # + détection de langue pour --fix
-pip install "sprezzature-accessibility[click]"       # + la porte click
 pip install "sprezzature-accessibility[alt]"         # + la moitié rédactionnelle (modèle de vision local)
 pip install "sprezzature-accessibility[api,mcp]"     # + les surfaces HTTP et agent
 ```
 
-Que le lint lui-même n'ait **aucune dépendance** est délibéré, et c'est la
-raison pour laquelle ce paquet vaut la peine d'être mis dans un crochet de
-pré-commit : il tourne en quelques millisecondes dans un conteneur minimal,
-sans navigateur ni modèle derrière lui. Tout ce qui est plus lourd est un
+Que le lint lui-même tienne dans la **bibliothèque standard** est délibéré,
+et c'est la raison pour laquelle ce paquet vaut la peine d'être mis dans un
+crochet de pré-commit : il tourne en quelques millisecondes dans un conteneur
+minimal, sans navigateur ni modèle derrière lui. L'unique dépendance de base
+est click, achetée exprès pour la ligne de commande. Tout ce qui est plus lourd est un
 extra, nommé d'après ce qui en a besoin, pour qu'une installation dise à quoi
 elle sert.
 
