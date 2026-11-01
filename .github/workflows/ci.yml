@@ -36,17 +36,30 @@ jobs:
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          # The package editable, with the surfaces it advertises: without
-          # the extras every test of the HTTP and MCP surfaces skips, and CI
-          # was green on code nobody ran.
+          # The package editable. There are no extras left to name: on
+          # 2026-11-01 everything this package does moved into the base
+          # install. This step did not get slower for it -- measured, under a
+          # minute before and after, where `sprezzature-audio` went to two
+          # minutes and `sprezzature-figures` to six.
           #
-          # wallet-helper by name rather than the whole `[alt]` extra, which is
-          # the deliberately narrower statement: the drafting tests mock the
-          # model, so nothing else in `[alt]` is reachable from them, but the
-          # memo around that model call is real code and the guard on it
-          # (tests/test_two_drafts_of_one_image_cost_one_call.py) spawns three
-          # interpreters to measure it. Without this line that guard raises
-          # "install the extra" and a check with teeth reads as a skip.
+          # **wallet-helper is still named, and now only for its floor.** It
+          # is a base dependency, so the install would bring it anyway; the
+          # constraint is here because `wallet-helper 1.3.2` carries a fix
+          # this repository's own test found, and until that release is on
+          # PyPI this runner resolves **1.3.1** and keeps the defect.
+          #
+          # The defect: `SqliteLedger.__init__` ran `PRAGMA journal_mode=WAL`,
+          # and SQLite answers a journal-mode change with SQLITE_BUSY without
+          # consulting the busy handler -- so three interpreters opening a
+          # cold ledger at once could leave one dead on `database is locked`.
+          # `tests/test_two_drafts_of_one_image_cost_one_call.py` spawns
+          # exactly those three, and it is what found it: measured 3 failures
+          # in 15 runs before the fix, 0 in 15 after.
+          #
+          # So this line is the handle: raise the floor to `>=1.3.2` the day
+          # it publishes, and that test stops being able to flake here. Until
+          # then CI can fail it about one run in five, and the cause is
+          # upstream and already fixed at the source.
           pip install -e "." "wallet-helper>=1.3,<2" -r requirements-dev.txt
       - name: Ruff
         run: ruff check .
