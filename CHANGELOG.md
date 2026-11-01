@@ -119,8 +119,8 @@ way before any of this release's changes.
 It is fixed upstream in `wallet-helper` 1.3.2. **A fix nobody can install is
 not a fix**: this package's CI resolves `wallet-helper>=1.3,<2` from the index,
 and the index serves 1.3.1. So `_open_ledger` defends the caller against the
-version it actually gets — a short backoff ladder around the constructor.
-Measured with the 1.3.1 code path in place: **0 failures in 15 runs**.
+version it actually gets. Measured with the 1.3.1 code path in place:
+**0 failures in 15 runs**.
 
 Retrying is the right shape here rather than a papering-over: the ledger's whole
 contract is "wait for the other process instead of duplicating its work", so
@@ -128,13 +128,34 @@ waiting tens of milliseconds for its own file to settle is the behaviour already
 being asked for. What *would* paper over it is catching the error and running
 the model anyway — three times, which is the cost the ledger exists to avoid.
 
+**The pattern is `sprezzature-audio`'s and `sprezzature-publish`'s, not a new
+one**, down to the `OPEN_ATTEMPTS` and `OPEN_BACKOFF` names and numbers. They
+already carry it in their `scripts/_wallet.py`, and their own test for it reads
+"the creation race, which cost a sibling repository a red run" — the sibling it
+cost was this one. The first draft of this fix reinvented it and was worse in
+two measurable ways, both corrected before landing:
+
+- a **fixed** backoff where theirs is **jittered**. Three processes backing off
+  on one schedule collide again on the next rung, which is the collision being
+  recovered from;
+- a `RuntimeError` on exhaustion where theirs **degrades** to the JSON
+  `Ledger` over the same directory, with a warning on stderr. Raising trades a
+  cache for a crash, and the crash *is* the defect — so the first draft
+  re-entered the failure through the fix. What is lost on exhaustion is only
+  cross-process single-flight; the memoization, the result, and a tool that
+  answers all survive.
+
+A corrupt file is also told apart from a lock, and in that order, because
+`OperationalError` subclasses `DatabaseError`: no number of retries repairs a
+bad file, and swapping the clauses would silently stop retrying locks at all.
+
 `tests/test_the_draft_cache_survives_its_own_cold_start.py` covers it by
 **injecting** the lock rather than racing for it, because the window is
 narrower than a test can aim at — three shapes of deliberate contention were
 tried upstream and none reproduced it, the busy handler *does* apply to
-ordinary lock waits. Four assertions, failing for four different reasons: the
-ladder is actually walked; it stops instead of hanging a command line; the
-refusal names the fixing release and the `--no-cache` way out instead of
+ordinary lock waits. Five assertions, failing for five different reasons: the
+ladder is actually walked; it degrades instead of raising; a corrupt file is
+not retried; the warning names the fixing release and what was lost instead of
 leaving the reader with `database is locked`; and — the one that matters most —
 **the shim carries its own removal condition.** The last test asserts the floor
 is still below 1.3.2, so the day the floor moves past it, this file and

@@ -23,18 +23,33 @@ from the index, and the index serves 1.3.1. So ``_open_ledger`` defends the
 caller against the version it actually gets — measured with the 1.3.1 code
 path in place: **0 failures in 15 runs**.
 
-Why these three assertions and not a race
------------------------------------------
+The pattern is the siblings', not a new one
+-------------------------------------------
+``sprezzature-audio`` and ``sprezzature-publish`` already carry this retry in
+their ``scripts/_wallet.py``, with these constant names and these numbers, and
+their own test for it says "the creation race, which cost a sibling repository
+a red run" — the sibling it cost was this one. The first version of this file
+reinvented it, divergently and worse: a fixed backoff where theirs is jittered
+(three processes retrying in lockstep collide again on the next rung), and a
+``RuntimeError`` where theirs **degrades** to the JSON ledger. Raising trades a
+cache for a crash, and the crash was the defect.
+
+So this tests the siblings' behaviour, and ``_open_ledger`` is their code.
+
+Why these assertions and not a race
+-----------------------------------
 The window is narrower than a test can aim at — three shapes of deliberate
 contention were tried upstream and none reproduced it, because the busy handler
 *does* apply to ordinary lock waits. So the error is injected, which also makes
 these deterministic. The real concurrency is still covered next door; this file
 covers the retry.
 
-They fail for three different reasons, which is the point of having three:
-a retry that gives up on the first refusal would not survive the race it is
-written for; a retry that never stops would hang a CLI; and a refusal that does
-not say what to do leaves the reader with ``database is locked`` and no handle.
+They fail for different reasons, which is the point of having several: a retry
+that gives up on the first refusal would not survive the race it is written
+for; one that never stops would hang a command line; a run that *raises* on
+exhaustion loses the draft entirely where it could have lost only the
+cross-process single-flight; and a warning that does not say what happened
+leaves the reader with ``database is locked`` and no handle.
 
 Author
 ------
@@ -79,7 +94,7 @@ def test_a_transient_lock_is_waited_out(tmp_path: Path, monkeypatch: pytest.Monk
     ``OperationalError`` travelled all the way out of ``describe``, so a run
     that lost the race produced no draft at all rather than a slower one.
     """
-    monkeypatch.setattr(alt, "_LEDGER_OPEN_BACKOFF", (0.0, 0.0, 0.0, 0.0))
+    monkeypatch.setattr(alt, "OPEN_BACKOFF", 0.0)
     fake = _LockedUntil(refusals=2)
 
     opened = alt._open_ledger(fake, tmp_path / "ledger.db")
@@ -95,50 +110,89 @@ def test_a_transient_lock_is_waited_out(tmp_path: Path, monkeypatch: pytest.Monk
     )
 
 
-def test_it_stops_instead_of_retrying_for_ever(
+def test_it_degrades_to_the_json_ledger_instead_of_raising(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """A permanent refusal ends, and ends after the whole ladder.
+    """A permanent refusal costs the single-flight, not the draft.
 
-    Both halves matter and they pull against each other: stopping early loses
-    the race the retry exists to win, and never stopping hangs a command line
-    on a lock that is not going to clear.
+    This is the assertion that separates the siblings' pattern from the one
+    this file first had. Raising on exhaustion would turn a cache that could
+    not be opened into a run that produced nothing — which is exactly the
+    failure being fixed, re-entered through the fix. What is lost instead is
+    only cross-process single-flight; the memoization and the result survive,
+    and the tool answers.
+
+    Also checks the ladder is walked to its end: stopping early loses the race
+    the retry exists to win, and never stopping hangs a command line on a lock
+    that is not going to clear.
     """
-    monkeypatch.setattr(alt, "_LEDGER_OPEN_BACKOFF", (0.0, 0.0, 0.0))
+    monkeypatch.setattr(alt, "OPEN_ATTEMPTS", 3)
+    monkeypatch.setattr(alt, "OPEN_BACKOFF", 0.0)
     fake = _LockedUntil(refusals=10_000)
 
-    with pytest.raises(RuntimeError) as caught:
-        alt._open_ledger(fake, tmp_path / "ledger.db")
+    opened = alt._open_ledger(fake, tmp_path / "ledger.db")
 
-    assert fake.attempts == 4, (
-        f"tried {fake.attempts} times for a three-rung ladder — a retry that "
-        f"gives up early loses the race it was written for, and one that never "
-        f"gives up hangs the command"
+    from wallet_helper.ledger import Ledger
+
+    assert isinstance(opened, Ledger), (
+        f"a ledger that cannot be opened returned {type(opened).__name__} rather "
+        f"than degrading to the JSON ledger. Raising here trades a cache for a "
+        f"crash, and the crash is the defect this exists for."
     )
-    assert isinstance(caught.value.__cause__, sqlite3.OperationalError), (
-        "the original OperationalError is not chained, so the traceback loses "
-        "where the failure came from"
+    assert fake.attempts == 3, (
+        f"tried {fake.attempts} times for a three-attempt budget — early is a "
+        f"lost race, never is a hung command"
     )
 
 
-def test_the_refusal_names_the_version_and_the_way_out(
+def test_a_corrupt_file_is_not_retried(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """``database is locked`` is not an actionable message. This one is.
+    """A file that is not a database degrades at once, with its own reason.
 
-    Three things a reader needs and would otherwise have to find out: that the
-    cause is a known upstream defect, which release fixes it, and that
-    ``--no-cache`` runs the model without the ledger in the meantime.
+    No number of retries repairs a bad file, so retrying one is pure latency on
+    a path that is already failing. The two cases have to be told apart in the
+    right order, because ``OperationalError`` is a subclass of
+    ``DatabaseError`` — swap the ``except`` clauses and a lock stops being
+    retried at all, which is the whole feature, silently.
     """
-    monkeypatch.setattr(alt, "_LEDGER_OPEN_BACKOFF", (0.0,))
-    with pytest.raises(RuntimeError) as caught:
-        alt._open_ledger(_LockedUntil(refusals=10_000), tmp_path / "ledger.db")
+    monkeypatch.setattr(alt, "OPEN_ATTEMPTS", 6)
+    monkeypatch.setattr(alt, "OPEN_BACKOFF", 0.0)
 
-    message = str(caught.value)
-    for needed in ("1.3.2", "--no-cache", "database is locked"):
-        assert needed in message, (
-            f"the refusal does not mention {needed!r}, so a reader hitting it has "
-            f"to go and find out. Full message: {message!r}"
+    attempts = {"n": 0}
+
+    def corrupt(_db, **_kwargs):
+        attempts["n"] += 1
+        raise sqlite3.DatabaseError("file is not a database")
+
+    alt._open_ledger(corrupt, tmp_path / "ledger.db")
+    assert attempts["n"] == 1, (
+        f"a corrupt file was tried {attempts['n']} times. Only a lock is worth "
+        f"waiting on; retrying corruption is latency on a path already lost."
+    )
+
+
+def test_the_warning_names_the_version_and_what_was_lost(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """``database is locked`` is not actionable. This warning is.
+
+    Three things a reader needs and would otherwise have to find out: what was
+    lost (the cross-process single-flight, and only that), that the cause is a
+    known upstream defect, and which release fixes it. On stderr rather than
+    raised, because the run continues — a silent degradation would be worse
+    than the crash it replaces.
+    """
+    monkeypatch.setattr(alt, "OPEN_ATTEMPTS", 1)
+    monkeypatch.setattr(alt, "OPEN_BACKOFF", 0.0)
+
+    alt._open_ledger(_LockedUntil(refusals=10_000), tmp_path / "ledger.db")
+
+    said = capsys.readouterr().err
+    for needed in ("1.3.2", "single-flight", "JSON ledger"):
+        assert needed in said, (
+            f"the warning does not mention {needed!r}, so a reader hitting it has "
+            f"to go and find out. Full text: {said!r}"
         )
 
 

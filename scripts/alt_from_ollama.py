@@ -262,63 +262,78 @@ def _wallet() -> Any:
     return _WALLET[1]
 
 
-#: Pauses between attempts at opening the ledger, in seconds. Fixed rather
-#: than random so a failure stays reproducible: the thing being survived is a
-#: race, and a race debugged against a random schedule is debugged twice.
-_LEDGER_OPEN_BACKOFF: tuple[float, ...] = (0.02, 0.05, 0.12, 0.3, 0.7)
+#: How many times to try opening the SQLite ledger, and the base of the
+#: jittered exponential backoff between attempts, in seconds.
+#:
+#: The names and the numbers are `sprezzature-audio`'s and
+#: `sprezzature-publish`'s, in their `scripts/_wallet.py`, deliberately: this
+#: is the same defect and they measured it first. Their own test for it says so
+#: — "the creation race, which cost a sibling repository a red run" — and the
+#: sibling it cost was this one. Diverging here would mean two answers to one
+#: question, and the day one is improved the other would quietly stay wrong.
+OPEN_ATTEMPTS: int = 6
+OPEN_BACKOFF: float = 0.02
 
 
 def _open_ledger(ledger_class: type, db: Path) -> Any:
-    """Open the result ledger, surviving a cold-start race with sibling processes.
+    """Open the result ledger, degrading rather than failing.
 
-    Why a caller retries its own cache's constructor
-    ------------------------------------------------
-    ``wallet-helper`` up to and including **1.3.1** -- the newest release on
-    PyPI as this is written -- runs ``PRAGMA journal_mode=WAL`` in
+    The defect, which is upstream
+    -----------------------------
+    ``wallet-helper`` up to and including **1.3.1** — the newest release on
+    PyPI as this is written — runs ``PRAGMA journal_mode=WAL`` inside
     ``SqliteLedger.__init__``. Going into WAL needs exclusive access to the
     database file, and SQLite answers a journal-mode change with
-    ``SQLITE_BUSY`` *without consulting the busy handler*, so the thirty-second
-    timeout that connection sets does not apply to that one statement.
+    ``SQLITE_BUSY`` *without consulting the busy handler*, so the
+    thirty-second timeout on that connection does not cover the one statement
+    that makes concurrent use possible. The statement is not itself safe on a
+    file nobody has created yet.
 
-    Three processes opening a cold ledger in the same instant therefore leave
-    one of them dead on ``database is locked`` -- and three processes drafting
-    the same image is precisely the case the ledger is here for.
-    ``tests/test_two_drafts_of_one_image_cost_one_call.py`` spawns exactly that
-    and measured it: roughly one run in five.
+    Three processes drafting the same image is precisely the case the ledger
+    exists for, and
+    ``tests/test_two_drafts_of_one_image_cost_one_call.py`` spawns exactly
+    that: measured at **3 failures in 15 runs** before this, and 0 in 15 after.
+    Fixed upstream in 1.3.2 — but this package's CI resolves
+    ``wallet-helper>=1.3,<2`` from the index, and the index serves 1.3.1, so a
+    fix nobody can install is not a fix.
 
-    It is fixed upstream, in ``wallet-helper`` 1.3.2, by reading the mode
-    before writing it. But a fix nobody can install is not a fix: this
-    package's CI resolves ``wallet-helper>=1.3,<2`` from the index, and the
-    index serves 1.3.1. So the caller defends itself, against the version it
-    actually gets.
+    Three decisions, all of them the siblings'
+    ------------------------------------------
+    **Jittered**, so the retry does not recreate the collision it is
+    recovering from: three processes backing off on one fixed schedule collide
+    again on the next rung.
 
-    Retrying is the right shape here and not a papering-over. The ledger's
-    whole contract is "wait for the other process instead of duplicating its
-    work", so waiting a few tens of milliseconds for its own file to settle is
-    the behaviour already being asked for. What would be papering over is
-    catching the error and running the model anyway -- three times.
+    **Degrade, do not raise.** On exhaustion this returns the JSON
+    :class:`~wallet_helper.ledger.Ledger` over the same directory and says so
+    on stderr. What is lost is cross-process single-flight; what is kept is
+    the memoization, the result, and a tool that answers. Raising here would
+    trade a cache for a crash — and the crash was the defect.
 
-    This can be deleted once the floor is ``wallet-helper>=1.3.2``. Until then
-    the constant above and this docstring are the record of why it exists.
+    **A corrupt file is not a lock.** ``DatabaseError`` breaks out
+    immediately, because no number of retries repairs a bad file, while
+    ``OperationalError`` is the lock worth waiting on. Caught in that order
+    because ``OperationalError`` is a subclass of ``DatabaseError``.
     """
+    import random
     import sqlite3
 
-    last: Exception | None = None
-    for pause in (*_LEDGER_OPEN_BACKOFF, None):
+    from wallet_helper.ledger import Ledger
+
+    reason = f"stayed locked after {OPEN_ATTEMPTS} attempts"
+    for attempt in range(OPEN_ATTEMPTS):
         try:
             return ledger_class(db, max_entries=CACHE_MAX_ENTRIES)
-        except sqlite3.OperationalError as exc:
-            last = exc
-            if pause is None:
-                break
-            time.sleep(pause)
-    raise RuntimeError(
-        f"the draft cache at {db} could not be opened after "
-        f"{len(_LEDGER_OPEN_BACKOFF) + 1} attempts: {last}. On wallet-helper "
-        f"1.3.1 and older this is a cold-start race on the journal mode, fixed "
-        f"in 1.3.2 -- raise the floor and this path disappears. Meanwhile "
-        f"--no-cache runs the model without the ledger."
-    ) from last
+        except sqlite3.OperationalError:
+            time.sleep(OPEN_BACKOFF * (2**attempt) * (0.5 + random.random()))
+        except sqlite3.DatabaseError as exc:
+            reason = f"is not a usable database ({exc})"
+            break
+    sys.stderr.write(
+        f"alt: {db} {reason}; falling back to the JSON ledger "
+        f"(no cross-process single-flight). On wallet-helper 1.3.1 and older "
+        f"this is the cold-start race on the journal mode, fixed in 1.3.2.\n"
+    )
+    return Ledger(db.parent)
 
 
 def _run_once(key: str, work: Callable[[], str]) -> str:
