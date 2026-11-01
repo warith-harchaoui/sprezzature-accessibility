@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sprezzature-accessibility"
-version = "1.2.1"
+version = "1.3.0"
 description = "Static HTML accessibility linter: 20 WCAG/WAI rules decidable from source, time-based media included, stdlib only, CI-ready."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -32,61 +32,28 @@ dependencies = [
     # The per-tool script `sprezzature-accessibility-lint` still needs nothing
     # beyond this, so the pre-commit case stays millisecond-cheap.
     "click>=8.1",
+
+    # ------------------------------------------------- une seule installation
+    # Folded in from the extras on 2026-11-01. The base was 1
+    # dependency, so `pip install sprezzature-accessibility` installed almost nothing and
+    # did almost nothing: choosing the right extra was a thing a reader had to
+    # know before the package could do its job. Across the suite that was 59
+    # extras over eleven repositories, six of them with a base of one.
+    #
+    # The surfaces are not features and they are not optional any more: the
+    # HTTP app and the MCP server are two of this package's five front doors,
+    # and a door you have to install separately is a door people do not find.
+    "best-engine-ai-helper>=0.4.0",
+    "wallet-helper>=1.3,<2",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "langdetect>=1.0.9",
+    "fastapi-mcp>=0.3",
+    "mcp<2.0",
 ]
 
 [project.optional-dependencies]
-# The drafting half of this package — the "make" to the lint's "audit".
-#
-# An extra, not a hard dependency, and that is the whole design. The lint is
-# stdlib-only on purpose: it runs in milliseconds in a minimal CI container
-# and in a pre-commit hook, which is the reason anyone reaches for it over
-# axe-core. Putting a model client in `dependencies` would make every
-# pre-commit install pull a CLI framework and an LLM helper to run a check
-# that never calls either.
-#
-#   pip install sprezzature-accessibility          # the audit, 0 dependencies
-#   pip install "sprezzature-accessibility[alt]"   # audit + drafting
-alt = [
-    "click>=8.1",
-    # Every LLM/VLM call across sprezzature-* routes through
-    # best_engine_ai_helper.llm.chat; alt_from_ollama imports it at module
-    # level, so the drafter cannot start without it.
-    "best-engine-ai-helper>=0.4.0",
-    # The drafts are memoized through the suite's wallet rather than through a
-    # cache written here. The hand-rolled one it replaces was content-addressed
-    # and survived restarts, and both of those are kept; what it had no way of
-    # doing was single-flight. Three drafting runs started together on one cold
-    # image called the model three times, 7 ms apart. With the ledger: once.
-    #
-    # Measured, this costs nothing a reader of [alt] is not already paying: in
-    # a clean venv, best-engine-ai-helper alone is 62.3 MB of site-packages,
-    # and adding wallet-helper takes it to 62.5 MB with no new transitive
-    # package at all — os-helper and click are both already there. The major
-    # ceiling is there for the reason mypy's is: an unbounded resolve takes
-    # the version of the day.
-    "wallet-helper>=1.3,<2",
-]
 dev = ["pytest>=8.0", "ruff"]
-lang = ["langdetect>=1.0.9"]
-# HTTP surface (sprezzature_accessibility/api.py): the linter over HTTP, so
-# a CI job or an editor plugin in any language can check markup.
-api = [
-    "fastapi>=0.115",
-    "uvicorn[standard]>=0.30",
-]
-# MCP surface: the same routes republished as agent tools, via fastapi-mcp.
-mcp = [
-    "sprezzature-accessibility[api]",
-    "fastapi-mcp>=0.3",
-    # fastapi-mcp 0.4.0 (the latest as of 2026-08) declares mcp>=1.12.0 with
-    # no upper bound, but calls mcp's Server(name, description) positionally
-    # -- mcp 2.0.0 made `description` keyword-only, so an unconstrained
-    # resolve breaks FastApiMCP(...) at construction time (verified: pip
-    # happily installs mcp 2.2.0 alongside fastapi-mcp 0.4.0, and
-    # `sprezzature_accessibility.mcp` then raises TypeError on import). Pin below
-    # 2.0 until fastapi-mcp ships a fix.
-    "mcp<2.0",
-]
 
 [project.scripts]
 # The two front doors, over the same four tools and the same table

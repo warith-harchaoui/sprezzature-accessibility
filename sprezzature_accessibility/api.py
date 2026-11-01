@@ -22,9 +22,10 @@ anything that can reach the API can then reach whatever the API can reach,
 including a cloud metadata endpoint or an internal host. The caller fetches
 its own markup and posts it; the linter stays a pure function of its input.
 
-Install the extra to get the runtime dependencies::
+FastAPI and uvicorn are base dependencies since 2026-11-01, so there
+is no extra to ask for::
 
-    pip install 'sprezzature-accessibility[api]'
+    pip install 'sprezzature-accessibility'
 
 Then run the app with any ASGI server::
 
@@ -53,8 +54,10 @@ try:
     from fastapi.responses import RedirectResponse
 except ImportError as exc:  # pragma: no cover - dependency guard
     raise ImportError(
-        "The FastAPI HTTP surface requires the [api] extra. "
-        "Install with: pip install 'sprezzature-accessibility[api]'"
+        "The FastAPI HTTP surface could not import fastapi, which is a base "
+        "dependency since 2026-11-01 -- so this is a broken install rather "
+        "than a missing extra. Reinstall with: "
+        "pip install 'sprezzature-accessibility'"
     ) from exc
 
 from pydantic import BaseModel, Field
@@ -349,8 +352,13 @@ def draft_alt_text(request: AltRequest) -> AltResponse:
         raise HTTPException(
             status_code=503,
             detail=(
-                "the drafting half is not installed. "
-                "pip install 'sprezzature-accessibility[alt]'"
+                "the drafting half did not import. Its dependencies "
+                "(best-engine-ai-helper, wallet-helper) are in the base "
+                "install since 2026-11-01, so this is an incomplete install "
+                "rather than a missing extra: pip install "
+                "sprezzature-accessibility. The audit routes above keep "
+                "working either way, which is why this is a 503 and not a "
+                "crash at import."
             ),
         )
     language = request.lang or detect_lang()

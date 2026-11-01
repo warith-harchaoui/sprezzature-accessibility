@@ -10,7 +10,7 @@ COPY . .
 # it. A plain `pip install .` built an image that could not serve the thing
 # its own CMD named: fastapi and uvicorn live behind the `api` extra so that
 # nobody installing the library pays for a web server.
-RUN pip install --no-cache-dir ".[alt,lang,api,mcp]"
+RUN pip install --no-cache-dir "."
 
 EXPOSE 8000
 

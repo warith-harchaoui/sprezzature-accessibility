@@ -47,7 +47,7 @@ jobs:
           # (tests/test_two_drafts_of_one_image_cost_one_call.py) spawns three
           # interpreters to measure it. Without this line that guard raises
           # "install the extra" and a check with teeth reads as a skip.
-          pip install -e ".[lang,api,mcp]" "wallet-helper>=1.3,<2" -r requirements-dev.txt
+          pip install -e "." "wallet-helper>=1.3,<2" -r requirements-dev.txt
       - name: Ruff
         run: ruff check .
       # The type half of the gate. Added after running mypy by hand found

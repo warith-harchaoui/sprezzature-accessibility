@@ -1220,7 +1220,7 @@ def main() -> int:
             "--fix on purpose: --fix is mechanical, offline and idempotent, "
             "while this calls a local vision model, takes seconds per image, "
             "and writes prose a human should read before committing. Needs "
-            "the drafting half: pip install 'sprezzature-accessibility[alt]'."
+            "the drafting half: pip install 'sprezzature-accessibility'."
         ),
     )
     p.add_argument(

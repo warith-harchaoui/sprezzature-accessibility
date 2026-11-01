@@ -45,13 +45,13 @@ TOOLS: dict[str, tuple[str, str, str]] = {
     ),
     "alt": (
         "sprezzature_accessibility.alt_cli",
-        "alt",
+        "",
         "Draft W3C-conformant alt text for an image with a local vision "
         "model, following the WAI image-purpose decision tree.",
     ),
     "install-alt": (
         "sprezzature_accessibility_scripts.install_alt_ai",
-        "alt",
+        "",
         "Install and warm the local Ollama vision model the drafting half "
         "needs, so the first `alt` call is not also a download.",
     ),
@@ -72,6 +72,9 @@ def missing_extra_message(tool: str, extra: str, exc: Exception) -> str:
             f"  ({exc})\n"
         )
     return (
-        f"{tool}: needs nothing optional, so this is not a missing extra — "
-        f"something else failed to import.\n  ({exc})\n"
+        f"{tool}: everything it needs is in the base install, so this is not "
+        f"a missing extra — something failed to import on a complete install. "
+        f"Reinstall with:\n"
+        f"    pip install sprezzature-accessibility\n"
+        f"  ({exc})\n"
     )

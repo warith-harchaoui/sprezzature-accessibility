@@ -5,7 +5,7 @@
 ```bash
 git clone https://github.com/warith-harchaoui/sprezzature-accessibility
 cd sprezzature-accessibility
-pip install -e ".[dev,lang]"
+pip install -e ".[dev]"
 ```
 
 ## Tests

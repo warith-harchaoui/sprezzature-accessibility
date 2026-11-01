@@ -2,6 +2,47 @@
 
 All notable changes to sprezzature-accessibility are documented here.
 
+## [1.3.0] — 2026-11-01: one `pip install`
+
+### Changed — one `pip install`
+
+**Everything this package does now installs with it.** 5 extras became
+**one**, and it is not a feature: `[dev]` is the test toolchain.
+
+  The drafting half (best-engine-ai-helper, wallet-helper), the language
+  detector and both surfaces. The base was **one** dependency.
+
+  **One real cost, stated plainly.** The lint's argument was that it "is
+  stdlib-only on purpose: it runs in milliseconds in a minimal CI container and
+  in a pre-commit hook". The *install* half of that is spent: a pre-commit
+  install now pulls the model client. The *import* half survives and is what
+  made the argument true in practice — the lint still loads nothing but click,
+  and `tests/test_the_lint_stays_out_of_the_extra.py` is now the only thing
+  standing between that and one module-level import. Before, a careless import
+  cost a reader who had opted into the drafter; now it costs everybody, on every
+  run of the hook. The guard was rewritten to say so rather than deleted.
+
+Measured across the suite before touching anything: **59 extras over eleven
+repositories**, and **six bricks whose base was a single dependency** — so
+`pip install <brick>` installed almost nothing and did almost nothing, and
+choosing the right extra was a thing a reader had to know *before* the package
+could do its job. Here the base goes from **1** to **8**
+dependencies.
+
+All eleven unions were dry-run resolved in a clean venv before any manifest was
+edited, so this is a measured feasibility and not an optimistic one.
+
+### Fixed — the places that encoded the extras
+
+Install lines, error messages, docstrings, the `Dockerfile`, the CI workflow and
+the README/LISEZMOI install sections all named extras that no longer exist. pip
+treats an unknown extra as a **warning and exits 0**, so none of these would
+have failed loudly: they would have quietly installed nothing.
+
+The hub's `test_no_document_promises_an_extra_that_does_not_exist` found the
+cross-repository ones — a document in one brick naming another brick's extra —
+which no per-repository pass would have caught.
+
 ## [1.2.1] - 2026-10-21
 
 ### Fixed
@@ -106,7 +147,7 @@ packages in the same state on the way.
   third-party package the reader never asked for, for a command their own
   `pip install` had just created. Click is an extra here on purpose: the
   argparse twin of every command needs nothing. They now name
-  `pip install 'sprezzature-accessibility[alt]'`.
+  `pip install 'sprezzature-accessibility'`.
 - **`body-text-tracking-tight` flagged display type.** A `<p>` at
   `text-4xl tracking-tight` holding a KPI figure is one glance, not a
   paragraph, and the evidence behind that rule is about continuous reading.
@@ -147,7 +188,7 @@ second is informed by the first.
 - The drafting half sits behind an **optional `[alt]` extra**. The lint stays
   stdlib-only with zero dependencies, which is the reason it is worth
   reaching for in a pre-commit hook: `pip install sprezzature-accessibility`
-  for the audit, `pip install "sprezzature-accessibility[alt]"` for both.
+  for the audit, `pip install "sprezzature-accessibility"` for both.
 
 ## [1.0.3] - 2026-10-02: the half of the dependency guard nobody runs
 

@@ -180,13 +180,18 @@ def test_the_lint_route_reports_a_real_finding() -> None:
     assert "img-missing-alt" in rules, response.json()
 
 
-def test_the_drafting_route_says_so_when_its_extra_is_absent(monkeypatch) -> None:
+def test_the_drafting_route_says_so_when_it_did_not_import(monkeypatch) -> None:
     """
-    Without the ``[alt]`` extra, drafting answers 503 — not 500, not a crash.
+    When the drafter did not import, drafting answers 503 — not 500, not a
+    crash.
 
-    The audit half has to keep working in a deployment that never installed a
-    model client, and the caller has to be told which extra is missing rather
-    than reading a traceback.
+    The audit half has to keep working either way, and the caller has to be
+    told what to do rather than reading a traceback.
+
+    This was "without the ``[alt]`` extra" until 2026-11-01. The extra is gone
+    -- its two packages are base dependencies now -- so the 503 means an
+    incomplete install instead of a choice the deployer made, and the message
+    says that and names the packages.
     """
     from fastapi.testclient import TestClient
 
@@ -196,4 +201,11 @@ def test_the_drafting_route_says_so_when_its_extra_is_absent(monkeypatch) -> Non
     client = TestClient(api.app)
     response = client.post("/v1/alt", json={"src": "a.png"})
     assert response.status_code == 503
-    assert "[alt]" in response.json()["detail"]
+    detail = response.json()["detail"]
+    assert "pip install sprezzature-accessibility" in detail, (
+        f"the 503 carries no line the caller can run: {detail!r}"
+    )
+    assert "best-engine-ai-helper" in detail, (
+        f"the 503 does not name what failed to import, so the deployer cannot "
+        f"tell a broken install from a deliberate one: {detail!r}"
+    )

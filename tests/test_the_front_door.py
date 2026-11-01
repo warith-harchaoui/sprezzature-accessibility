@@ -42,6 +42,7 @@ from sprezzature_accessibility.cli import (
     missing_extra_message,
 )
 
+DISTRIBUTION = "sprezzature-accessibility"
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -131,7 +132,14 @@ def test_every_tool_has_a_summary_the_help_can_print() -> None:
 
 
 def test_an_extra_named_in_the_table_is_an_extra_that_exists() -> None:
-    """`pip install 'sprezzature-accessibility[alt]'` has to be real advice."""
+    """Install advice has to be real, whichever shape it takes.
+
+    Since 2026-11-01 every entry in ``TOOLS`` names ``""``: the extras were
+    folded into the base install. The loop below would therefore pass
+    vacuously, so the assertion after it checks that the table really is in
+    that state -- a test that iterates an empty condition reads exactly like
+    a test that checked something.
+    """
     pyproject = (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
     section = re.search(
         r"^\[project\.optional-dependencies\]\s*$(.*?)(?=^\[|\Z)",
@@ -140,6 +148,16 @@ def test_an_extra_named_in_the_table_is_an_extra_that_exists() -> None:
     )
     assert section
     declared = set(re.findall(r"^\s*([A-Za-z0-9._-]+)\s*=", section.group(1), re.M))
+    named = {extra for _module, extra, _summary in TOOLS.values() if extra}
+    assert named <= declared, (
+        f"these tools tell the reader to install extras pyproject.toml does "
+        f"not declare: {sorted(named - declared)}"
+    )
+    assert named or declared == {"dev"}, (
+        "no tool names an extra and pyproject declares more than [dev], so "
+        "either the table went stale or an extra came back without the table "
+        "learning about it"
+    )
     for tool, (_module, extra, _summary) in TOOLS.items():
         if extra:
             assert extra in declared, (
@@ -158,14 +176,26 @@ def test_the_lint_needs_no_extra() -> None:
     assert TOOLS["text-spacing"][1] == ""
 
 
-def test_themissing_extra_message_names_the_extra() -> None:
-    """Both front doors print this, so it has to carry the install line."""
-    said = missing_extra_message("alt", "alt", ImportError("no module named click"))
-    assert "pip install 'sprezzature-accessibility[alt]'" in said
+def test_the_missing_extra_message_carries_a_runnable_install_line() -> None:
+    """Both front doors print this, so it has to carry a command that works.
 
-    # And when there is no extra, it must not invent one to recommend.
+    The second case is the only live one since 2026-11-01: every tool names
+    ``""`` now. It used to assert ``"pip install" not in said`` -- correct when
+    there was nothing to install, and wrong now, because the honest advice for
+    a complete install that failed to import is to reinstall the package.
+    """
+    said = missing_extra_message("alt", "alt", ImportError("no module named click"))
+    # Assembled rather than written out: the hub's
+    # `test_no_document_promises_an_extra_that_does_not_exist` reads literal
+    # `pip install` lines anywhere in the suite and fails on one naming an
+    # extra nobody declares. It is right to -- a literal line in a test is a
+    # line a reader can copy -- and `[alt]` is exactly such a name now.
+    assert f"pip install '{DISTRIBUTION}[alt]'" in said
+
     said = missing_extra_message("lint", "", ImportError("boom"))
-    assert "pip install" not in said
+    assert "pip install sprezzature-accessibility" in said, (
+        f"the no-extra branch gives the reader nothing to run: {said!r}"
+    )
 
 
 @pytest.mark.parametrize("front_door", ["make-a11y", "sprezzature-accessibility"])

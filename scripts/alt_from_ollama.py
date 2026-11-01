@@ -96,7 +96,7 @@ def _llm_chat(*args: object, **kwargs: object) -> object:
         raise RuntimeError(
             "drafting alt text needs a model client, which is an optional "
             "extra so the lint stays dependency-free. Install it with:\n"
-            "    pip install 'sprezzature-accessibility[alt]'"
+            "    pip install 'sprezzature-accessibility'"
         ) from exc
     return chat(*args, **kwargs)
 
@@ -254,7 +254,7 @@ def _wallet() -> Any:
                 "drafting alt text memoizes its model calls through "
                 "wallet-helper, which is an optional extra so the lint stays "
                 "dependency-free. Install it with:\n"
-                "    pip install 'sprezzature-accessibility[alt]'"
+                "    pip install 'sprezzature-accessibility'"
             ) from exc
         _WALLET = (db, Wallet(SqliteLedger(db, max_entries=CACHE_MAX_ENTRIES)))
     return _WALLET[1]

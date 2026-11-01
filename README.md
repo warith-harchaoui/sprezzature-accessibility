@@ -105,9 +105,9 @@ script should call, and what the examples above use.
 
 ```bash
 pip install sprezzature-accessibility                # the lint, and click for the command line
-pip install "sprezzature-accessibility[lang]"        # + language detection for --fix
-pip install "sprezzature-accessibility[alt]"         # + the drafting half (local vision model)
-pip install "sprezzature-accessibility[api,mcp]"     # + the HTTP and agent surfaces
+pip install "sprezzature-accessibility"        # + language detection for --fix
+pip install "sprezzature-accessibility"         # + the drafting half (local vision model)
+pip install "sprezzature-accessibility"     # + the HTTP and agent surfaces
 ```
 
 That the lint itself is **standard library only** is deliberate, and it is

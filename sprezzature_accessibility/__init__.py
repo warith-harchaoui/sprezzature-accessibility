@@ -23,7 +23,7 @@ halves of one job, and splitting them across two packages meant the
 audit could only ever say what was wrong.
 """
 
-__version__ = "1.2.1"
+__version__ = "1.3.0"
 __author__ = "Warith HARCHAOUI"
 __email__ = "warithmetics@deraison.ai"
 __license__ = "BSD-3-Clause"
@@ -81,7 +81,7 @@ def __getattr__(name: str) -> Any:
         raise ImportError(
             f"`{name}` belongs to the alt-text drafting half of this package, "
             f"which is an optional extra so the lint stays dependency-free. "
-            f"Install it with: pip install 'sprezzature-accessibility[alt]'"
+            f"Install it with: pip install 'sprezzature-accessibility'"
         ) from exc
     return getattr(engine, name)
 

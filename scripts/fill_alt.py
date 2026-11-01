@@ -128,7 +128,7 @@ def fill_missing_alt(
     except ImportError as exc:  # pragma: no cover - dependency guard
         raise ImportError(
             "--fix-alt needs the drafting half of this package. Install it "
-            "with: pip install 'sprezzature-accessibility[alt]'"
+            "with: pip install 'sprezzature-accessibility'"
         ) from exc
 
     findings = [

@@ -115,9 +115,9 @@ et c'est ce qu'un script devrait appeler, comme dans les exemples ci-dessus.
 
 ```bash
 pip install sprezzature-accessibility                # le lint, et click pour la ligne de commande
-pip install "sprezzature-accessibility[lang]"        # + détection de langue pour --fix
-pip install "sprezzature-accessibility[alt]"         # + la moitié rédactionnelle (modèle de vision local)
-pip install "sprezzature-accessibility[api,mcp]"     # + les surfaces HTTP et agent
+pip install "sprezzature-accessibility"        # + détection de langue pour --fix
+pip install "sprezzature-accessibility"         # + la moitié rédactionnelle (modèle de vision local)
+pip install "sprezzature-accessibility"     # + les surfaces HTTP et agent
 ```
 
 Que le lint lui-même tienne dans la **bibliothèque standard** est délibéré,
