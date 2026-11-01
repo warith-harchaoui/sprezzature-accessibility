@@ -69,6 +69,7 @@ _sys.path.insert(0, str(_PathHelper(__file__).resolve().parent))
 import os
 import re
 import sys
+import time
 import urllib.request
 from collections.abc import Callable
 from pathlib import Path
@@ -252,12 +253,72 @@ def _wallet() -> Any:
         except ImportError as exc:
             raise RuntimeError(
                 "drafting alt text memoizes its model calls through "
-                "wallet-helper, which is an optional extra so the lint stays "
-                "dependency-free. Install it with:\n"
-                "    pip install 'sprezzature-accessibility'"
+                "wallet-helper, which is a base dependency of this package -- "
+                "so this is an incomplete install rather than a missing extra. "
+                "Reinstall with:\n"
+                "    pip install sprezzature-accessibility"
             ) from exc
-        _WALLET = (db, Wallet(SqliteLedger(db, max_entries=CACHE_MAX_ENTRIES)))
+        _WALLET = (db, Wallet(_open_ledger(SqliteLedger, db)))
     return _WALLET[1]
+
+
+#: Pauses between attempts at opening the ledger, in seconds. Fixed rather
+#: than random so a failure stays reproducible: the thing being survived is a
+#: race, and a race debugged against a random schedule is debugged twice.
+_LEDGER_OPEN_BACKOFF: tuple[float, ...] = (0.02, 0.05, 0.12, 0.3, 0.7)
+
+
+def _open_ledger(ledger_class: type, db: Path) -> Any:
+    """Open the result ledger, surviving a cold-start race with sibling processes.
+
+    Why a caller retries its own cache's constructor
+    ------------------------------------------------
+    ``wallet-helper`` up to and including **1.3.1** -- the newest release on
+    PyPI as this is written -- runs ``PRAGMA journal_mode=WAL`` in
+    ``SqliteLedger.__init__``. Going into WAL needs exclusive access to the
+    database file, and SQLite answers a journal-mode change with
+    ``SQLITE_BUSY`` *without consulting the busy handler*, so the thirty-second
+    timeout that connection sets does not apply to that one statement.
+
+    Three processes opening a cold ledger in the same instant therefore leave
+    one of them dead on ``database is locked`` -- and three processes drafting
+    the same image is precisely the case the ledger is here for.
+    ``tests/test_two_drafts_of_one_image_cost_one_call.py`` spawns exactly that
+    and measured it: roughly one run in five.
+
+    It is fixed upstream, in ``wallet-helper`` 1.3.2, by reading the mode
+    before writing it. But a fix nobody can install is not a fix: this
+    package's CI resolves ``wallet-helper>=1.3,<2`` from the index, and the
+    index serves 1.3.1. So the caller defends itself, against the version it
+    actually gets.
+
+    Retrying is the right shape here and not a papering-over. The ledger's
+    whole contract is "wait for the other process instead of duplicating its
+    work", so waiting a few tens of milliseconds for its own file to settle is
+    the behaviour already being asked for. What would be papering over is
+    catching the error and running the model anyway -- three times.
+
+    This can be deleted once the floor is ``wallet-helper>=1.3.2``. Until then
+    the constant above and this docstring are the record of why it exists.
+    """
+    import sqlite3
+
+    last: Exception | None = None
+    for pause in (*_LEDGER_OPEN_BACKOFF, None):
+        try:
+            return ledger_class(db, max_entries=CACHE_MAX_ENTRIES)
+        except sqlite3.OperationalError as exc:
+            last = exc
+            if pause is None:
+                break
+            time.sleep(pause)
+    raise RuntimeError(
+        f"the draft cache at {db} could not be opened after "
+        f"{len(_LEDGER_OPEN_BACKOFF) + 1} attempts: {last}. On wallet-helper "
+        f"1.3.1 and older this is a cold-start race on the journal mode, fixed "
+        f"in 1.3.2 -- raise the floor and this path disappears. Meanwhile "
+        f"--no-cache runs the model without the ledger."
+    ) from last
 
 
 def _run_once(key: str, work: Callable[[], str]) -> str:

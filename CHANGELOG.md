@@ -99,6 +99,48 @@ which became identical when the extras went, under prose still claiming
 "everything heavier is an extra". And `missing_extra_message`'s no-extra branch
 — the only live one now — gives the reader something to run.
 
+
+### Fixed — the draft cache could kill the run it was there to speed up
+
+`scripts/alt_from_ollama.py` opens a `wallet_helper.SqliteLedger` to memoize
+its model calls. **`wallet-helper` 1.3.1 — the newest release on PyPI — runs
+`PRAGMA journal_mode=WAL` inside that constructor.** Going into WAL needs
+exclusive access to the database file, and SQLite answers a journal-mode change
+with `SQLITE_BUSY` *without consulting the busy handler*, so the thirty-second
+timeout on that connection does not cover the one statement that needs it.
+
+Three processes opening a cold ledger in the same instant therefore left one
+dead on `database is locked` — and three processes drafting the same image is
+precisely the case the ledger exists for.
+`tests/test_two_drafts_of_one_image_cost_one_call.py` spawns exactly that, and
+it is what found it: **3 failures in 15 runs**, measured, and failing the same
+way before any of this release's changes.
+
+It is fixed upstream in `wallet-helper` 1.3.2. **A fix nobody can install is
+not a fix**: this package's CI resolves `wallet-helper>=1.3,<2` from the index,
+and the index serves 1.3.1. So `_open_ledger` defends the caller against the
+version it actually gets — a short backoff ladder around the constructor.
+Measured with the 1.3.1 code path in place: **0 failures in 15 runs**.
+
+Retrying is the right shape here rather than a papering-over: the ledger's whole
+contract is "wait for the other process instead of duplicating its work", so
+waiting tens of milliseconds for its own file to settle is the behaviour already
+being asked for. What *would* paper over it is catching the error and running
+the model anyway — three times, which is the cost the ledger exists to avoid.
+
+`tests/test_the_draft_cache_survives_its_own_cold_start.py` covers it by
+**injecting** the lock rather than racing for it, because the window is
+narrower than a test can aim at — three shapes of deliberate contention were
+tried upstream and none reproduced it, the busy handler *does* apply to
+ordinary lock waits. Four assertions, failing for four different reasons: the
+ladder is actually walked; it stops instead of hanging a command line; the
+refusal names the fixing release and the `--no-cache` way out instead of
+leaving the reader with `database is locked`; and — the one that matters most —
+**the shim carries its own removal condition.** The last test asserts the floor
+is still below 1.3.2, so the day the floor moves past it, this file and
+`_open_ledger` fail and say to delete themselves. A compatibility shim with no
+removal condition becomes permanent by default.
+
 ## [1.2.1] - 2026-10-21
 
 ### Fixed
