@@ -43,6 +43,56 @@ The hub's `test_no_document_promises_an_extra_that_does_not_exist` found the
 cross-repository ones — a document in one brick naming another brick's extra —
 which no per-repository pass would have caught.
 
+
+### Added — the pre-commit install, measured instead of promised
+
+This package's argument for itself is that the lint "runs in milliseconds in a
+minimal CI container and in a pre-commit hook, which is the reason anyone
+reaches for it over axe-core". Folding the extras into the base took
+`pip install sprezzature-accessibility` from **1 package to 57** — measured —
+and most of those 57 are the HTTP and MCP surfaces, which a hook has no use
+for.
+
+The install half of that argument was spent, and the answer is not to
+reintroduce an extra: one `pip install` for the product is the right call,
+because a reader should not have to know a magic word before the package
+works. The answer is to give a hook a documented, tested way to take only what
+it runs:
+
+```sh
+pip install --no-deps sprezzature-accessibility
+pip install click
+```
+
+**Three packages** — pip, click, and this one, and the lint runs.
+`tests/test_the_lint_installs_in_three_packages.py` builds exactly that venv,
+counts what landed **by name** (a count alone would pass on a run that
+installed `requests` and dropped `click`), and runs the shipped
+`sprezzature-accessibility-lint` against a page with one known defect — proving
+the result is *usable* and not merely installed, which are different claims and
+the second is the one people assume they checked. A third assertion requires
+both READMEs to carry the command: a tested command nobody can discover is not
+available, and a documented one that drifts from the tested one is worse than
+none.
+
+It carries **no marker**, so it runs on every push. This repository learned the
+cost of the alternative the same day, when two of `sprezzature-figures`' wheel
+tests turned out to be among 428 deselected ones and only the pre-push hook
+noticed.
+
+The two halves are deliberately two tests. The import guard would still pass on
+a 57-package install a hook never wanted; this one would still pass if the lint
+quietly grew a module-level import of something pip installs anyway.
+
+### Fixed — three messages that named a dead extra
+
+The `/v1/alt` 503 no longer blames a missing extra: it names the two packages
+that failed to import and says the install is incomplete, since they are base
+dependencies. Both install sections carried four `pip install` lines, three of
+which became identical when the extras went, under prose still claiming
+"everything heavier is an extra". And `missing_extra_message`'s no-extra branch
+— the only live one now — gives the reader something to run.
+
 ## [1.2.1] - 2026-10-21
 
 ### Fixed

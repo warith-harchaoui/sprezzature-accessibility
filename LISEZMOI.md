@@ -113,21 +113,40 @@ et c'est ce qu'un script devrait appeler, comme dans les exemples ci-dessus.
 
 ## Installation
 
+Une ligne, et c'est tout — le lint, la moitié rédactionnelle, la détection de
+langue, la surface HTTP et le serveur MCP :
+
 ```bash
-pip install sprezzature-accessibility                # le lint, et click pour la ligne de commande
-pip install "sprezzature-accessibility"        # + détection de langue pour --fix
-pip install "sprezzature-accessibility"         # + la moitié rédactionnelle (modèle de vision local)
-pip install "sprezzature-accessibility"     # + les surfaces HTTP et agent
+pip install sprezzature-accessibility
 ```
 
-Que le lint lui-même tienne dans la **bibliothèque standard** est délibéré,
-et c'est la raison pour laquelle ce paquet vaut la peine d'être mis dans un
-crochet de pré-commit : il tourne en quelques millisecondes dans un conteneur
-minimal, sans navigateur ni modèle derrière lui. L'unique dépendance de base
-est click, achetée exprès pour la ligne de commande. Tout ce qui est plus lourd est un
-extra, nommé d'après ce qui en a besoin, pour qu'une installation dise à quoi
-elle sert.
+### Pour un crochet de pré-commit : trois paquets
 
+Le lint tient dans la **bibliothèque standard plus click**, et c'est la raison
+pour laquelle ce paquet vaut la peine d'être mis dans un crochet de
+pré-commit : il tourne en quelques millisecondes, sans navigateur ni modèle
+derrière lui. L'installation complète fait 57 paquets, dont l'essentiel est les
+surfaces HTTP et MCP, qui ne servent à rien dans un crochet. Donc un crochet
+installe le lint et rien d'autre :
+
+```bash
+pip install --no-deps sprezzature-accessibility
+pip install click
+```
+
+Trois paquets — pip, click, et celui-ci. Mesuré et non promis :
+`tests/test_the_lint_installs_in_three_packages.py` construit exactement ce
+venv à chaque poussée, compte par leur nom ce qui y a atterri, et lance la
+commande `sprezzature-accessibility-lint` livrée contre une page portant un
+défaut connu. Et `tests/test_the_lint_stays_out_of_the_extra.py` tient l'autre
+moitié de la promesse — que rien sur le chemin du lint n'**importe** les
+dépendances de rédaction, ce qui depuis le 2026-11-01 est la seule chose entre
+un crochet qui prend des millisecondes et un qui charge un client de modèle.
+
+Jusqu'à cette date la séparation se faisait par des extras, et il fallait
+savoir lequel demander avant que le paquet puisse faire son travail. C'est une
+seule installation maintenant, et le crochet reçoit une façon documentée et
+testée de ne prendre que ce qu'il exécute.
 ## Les règles
 
 | Règle | Sévérité | Description |

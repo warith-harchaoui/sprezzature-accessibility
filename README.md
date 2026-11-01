@@ -103,20 +103,38 @@ script should call, and what the examples above use.
 
 ## Install
 
+One line, and it is everything — the lint, the drafting half, the language
+detector, the HTTP surface and the MCP server:
+
 ```bash
-pip install sprezzature-accessibility                # the lint, and click for the command line
-pip install "sprezzature-accessibility"        # + language detection for --fix
-pip install "sprezzature-accessibility"         # + the drafting half (local vision model)
-pip install "sprezzature-accessibility"     # + the HTTP and agent surfaces
+pip install sprezzature-accessibility
 ```
 
-That the lint itself is **standard library only** is deliberate, and it is
-the reason this package is worth putting in a pre-commit hook: it runs in
-milliseconds in a minimal container, with no browser and no model behind it.
-The one base dependency is click, bought on purpose for the command line.
-Everything heavier is an extra, named after the thing that needs it, so an
-install says what it is for.
+### For a pre-commit hook: three packages
 
+The lint is **standard library plus click**, and that is the reason this
+package is worth putting in a pre-commit hook: it runs in milliseconds, with
+no browser and no model behind it. The full install is 57 packages, most of
+them the HTTP and MCP surfaces, which a hook has no use for. So a hook installs
+the lint and nothing else:
+
+```bash
+pip install --no-deps sprezzature-accessibility
+pip install click
+```
+
+Three packages — pip, click, and this one. Measured, not promised:
+`tests/test_the_lint_installs_in_three_packages.py` builds exactly that venv on
+every push, counts what landed in it by name, and runs the shipped
+`sprezzature-accessibility-lint` against a page with a known defect. And
+`tests/test_the_lint_stays_out_of_the_extra.py` keeps the other half of the
+promise — that nothing on the lint path *imports* the drafting dependencies,
+which since 2026-11-01 is the only thing standing between a hook that takes
+milliseconds and one that loads a model client.
+
+Until that date the split was done with extras, and a reader had to know which
+one to ask for before the package could do its job. It is one install now, and
+the hook gets a documented, tested way to take only what it runs.
 ## Rules
 
 | Rule | Severity | Description |
