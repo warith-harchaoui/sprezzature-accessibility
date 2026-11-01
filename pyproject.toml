@@ -44,7 +44,21 @@ dependencies = [
     # HTTP app and the MCP server are two of this package's five front doors,
     # and a door you have to install separately is a door people do not find.
     "best-engine-ai-helper>=0.4.0",
-    "wallet-helper>=1.3,<2",
+    # The floor is 1.3.2 and it is load-bearing, not housekeeping. Up to and
+    # including 1.3.1, `SqliteLedger.__init__` ran `PRAGMA journal_mode=WAL`,
+    # which needs exclusive access to the file; SQLite answers a journal-mode
+    # change with SQLITE_BUSY *without consulting the busy handler*, so the
+    # connection's thirty-second timeout did not cover that one statement.
+    # Three processes drafting the same image — the case the ledger exists for —
+    # left one dead on "database is locked", measured here at 3 failures in 15
+    # runs by `tests/test_two_drafts_of_one_image_cost_one_call.py`.
+    #
+    # 1.3.2 reads the mode before writing it. Until it was published this
+    # package carried its own retry in `scripts/alt_from_ollama.py`; raising
+    # the floor is what removed it, which was the condition that
+    # `tests/test_the_draft_cache_survives_its_own_cold_start.py` asserted and
+    # the reason that file is gone.
+    "wallet-helper>=1.3.2,<2",
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
     "langdetect>=1.0.9",
