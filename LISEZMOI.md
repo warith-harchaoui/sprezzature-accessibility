@@ -134,9 +134,15 @@ pip install --no-deps sprezzature-accessibility
 pip install click
 ```
 
-Trois paquets — pip, click, et celui-ci. Mesuré et non promis :
-`tests/test_the_lint_installs_in_three_packages.py` construit exactement ce
-venv à chaque poussée, compte par leur nom ce qui y a atterri, et lance la
+**Deux paquets au-dessus d'un venv neuf** — click, et celui-ci. Énoncé comme
+un delta et non comme un total, exprès : ce que `venv` sème est l'affaire de
+l'interpréteur et ça diffère (3.11 ajoute setuptools, 3.13 non). Le delta est
+ce que ce paquet peut promettre.
+
+Mesuré et non promis :
+`tests/test_the_hook_install_is_the_lint_and_nothing_else.py` construit
+exactement ce venv à chaque poussée, compte par leur nom ce qui y a atterri, et
+lance la
 commande `sprezzature-accessibility-lint` livrée contre une page portant un
 défaut connu. Et `tests/test_the_lint_stays_out_of_the_extra.py` tient l'autre
 moitié de la promesse — que rien sur le chemin du lint n'**importe** les

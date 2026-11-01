@@ -1,5 +1,5 @@
 """
-The pre-commit install, measured instead of promised.
+The pre-commit install is the lint and nothing else, measured.
 
 Why this exists
 ---------------
@@ -19,9 +19,12 @@ one -- a reader should not have to know a magic word before the package works.
 
 What a hook does instead
 ------------------------
-``pip install --no-deps`` plus click. Three packages, measured here rather than
-asserted: pip, click, and this one. The lint path imports nothing else, so
-there is nothing to miss -- and that is exactly the claim this test turns from
+``pip install --no-deps`` plus click. **Two packages on top of a fresh venv**,
+measured here rather than asserted -- a delta and not a total, because what
+``venv`` seeds is the interpreter's business: 3.10 to 3.11 add setuptools and
+3.13 does not, and the first version of this file encoded the one it was
+written on and went red on three CI runners. The lint path imports nothing
+else, so there is nothing to miss -- and that is exactly the claim this test turns from
 prose into a fact, by running the shipped console script against a page with a
 known defect and checking it is found.
 
@@ -53,9 +56,14 @@ import pytest
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-#: pip, click, and this package. Anything else and the hook is paying for
-#: something it does not run.
-EXPECTED_PACKAGES = 3
+#: What the hook install adds **on top of whatever a fresh venv already has**.
+#: Stated as a delta and not as a total, and that is not a stylistic choice:
+#: the first version asserted "three packages: pip, click and this one" and went
+#: red on CI's 3.10, 3.11 and 3.12 runners, which seed **setuptools** as well --
+#: `ensurepip` stopped doing that in 3.12, and this was written on a 3.13. The
+#: total measures the interpreter; the delta measures the package, which is the
+#: only half this repository can promise.
+HOOK_ADDS = {"click", "sprezzature-accessibility"}
 
 PAGE = """<!doctype html>
 <html lang="en"><head><title>t</title></head>
@@ -63,13 +71,35 @@ PAGE = """<!doctype html>
 """
 
 
+def _installed(python: Path) -> set[str]:
+    """Normalised distribution names in the environment behind *python*."""
+    done = subprocess.run(
+        [str(python), "-m", "pip", "list", "--format=freeze"],
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    assert done.returncode == 0, done.stderr[-400:]
+    return {
+        line.split("==")[0].lower().replace("_", "-")
+        for line in done.stdout.splitlines()
+        if line.strip()
+    }
+
+
 @pytest.fixture(scope="module")
-def hook_venv(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    """A venv holding the package with no dependencies, plus click."""
+def hook_venv(tmp_path_factory: pytest.TempPathFactory) -> tuple[Path, set[str]]:
+    """A venv holding the package with no dependencies, plus click.
+
+    Returns the venv and the set of distributions it held **before** anything
+    was installed, so the assertions can speak about the delta. What
+    ``venv.create`` seeds is the interpreter's business and varies by version.
+    """
     root = tmp_path_factory.mktemp("hook")
     env = root / "venv"
     venv.create(env, with_pip=True)
     python = env / ("Scripts" if sys.platform == "win32" else "bin") / "python"
+    seeded = _installed(python)
     for args in (["--no-deps", str(REPO_ROOT)], ["click>=8.1"]):
         done = subprocess.run(
             [str(python), "-m", "pip", "install", "-q", *args],
@@ -78,41 +108,33 @@ def hook_venv(tmp_path_factory: pytest.TempPathFactory) -> Path:
             timeout=600,
         )
         assert done.returncode == 0, f"pip install {args} failed:\n{done.stderr[-800:]}"
-    return env
+    return env, seeded
 
 
 def _bin(env: Path, name: str) -> Path:
     return env / ("Scripts" if sys.platform == "win32" else "bin") / name
 
 
-def test_the_hook_install_is_three_packages(hook_venv: Path) -> None:
-    """Three, named. A count alone would not say *which* three.
+def test_the_hook_install_adds_two_packages(hook_venv: tuple[Path, set[str]]) -> None:
+    """Two, named. A count alone would not say *which* two.
 
     The names matter more than the number: a run that happened to install
-    `requests` and drop `click` would also count three.
+    `requests` and drop `click` would also count two.
     """
-    done = subprocess.run(
-        [str(_bin(hook_venv, "python")), "-m", "pip", "list", "--format=freeze"],
-        capture_output=True,
-        text=True,
-        timeout=120,
+    env, seeded = hook_venv
+    added = _installed(_bin(env, "python")) - seeded
+    assert added == HOOK_ADDS, (
+        f"the hook install adds {sorted(added)} on top of a fresh venv, and it "
+        f"has to add exactly {sorted(HOOK_ADDS)}: anything else is weight a "
+        f"pre-commit hook pays for and never runs. If the lint genuinely needs "
+        f"a new dependency, say so here and in both READMEs -- the names in all "
+        f"three places are the promise."
     )
-    assert done.returncode == 0, done.stderr[-400:]
-    installed = {
-        line.split("==")[0].lower().replace("_", "-")
-        for line in done.stdout.splitlines()
-        if line.strip()
-    }
-    assert installed == {"pip", "click", "sprezzature-accessibility"}, (
-        f"the hook install is {sorted(installed)}. It has to be pip, click and "
-        f"this package: anything else is weight a pre-commit hook pays for and "
-        f"never runs. If the lint genuinely needs a new dependency, say so here "
-        f"and in the README -- the number in both is the promise."
-    )
-    assert len(installed) == EXPECTED_PACKAGES
 
 
-def test_the_lint_runs_and_finds_a_real_defect(hook_venv: Path, tmp_path: Path) -> None:
+def test_the_lint_runs_and_finds_a_real_defect(
+    hook_venv: tuple[Path, set[str]], tmp_path: Path
+) -> None:
     """Installed that way, the console script works on a real page.
 
     A page with exactly one defect, so the finding is unambiguous. Before this,
@@ -120,11 +142,12 @@ def test_the_lint_runs_and_finds_a_real_defect(hook_venv: Path, tmp_path: Path) 
     graph was clean, which is a different claim and would hold on a package
     that could not run at all.
     """
+    env, _ = hook_venv
     page = tmp_path / "page.html"
     page.write_text(PAGE, encoding="utf-8")
 
     done = subprocess.run(
-        [str(_bin(hook_venv, "sprezzature-accessibility-lint")), str(page)],
+        [str(_bin(env, "sprezzature-accessibility-lint")), str(page)],
         capture_output=True,
         text=True,
         timeout=180,
@@ -135,7 +158,7 @@ def test_the_lint_runs_and_finds_a_real_defect(hook_venv: Path, tmp_path: Path) 
     )
 
 
-def test_the_readme_documents_the_hook_install(hook_venv: Path) -> None:
+def test_the_readme_documents_the_hook_install(hook_venv: tuple[Path, set[str]]) -> None:
     """The install line has to be written down where a reader looks for it.
 
     Not decoration: the hook install is only discoverable if it is documented,

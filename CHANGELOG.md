@@ -64,8 +64,14 @@ pip install --no-deps sprezzature-accessibility
 pip install click
 ```
 
-**Three packages** — pip, click, and this one, and the lint runs.
-`tests/test_the_lint_installs_in_three_packages.py` builds exactly that venv,
+**Two packages on top of a fresh venv** — click, and this one — and the lint
+runs. A delta and not a total, and the first version of this file learned why
+the hard way: it asserted "three packages: pip, click and this one" and went
+red on CI's 3.10 and 3.11 runners, which seed **setuptools** as well.
+`ensurepip` stopped doing that in 3.12 and this was written on a 3.13, so the
+total was measuring the interpreter. Verified under 3.11 after the change:
+total of four, delta of exactly two.
+`tests/test_the_hook_install_is_the_lint_and_nothing_else.py` builds that venv,
 counts what landed **by name** (a count alone would pass on a run that
 installed `requests` and dropped `click`), and runs the shipped
 `sprezzature-accessibility-lint` against a page with one known defect — proving
