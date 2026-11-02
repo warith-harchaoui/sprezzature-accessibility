@@ -23,10 +23,9 @@ that holds wherever it happens to be.
 
 Offline on purpose
 ------------------
-The windows below are **recorded**, not fetched, and they record the newest
-release this manifest accepts rather than its floor — see :data:`MEASURED`,
-where reading floors instead produced a confident and false accusation
-against a sibling. A test that queries PyPI is a
+The windows below are **recorded**, not fetched, and they record which Pythons
+a dependency can actually be installed on — see :data:`MEASURED`, where two
+cheaper readings each produced a confident and false accusation. A test that queries PyPI is a
 test that fails on a runner with no network and passes for the wrong reason
 behind a proxy. Re-measure by hand when a floor moves — the command is in
 :data:`MEASURED`'s own comment — which is the same discipline
@@ -47,39 +46,34 @@ import pytest
 ROOT = Path(__file__).resolve().parent.parent
 MANIFEST = ROOT / "pyproject.toml"
 
-#: Every base dependency, and the ``requires-python`` of the **newest release
-#: this manifest's specifier admits** — not the floor's.
+#: Every base dependency, and the Python minors **at least one accepted
+#: release** can be installed on.
 #:
-#: The distinction is the whole correctness of this file, and the first
-#: version got it wrong. A floor is not a pin: ``>=3.8,<3.12`` on a floor
-#: release says nothing about whether the package can be installed on 3.12,
-#: because a resolver takes the newest release that fits, not the oldest.
-#: Reading floors flagged ``sprezzature-figures`` as promising two Pythons it
-#: could not deliver, and the claim was false — a later ``dowhy`` lifts the
-#: bound. Measuring the wrong thing produces a confident accusation, which is
-#: worse than measuring nothing.
+#: This is the only question that decides, and it took two wrong answers to
+#: get to. Reading the *floor's* window says nothing, because a resolver takes
+#: the newest release that fits — that reading accused ``sprezzature-figures``
+#: of promising two Pythons it could not deliver, and a later ``dowhy`` lifts
+#: the bound. Reading the *newest* window is wrong in the mirror: on 3.10 a
+#: resolver installs an old ``numpy``, not today's, so "the newest numpy wants
+#: 3.12" says nothing about whether 3.10 works. That reading flagged six
+#: bricks, all of them healthy.
 #:
-#: So the question recorded here is the one that decides: *is there any
-#: version this manifest accepts that installs on Python X?* Measured on
-#: 2026-11-02 against the simple index::
+#: So what is recorded is reachability: for each candidate minor, does *some*
+#: release this manifest accepts admit it. Measured against the simple index
+#: on 2026-11-02; re-measure when a floor or a dependency moves.
 #:
-#:     for each dep: releases matching the specifier, newest first,
-#:     keep the first whose requires-python admits X
-#:
-#: ``""`` means the release declares no bound, which admits everything.
-MEASURED: dict[str, str] = {
-    "click": "",
-    "best-engine-ai-helper": ">=3.10",
-    # Every published wallet-helper declares `<3.14`, and the only release
-    # this manifest's `>=1.3.2,<2` accepts is 1.3.2 itself. So there is no
-    # version of it that installs on 3.14 — which is why the ceiling below is
-    # inherited rather than chosen, and why the promise had to narrow.
-    "wallet-helper": "<3.14,>=3.10",
-    "fastapi": "",
-    "uvicorn": "",
-    "langdetect": "",
-    "fastapi-mcp": "",
-    "mcp": "",
+#: ``wallet-helper`` is the one that stops short, and it is why this package's
+#: own promise now ends at 3.14: every published release declares ``<3.14``,
+#: and ``>=1.3.2,<2`` admits exactly one of them.
+MEASURED: dict[str, tuple[str, ...]] = {
+    "click": ("3.10", "3.11", "3.12", "3.13", "3.14", "3.15"),
+    "best-engine-ai-helper": ("3.10", "3.11", "3.12", "3.13", "3.14", "3.15"),
+    "wallet-helper": ("3.10", "3.11", "3.12", "3.13"),
+    "fastapi": ("3.10", "3.11", "3.12", "3.13", "3.14", "3.15"),
+    "uvicorn": ("3.10", "3.11", "3.12", "3.13", "3.14", "3.15"),
+    "langdetect": ("3.10", "3.11", "3.12", "3.13", "3.14", "3.15"),
+    "fastapi-mcp": ("3.10", "3.11", "3.12", "3.13", "3.14", "3.15"),
+    "mcp": ("3.10", "3.11", "3.12", "3.13", "3.14", "3.15"),
 }
 
 #: The minor versions to check the promise against. 3.14 is the one that
@@ -154,9 +148,9 @@ def test_the_promise_is_not_wider_than_the_graph(version: str) -> None:
     if not _admits(promise, version):
         return                      # not claimed, so nothing to keep
     broken = sorted(
-        f"{name} ({window})"
-        for name, window in MEASURED.items()
-        if name in _names() and not _admits(window, version)
+        f"{name} (reaches {', '.join(reach) or 'nothing'})"
+        for name, reach in MEASURED.items()
+        if name in _names() and version not in reach
     )
     assert not broken, (
         f"requires-python = {promise!r} claims Python {version}, and these "
@@ -171,6 +165,9 @@ def test_the_check_would_notice_an_overreaching_promise() -> None:
     was written for — ``>=3.10`` with `wallet-helper` capped at ``<3.14``."""
     assert _admits(">=3.10", "3.14"), "the specifier reader is wrong"
     assert not _admits("<3.14,>=3.10", "3.14"), "the specifier reader is wrong"
+    assert "3.14" not in MEASURED["wallet-helper"], (
+        "wallet-helper is recorded as reaching 3.14; re-measure before trusting this"
+    )
     assert _admits(_promise(), "3.13")
     assert not _admits(_promise(), "3.14"), (
         "this manifest still claims 3.14 while wallet-helper excludes it"
