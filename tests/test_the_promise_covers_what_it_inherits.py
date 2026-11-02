@@ -43,7 +43,6 @@ import re
 from pathlib import Path
 
 import pytest
-import tomllib
 
 ROOT = Path(__file__).resolve().parent.parent
 MANIFEST = ROOT / "pyproject.toml"
@@ -89,12 +88,33 @@ MEASURED: dict[str, str] = {
 CANDIDATES: tuple[str, ...] = ("3.10", "3.11", "3.12", "3.13", "3.14", "3.15")
 
 
-def _project() -> dict:
-    return tomllib.loads(MANIFEST.read_text(encoding="utf-8"))["project"]
+#: Deliberately regex, not ``tomllib``.
+#:
+#: ``tomllib`` landed in 3.11 and this package's floor is **3.10**, so an
+#: import of it fails at *collection* on the oldest interpreter in the matrix
+#: — which is what happened: green on this machine's 3.13, red on the
+#: runner's 3.10, with a ``ModuleNotFoundError`` that names no test. The two
+#: shapes read here are a quoted scalar and a flat array of strings, neither
+#: of which needs a parser.
+_REQUIRES_PYTHON = re.compile(r'^requires-python\s*=\s*"([^"]+)"', re.M)
+_DEPENDENCIES = re.compile(r"^dependencies\s*=\s*\[(.*?)^\]", re.S | re.M)
+
+
+def _promise() -> str:
+    found = _REQUIRES_PYTHON.search(MANIFEST.read_text(encoding="utf-8"))
+    assert found, "pyproject.toml declares no requires-python"
+    return found.group(1)
 
 
 def _names() -> list[str]:
-    return [re.split(r"[<>=~\[; !]", d)[0].strip() for d in _project()["dependencies"]]
+    block = _DEPENDENCIES.search(MANIFEST.read_text(encoding="utf-8"))
+    assert block, "pyproject.toml has no [project] dependencies array"
+    # Comments inside the array quote specifiers too, so they go first.
+    body = re.sub(r"#[^\n]*", "", block.group(1))
+    return [
+        re.split(r"[<>=~\[; !]", m.group(1))[0].strip()
+        for m in re.finditer(r'"([^"]+)"', body)
+    ]
 
 
 def _admits(specifier: str, version: str) -> bool:
@@ -130,7 +150,7 @@ def test_every_base_dependency_has_a_measured_window() -> None:
 @pytest.mark.parametrize("version", CANDIDATES)
 def test_the_promise_is_not_wider_than_the_graph(version: str) -> None:
     """For every Python this package claims, every dependency must allow it."""
-    promise = _project()["requires-python"]
+    promise = _promise()
     if not _admits(promise, version):
         return                      # not claimed, so nothing to keep
     broken = sorted(
@@ -151,7 +171,7 @@ def test_the_check_would_notice_an_overreaching_promise() -> None:
     was written for — ``>=3.10`` with `wallet-helper` capped at ``<3.14``."""
     assert _admits(">=3.10", "3.14"), "the specifier reader is wrong"
     assert not _admits("<3.14,>=3.10", "3.14"), "the specifier reader is wrong"
-    assert _admits(_project()["requires-python"], "3.13")
-    assert not _admits(_project()["requires-python"], "3.14"), (
+    assert _admits(_promise(), "3.13")
+    assert not _admits(_promise(), "3.14"), (
         "this manifest still claims 3.14 while wallet-helper excludes it"
     )
