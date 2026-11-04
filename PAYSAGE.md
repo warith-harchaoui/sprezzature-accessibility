@@ -42,8 +42,9 @@ les sous-titres sont lisibles.
 ## Quand la choisir
 
 - **Un crochet de pré-commit sur un dépôt de gabarits HTML.** Le lint
-  n'utilise que la bibliothèque standard et lit une page typique de 16 Kio en
-  2,3 ms sur un portable Apple série M. Rien à démarrer, pas de Chromium à
+  n'importe que la bibliothèque standard, s'installe en deux paquets
+  (`pip install --no-deps sprezzature-accessibility`, puis `click`) et lit une
+  page en quelques millisecondes. Rien à démarrer, pas de Chromium à
   télécharger, pas d'image de conteneur à faire grossir.
 - **Une porte d'intégration continue (CI) dans une image Python minimale.**
   Code de sortie 1 dès qu'il y a un signalement, 0 si c'est propre, JSON pour

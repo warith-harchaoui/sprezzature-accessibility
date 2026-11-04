@@ -40,7 +40,8 @@ services:
 
   ollama:
     image: ollama/ollama:latest
-    # Only started with `--profile alt`, because one tool of six needs it.
+    # Only started with `--profile alt`: of the four tools, only the alt-text
+    # drafter (`alt`, and `lint --fix-alt`) needs a model.
     profiles: ["alt"]
     ports:
       - "11434:11434"

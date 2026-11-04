@@ -1226,9 +1226,10 @@ def main() -> int:
     p.add_argument(
         "--alt-lang", dest="alt_lang", default=None, metavar="TAG",
         help=(
-            "BCP-47 base tag for drafted alt text. Detected from the "
-            "document's own text when omitted — a French page should not get "
-            "English alt because the machine's locale is English."
+            "BCP-47 base tag for drafted alt text. When omitted: the page's "
+            "<html lang>, then detection on the page text, then the "
+            "environment locale. A French page should not get English alt "
+            "because the machine's locale is English."
         ),
     )
     p.add_argument(

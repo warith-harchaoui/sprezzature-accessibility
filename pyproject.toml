@@ -82,10 +82,10 @@ dependencies = [
 dev = ["pytest>=8.0", "ruff"]
 
 [project.scripts]
-# The two front doors, over the same four tools and the same table
-# (sprezzature_accessibility/cli.py). argparse because it is in the standard
-# library and therefore always there; click because its sub-commands carry the
-# shape without hand-rolling it.
+# One front door with two spellings, `make-a11y` and
+# `sprezzature-accessibility`, over the four tools in one table
+# (sprezzature_accessibility/_tools.py). It is click, the only parser of the
+# front door since the argparse twin was removed on 2026-10-25.
 #
 # `sprezzature-accessibility` is also the command the suite's SKILL.md has
 # been naming since the monorepo split. Until 1.2.0 nothing installed it, so
@@ -96,8 +96,8 @@ sprezzature-accessibility = "sprezzature_accessibility.cli:main"
 sprezzature-accessibility-mcp = "sprezzature_accessibility.mcp:main"
 sprezzature-accessibility-lint = "sprezzature_accessibility_scripts.lint_a11y:main"
 sprezzature-accessibility-text-spacing = "sprezzature_accessibility_scripts.text_spacing_preset:main"
-# The drafting half, behind the [alt] extra. Two parsers over one engine, in
-# the house spelling: `make-X` is argparse, `sprezzature-X` the click twin.
+# The drafting half, in the base install since 2026-11-01. `make-alt` and
+# `sprezzature-accessibility-alt` are two spellings of one click command.
 make-alt = "sprezzature_accessibility.alt_cli:main"
 sprezzature-accessibility-alt = "sprezzature_accessibility.alt_cli:main"
 sprezzature-accessibility-install-alt = "sprezzature_accessibility_scripts.install_alt_ai:main"

@@ -47,6 +47,47 @@ _SRC_RE = re.compile(r"""\bsrc\s*=\s*["']([^"']+)["']""")
 #: Where to splice the new attribute: right after ``<img``.
 _IMG_OPEN_RE = re.compile(r"<img\b", re.IGNORECASE)
 
+#: ``lang="…"`` on the ``<html>`` opening tag, base subtag only (``fr-CA`` → ``fr``).
+_HTML_LANG_RE = re.compile(
+    r"""<html\b[^>]*?\blang\s*=\s*["']?([A-Za-z]{2,3})""", re.IGNORECASE
+)
+
+
+def document_language(raw: str) -> str:
+    """The language a page's drafts should be written in.
+
+    Resolution order, most explicit first:
+
+    1. the page's own ``<html lang>``, which is what its author declared and
+       what a screen reader will pronounce the alt text in;
+    2. detection on the page's visible text, the same
+       :func:`_lang.detect_text_language` the single-image command runs on the
+       text around its image;
+    3. the environment locale (:func:`alt_from_ollama.detect_lang`), when the
+       page has neither a declaration nor enough text to detect from.
+
+    Until this existed, step 3 was the only step: a French page drafted on a
+    machine with an English locale was given English alt text, while
+    ``--alt-lang``'s help promised detection from the document.
+
+    Parameters
+    ----------
+    raw : str
+        The full HTML source.
+
+    Returns
+    -------
+    str
+        Lower-case base language tag (``en``, ``fr``, …).
+    """
+    from _lang import detect_text_language, extract_body_text
+    from alt_from_ollama import detect_lang
+
+    declared = _HTML_LANG_RE.search(raw)
+    if declared:
+        return declared.group(1).lower()
+    return detect_text_language(extract_body_text(raw, "html"), fallback=detect_lang())
+
 
 @dataclass
 class Draft:
@@ -101,9 +142,10 @@ def fill_missing_alt(
     ignored : set of str or None, optional
         Rule ids to suppress, passed through to the lint.
     lang : str or None, optional
-        BCP-47 base tag for the drafts. Detected from the document's own text
-        when ``None`` — a French page should not be given English alt text
-        because the machine's locale happens to be English.
+        BCP-47 base tag for the drafts. When ``None``, resolved by
+        :func:`document_language`: the page's ``<html lang>``, then detection
+        on its text, then the environment locale. A French page should not be
+        given English alt text because the machine's locale is English.
     kind : str, optional
         W3C image purpose assumed for every image in this pass. ``informative``
         is the honest default: it is the purpose that calls for a description,
@@ -124,7 +166,7 @@ def fill_missing_alt(
     # message can name the extra instead of a traceback.
     try:
         from _vocab import resolve_vocab_terms, surrounding_text
-        from alt_from_ollama import describe, detect_lang
+        from alt_from_ollama import describe
     except ImportError as exc:  # pragma: no cover - dependency guard
         raise ImportError(
             "--fix-alt needs the drafting half of this package. Install it "
@@ -139,6 +181,7 @@ def fill_missing_alt(
 
     raw = path.read_text(encoding="utf-8", errors="ignore")
     lines = raw.splitlines()
+    language = lang or document_language(raw)
     drafts: list[Draft] = []
     unreachable: list[Finding] = []
 
@@ -161,7 +204,6 @@ def fill_missing_alt(
         # document, plus the proper nouns the document uses.
         context = surrounding_text(path, image)
         vocabulary = resolve_vocab_terms(image, in_doc=path)
-        language = lang or detect_lang()
 
         alt = describe(
             str(image),

@@ -39,10 +39,10 @@ the captions are readable.
 
 ## When to choose it
 
-- **A pre-commit hook on a repository of HTML templates.** The lint is standard
-  library only and reads a typical 16 KiB page in 2.3 ms on an Apple M-series
-  laptop. Nothing to spin up, no Chromium to download, no container image to
-  grow.
+- **A pre-commit hook on a repository of HTML templates.** The lint imports only
+  the standard library, installs as two packages (`pip install --no-deps
+  sprezzature-accessibility`, then `click`), and reads a page in milliseconds.
+  Nothing to spin up, no Chromium to download, no container image to grow.
 - **A continuous integration (CI) gate in a minimal Python image.** Exit code 1
   on any finding, 0 on clean, JSON for whatever has to parse the result. No Node
   toolchain is required, which matters in a repository that does not otherwise

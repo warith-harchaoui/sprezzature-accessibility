@@ -1,179 +1,210 @@
-# AI-assisted Alt Text
+# AI-assisted alt text
 
-The skill emits `<img>` tags with meaningful `alt`, following the W3C / WAI decision tree (<https://www.w3.org/WAI/tutorials/images/decision-tree/>). When the author hasn't supplied `alt`, the skill drafts it with a **local vision model running on Ollama**: nothing leaves the machine.
+The drafting half of this package writes `alt` text for an image, following the
+W3C / WAI (Web Accessibility Initiative) image decision tree
+(<https://www.w3.org/WAI/tutorials/images/decision-tree/>). It uses a **local
+vision model served by Ollama**: nothing leaves the machine.
 
-- **Model (default):** `qwen3-vl:8b`
-- **Override anywhere:** `OLLAMA_MODEL=<tag>` (for example `qwen3-vl:8b`).
+- **Model:** `qwen3-vl:8b`, the one model this package uses. The call goes through
+  `best_engine_ai_helper.llm.chat`, which reads the `SPREZZATURE_LLM_*` environment
+  variables (backend `ollama` by default).
+- **Endpoint:** `http://localhost:11434`, overridden by `OLLAMA_URL`.
+- `OLLAMA_MODEL` exists as an escape hatch for tests. It is not a supported way to
+  choose another model.
 
-Runtime: **Python 3.9+** (cross-platform, one helper per task).
+Runtime: Python 3.10 to 3.13, the same range as the package.
 
 ## W3C decision tree
 
-Every image has a *purpose* in the page. Match the purpose to the right alt strategy before invoking the AI helper.
+Every image has a *purpose* in the page. Match the purpose to the right alt
+strategy before drafting anything. The six purposes are the values of `--kind`
+(and of `KINDS`, and of `GET /v1/kinds`).
 
 | Purpose | Alt strategy |
 |---|---|
-| **Decorative** (no information) | `alt=""`: empty alt only. No `role="presentation"` or `aria-hidden` needed. Don't call the AI. |
-| **Informative** (conveys meaning) | Short alt describing the meaning in page context. Call `alt_from_ollama.py` with `--kind informative` (default). |
-| **Functional** (inside `<a>` / `<button>`) | Alt describes the *action or destination*, not the image. Call with `--kind functional --context "<what the control does>"`. |
-| **Text image** (mostly text) | Alt = the readable text verbatim. Call with `--kind text`. |
-| **Complex** (chart, diagram, infographic) | Short alt + long description elsewhere (`<figcaption>` or `aria-describedby`). Call with `--kind complex`; pair with a separate long description. |
-| **Group** of related images | One alt describes the whole; the rest get `alt=""`. Call with `--kind group`. |
+| **decorative** (no information) | `alt=""`: empty alt only. No `role="presentation"` or `aria-hidden` needed. No model call. |
+| **informative** (conveys meaning) | Short alt describing the meaning in page context. `--kind informative`, the default. |
+| **functional** (inside `<a>` / `<button>`) | Alt describes the *action or destination*, not the image. `--kind functional --context "<what the control does>"`. |
+| **text** (mostly text) | Alt is the readable text, verbatim. `--kind text`. |
+| **complex** (chart, diagram, infographic) | Short alt plus a long description elsewhere (`<figcaption>` or `aria-describedby`). `--kind complex`, with `--longdesc` for the long description. |
+| **group** of related images | One alt describes the whole; the rest get `alt=""`. `--kind group`. |
 
-`alt=""` is the empty-alt signal. **Never omit the `alt` attribute**: that makes screen readers read the filename.
+`alt=""` is the empty-alt signal. **Never omit the `alt` attribute**: a screen
+reader then reads the file name.
 
-## Install Ollama + pull the model
+## Install Ollama and pull the model
 
-One command on every platform (the installer is in Python):
+The Python dependencies come with `pip install sprezzature-accessibility`. Ollama
+and the model weights do not, so one command installs them:
 
 ```bash
-pip install -r scripts/requirements-alt-text.txt
-python scripts/install_alt_ai.py
+sprezzature-accessibility-install-alt
 ```
 
-The installer:
+It:
 
-- Detects the OS and uses the right package manager:
-  - Darwin (any chip): Homebrew (`brew install ollama`: [brew.sh](https://brew.sh)).
-  - Linux: the official Ollama installer script.
-  - Windows: `winget install Ollama.Ollama`.
-- Starts the Ollama daemon if it isn't already running.
-- Pulls the default model tag (`qwen3-vl:8b`).
+- installs Ollama if it is missing, with the package manager the host has:
+  Homebrew (`brew install ollama`) on macOS, and on Linux when Homebrew is present;
+  the official installer script on other Linux hosts; `winget install
+  Ollama.Ollama` on Windows;
+- starts the Ollama daemon if it is not already running;
+- pulls `qwen3-vl:8b`.
+
+Re-running it is harmless: it does nothing when Ollama and the model are present.
+With Docker, `docker compose --profile alt up -d` starts an Ollama container beside
+the API instead.
 
 ## Generate alt text
 
 ```bash
 # informative (default)
-python scripts/alt_from_ollama.py ./public/hero.jpg
+sprezzature-accessibility-alt ./public/hero.jpg
 
 # language
-python scripts/alt_from_ollama.py --lang fr ./public/hero.jpg
+sprezzature-accessibility-alt --lang fr ./public/hero.jpg
 
-# functional — describe the destination/action, not the visual
-python scripts/alt_from_ollama.py --kind functional --context "Submit signup form" ./public/icons/check.png
+# functional: describe the destination or action, not the visual
+sprezzature-accessibility-alt --kind functional --context "Submit signup form" ./public/icons/check.png
 
-# text-in-image — return the readable text verbatim
-python scripts/alt_from_ollama.py --kind text ./public/quote-card.png
+# text in an image: return the readable text verbatim
+sprezzature-accessibility-alt --kind text ./public/quote-card.png
 
-# complex (chart) — returns a SHORT summary; pair with a long description
-python scripts/alt_from_ollama.py --kind complex --context "Weekly active users" ./public/chart.png
+# complex (chart): returns a SHORT summary; pair it with a long description
+sprezzature-accessibility-alt --kind complex --context "Weekly active users" ./public/chart.png
 
-# complex AND long description — writes the Markdown long desc to chart.png.longdesc.md
-python scripts/alt_from_ollama.py --kind complex --longdesc --context "Weekly active users" ./public/chart.png
+# complex AND long description: writes the Markdown long description to chart.png.longdesc.md
+sprezzature-accessibility-alt --kind complex --longdesc --context "Weekly active users" ./public/chart.png
 
-# Use the surrounding text of a Markdown / HTML document as BOTH context
-# and vocabulary. Highest-signal source for an embedded image.
-python scripts/alt_from_ollama.py --in blog/post.md ./blog/figures/hero.png
+# Use the text around the image in a Markdown or HTML document as BOTH context
+# and vocabulary. The highest-signal source for an embedded image.
+sprezzature-accessibility-alt --in blog/post.md ./blog/figures/hero.png
 
-# Walk the project root for proper-noun vocabulary
-python scripts/alt_from_ollama.py --auto-project ./figures/diagram.png
+# Walk up to the project root and mine it for proper-noun vocabulary
+sprezzature-accessibility-alt --auto-project ./figures/diagram.png
 
-# decorative — no API call needed; the script returns empty
-python scripts/alt_from_ollama.py --kind decorative ./public/divider.svg
+# decorative: no model call; the command prints nothing
+sprezzature-accessibility-alt --kind decorative ./public/divider.svg
 ```
 
-Output: one line of alt text on stdout, hard-capped at 150 characters at a word boundary, **never** with a trailing `…`. Empty stdout for decorative.
+`make-alt` and `sprezzature-accessibility alt` are the same command.
 
-Python API:
+Output: one line of alt text on stdout, capped at 150 characters (`MAX_CHARS`) at a
+word boundary, **never** with a trailing `…`. Empty stdout for decorative. Exit code
+0 on success, 2 when the model cannot be reached.
+
+Language: `--lang` wins. Without it, the language is detected from the context
+text (`--context`, the `--in` document, the vocabulary); with no text at all, it
+falls back to the environment locale (`ALT_LANG`, then `LC_ALL`, then `LANG`).
+
+`--resize N` downscales the longest edge to N pixels (1024 by default, 0 disables)
+when Pillow is installed. Pillow is not a dependency; without it, the original
+image is sent.
+
+### A whole page at once
+
+```bash
+sprezzature-accessibility-lint --fix-alt public/
+sprezzature-accessibility-lint --fix-alt --dry-run public/index.html
+```
+
+`--fix-alt` drafts every `<img>` the lint reports as `img-missing-alt`, as an
+informative image, and splices the `alt` into the file. The context is the 400
+characters on each side of each reference to that image in the same document, and
+the vocabulary is mined from that document. Without `--alt-lang`, the language is the
+page's `<html lang>`, else the one detected in the page text, else the environment
+locale. Remote images, images
+missing from disk, and tags the line-based splice cannot reach are left alone and
+reported on stderr.
+
+### Python API
 
 ```python
-from alt_from_ollama import describe
+from sprezzature_accessibility import describe, describe_long
+
 alt = describe("public/hero.jpg", kind="informative", lang="fr", context="Careers page hero")
+long_text = describe_long("public/chart.png", kind="complex", context="Weekly active users")
 ```
 
-## Use from the skill (server-side proxy)
+`describe` also takes `resize`, `model` and `vocabulary`. `describe_long` takes the
+same arguments except `vocabulary`.
 
-Browser callers go through a small Python proxy: Ollama doesn't speak CORS to web pages.
+### HTTP
 
-```python
-# pip install fastapi uvicorn requests Pillow
-from fastapi import FastAPI
-from pydantic import BaseModel
-from pathlib import Path
-import sys
-
-sys.path.insert(0, str(Path(__file__).parent / "sprezzature" / "scripts"))
-from alt_from_ollama import describe
-
-app = FastAPI()
-
-class Req(BaseModel):
-    src: str
-    kind: str = "informative"
-    lang: str | None = None
-    context: str = ""
-
-@app.post("/alt")
-def alt(req: Req) -> dict:
-    text = describe(req.src, kind=req.kind, lang=req.lang, context=req.context)
-    return {"alt": text, "decorative": req.kind == "decorative"}
-```
-
-Front-end:
-
-```js
-async function altFor(src, opts = {}) {
-  const r = await fetch("/alt", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ src, ...opts }),
-  });
-  return r.json();
-}
-```
+`POST /v1/alt` (MCP tool `draft_alt_text`) takes `src`, `kind`, `lang`, `context`,
+`resize`, `model`, `vocabulary` and `long`, and returns `alt`, `long`, `lang`,
+`kind` and `draft` (always true). It answers 502 when the model cannot be reached
+and 404 when the image does not exist. A browser page cannot call Ollama directly
+(Ollama does not answer CORS requests from web pages), so this route is the proxy
+to put in front of it.
 
 ## Rules the prompt enforces
 
-1. **Image purpose decides the prompt** (per W3C). No generic one-size prompt.
-2. **Hard cap 150 characters**: no `…` truncation; the script regenerates or cuts at a word boundary.
-3. **Match meaning, not pixels.** A photo of a smiling teacher in a classroom is "Teacher leading a class", not "An adult standing in front of children with a chalkboard behind".
-4. **No banned prefixes**: "image of", "photo of", "picture of", "illustration of", and their equivalents in 9 other languages. The script strips them if the model ignores the instruction.
-5. **Be specific where relevant to meaning.** For news photos, name visible people, setting, action; don't sanitize to "a person".
-6. **Functional alt describes the action**, not the visual. A magnifying-glass icon in a search button → `alt="Search"`, not `alt="Magnifying glass"`.
+1. **Image purpose decides the prompt** (per W3C). There is no generic prompt.
+2. **Hard cap at 150 characters**: no `…` truncation; the text is cut at a word
+   boundary.
+3. **Match meaning, not pixels.** A photo of a smiling teacher in a classroom is
+   "Teacher leading a class", not "An adult standing in front of children with a
+   chalkboard behind".
+4. **No banned prefixes**: "image of", "photo of", "picture of", "illustration of",
+   and their equivalents in 9 other languages. They are stripped if the model
+   ignores the instruction.
+5. **Be specific where relevant to meaning.** For news photos, name visible people,
+   setting, action; do not sanitise to "a person".
+6. **Functional alt describes the action**, not the visual. A magnifying-glass icon
+   in a search button gets `alt="Search"`, not `alt="Magnifying glass"`.
 7. **Text-as-image is extracted verbatim.**
-8. **Complex returns short alt only**; the long description belongs in `<figcaption>` or `aria-describedby`.
+8. **Complex returns a short alt only**; the long description belongs in
+   `<figcaption>` or `aria-describedby`.
 
 ## Review workflow
 
-AI-generated alt is a draft, not a final answer. Tag every AI-drafted attribute so a review tool can flag it:
+AI-generated alt is a draft, not a final answer. Neither `--fix-alt` nor the
+command line marks what it wrote, so tag each drafted attribute yourself if a
+review tool is to find it:
 
 ```html
 <img src="…" alt="Teacher leading a class" data-alt-source="ai">
 ```
 
-Strip `data-alt-source="ai"` once a human has reviewed and approved.
+Strip `data-alt-source="ai"` once a person has reviewed and approved it.
 
 ## Cache
 
-Both `alt_from_ollama.py` and `meta_from_ollama.py` cache results on disk so the same input never hits the model twice. Stdlib-only, no extra dependency.
+Drafts are cached on disk so the same input never reaches the model twice.
 
-- **Location:** `~/.cache/sprezzature-skill/alt/` (override with `SPREZZATURE_CACHE_DIR=<path>`).
-- **Key:** SHA-256 of (image bytes + `kind` + `lang` + `context` + `model`). Truncated to 32 hex chars for filenames.
-- **Bypass once:** `--no-cache` on the CLI.
-- **Bypass globally:** `SPREZZATURE_NO_CACHE=1` in the environment.
+- **Store:** a `wallet-helper` SQLite ledger, `ledger.db`, under
+  `~/.cache/sprezzature-skill/alt/` (override the parent directory with
+  `SPREZZATURE_CACHE_DIR=<path>`). The Docker compose file points it at a named
+  volume.
+- **Key:** SHA-256 of the image bytes actually sent (after resizing), `kind`, `lang`,
+  `context` and the model tag, truncated to 32 hex characters.
+- **Single flight:** two processes drafting the same image at the same time share
+  one model call; the second waits for the first.
+- **Bypass once:** `--no-cache`.
+- **Bypass globally:** `SPREZZATURE_NO_CACHE=1`.
 - **Clear:** delete the directory.
-
-Cache writes fail silently (`try/except OSError`): caching is opportunistic and never fatal.
 
 ## Failure modes
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
-| `Cannot reach Ollama at http://localhost:11434` | Daemon not running | `python scripts/install_alt_ai.py` (idempotent) or `ollama serve`. |
-| `Error: model not found` | Tag mistyped or installer skipped | Re-run installer, or `ollama pull qwen3-vl:8b` directly. |
-| Garbled or hallucinated text | Image very small / very large | The script downscales to 1024 px by default; raise quality of source or set `--resize 768`. |
-| Very slow first call | First inference loads weights | Subsequent calls are fast; keep the daemon up. |
+| Model unreachable, exit code 2 (502 over HTTP) | Daemon not running | `sprezzature-accessibility-install-alt` (harmless to re-run) or `ollama serve`. |
+| `Error: model not found` | Model never pulled | Re-run the installer, or `ollama pull qwen3-vl:8b`. |
+| Garbled or hallucinated text | Very small or very large image | With Pillow installed the image is downscaled to 1024 px by default; improve the source or try `--resize 768`. |
+| Very slow first call | First inference loads the weights | Later calls are faster; keep the daemon up. |
 
-## Related script: meta tags
+## Related: meta tags
 
-The same Ollama setup powers `python sprezzature-publish/scripts/meta_from_ollama.py`, which drafts the page-level `<title>`, `<meta name="description">`, Open Graph, Twitter, and JSON-LD `@type` from a goal description or an HTML page. See `references/meta-tags.md`.
+`sprezzature-publish` drafts page-level `<title>`, `<meta name="description">`,
+Open Graph and JSON-LD tags with the same local-model setup. That is a separate
+package.
 
 ## Checklist
 
-- [ ] `python scripts/install_alt_ai.py` ran and the model is in `ollama list`.
-- [ ] `python scripts/alt_from_ollama.py <test image>` returns a non-empty string.
+- [ ] `sprezzature-accessibility-install-alt` ran and the model is in `ollama list`.
+- [ ] `sprezzature-accessibility-alt <test image>` returns a non-empty string.
 - [ ] Decorative images use `alt=""` alone (no `role="presentation"`, no `aria-hidden`).
-- [ ] Every AI-drafted `alt` carries `data-alt-source="ai"` until a human reviews it.
+- [ ] Every AI-drafted `alt` is reviewed by a person before it is committed.
 - [ ] Complex images pair a short alt with a long description in `<figcaption>` / `aria-describedby`.
-- [ ] Functional `alt` describes the action/destination, not the icon.
+- [ ] Functional `alt` describes the action or destination, not the icon.
 - [ ] No `alt` ever ends in `…`.

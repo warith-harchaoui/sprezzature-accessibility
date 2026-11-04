@@ -11,11 +11,12 @@ missing alt text, unlabelled inputs, empty buttons, onclick divs,
 missing dialog close, lang attribute, heading order, color-only state,
 motion-reduce guards, and five checks on time-based media (captions,
 track language, media controls). Six of the twenty also ship a
-mechanical fixer. Stdlib only (Python 3.10+). Pairs with axe-core /
+mechanical fixer. The lint imports the standard library only (plus
+langdetect when it is installed). Pairs with axe-core /
 Pa11y, which check the page after a browser has rendered it (the
 "runtime DOM"), for the failures that only show up there.
 
-The make half, behind the ``[alt]`` extra: draft W3C-conformant alt text
+The make half, in the base install since 2026-11-01: draft W3C-conformant alt text
 for an image with a local vision model, following the WAI image-purpose
 decision tree. It arrived when ``sprezzature-vision`` was folded in here
 — auditing a page for missing alt text and writing the alt text are two
@@ -49,11 +50,11 @@ KINDS: tuple[str, ...] = (
     "group",
 )
 
-#: Names served lazily from the drafting half. They live behind the ``[alt]``
-#: extra, and importing them eagerly would drag click and an LLM helper into
-#: ``import sprezzature_accessibility`` — breaking the promise that makes the
-#: lint worth reaching for: zero dependencies, milliseconds, no browser, runs
-#: in any pre-commit hook.
+#: Names served lazily from the drafting half. They are in the base install,
+#: but importing them eagerly would put the model client on the import path of
+#: ``import sprezzature_accessibility``, and the lint's case is that it loads
+#: nothing beyond the standard library: milliseconds, no browser, any
+#: pre-commit hook, including the ``--no-deps`` install the README documents.
 _ALT_EXPORTS = {
     "DEFAULT_BASE", "MAX_CHARS", "describe", "describe_long", "detect_lang",
     "compose_vocabulary_hint", "load_image_bytes", "long_prompt_for",

@@ -229,13 +229,30 @@ KIND_HELP: dict[str, str] = {
 }
 
 
+def _engine_constants() -> tuple[str, int]:
+    """``DEFAULT_BASE`` and ``MAX_CHARS`` read from the engine's source.
+
+    Used only when the engine cannot be imported, so the schema still states
+    the engine's real limit instead of a copy that drifts: the copy here said
+    125 while the engine cut at 150. Read as literals with :mod:`ast`, which
+    runs none of the engine's imports.
+    """
+    import ast
+
+    source = (_SCRIPTS / "alt_from_ollama.py").read_text(encoding="utf-8")
+    found: dict[str, object] = {}
+    for node in ast.parse(source).body:
+        if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            if node.target.id in {"DEFAULT_BASE", "MAX_CHARS"} and node.value is not None:
+                found[node.target.id] = ast.literal_eval(node.value)
+    return str(found["DEFAULT_BASE"]), int(found["MAX_CHARS"])  # type: ignore[call-overload]
+
+
 # ── The drafting half ────────────────────────────────────────────────────
 #
-# Served only when the ``[alt]`` extra is installed. The audit routes above
-# have no dependencies beyond FastAPI itself; these need a model client, and
-# a deployment that only wants the lint should not be forced to carry one.
-# A missing extra is reported per-request as a 503 rather than at import, so
-# `GET /health` and the lint keep answering.
+# Its dependencies are in the base install since 2026-11-01. If they still fail
+# to import (a broken install), the failure is reported per request as a 503
+# rather than at import, so `GET /health` and the lint keep answering.
 try:
     from sprezzature_accessibility import (
         DEFAULT_BASE,
@@ -248,7 +265,7 @@ try:
     _ALT_READY = True
 except ImportError:  # pragma: no cover - dependency guard
     _ALT_READY = False
-    DEFAULT_BASE, MAX_CHARS = "qwen3-vl:8b", 125
+    DEFAULT_BASE, MAX_CHARS = _engine_constants()
     from sprezzature_accessibility import KINDS
 
 

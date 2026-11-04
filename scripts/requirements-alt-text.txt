@@ -1,18 +1,17 @@
-# Requirements for alt_from_ollama.py
+# Requirements for alt_from_ollama.py. The floors follow pyproject.toml,
+# which is what `pip install sprezzature-accessibility` installs.
 #
 # Install:
 #   pip install -r scripts/requirements-alt-text.txt
 #
 # Used for:
-#   - click                : CLI parser; replaces argparse here so the
-#                            user-facing --help is consistent with the rest
-#                            of the Click-backed sprezzature scripts.
+#   - click                : the command-line parser.
 #   - langdetect           : detect language from --in DOC / --context text
 #                            so the output language matches the page without
 #                            relying on shell locale.
-#   - Pillow               : optional — downscale large images before
-#                            sending to the model. The script remains
-#                            functional without it.
+#   - Pillow               : optional, and not a dependency in pyproject.toml:
+#                            downscales large images before sending them to
+#                            the model. The script works without it.
 #   - best-engine-ai-helper: routes the actual LLM/VLM call (Ollama by
 #                            default; see SPREZZATURE_LLM_* env vars).
 #   - wallet-helper        : memoizes those calls — content-addressed, bounded,
@@ -24,5 +23,5 @@
 click>=8.1
 langdetect>=1.0.9
 Pillow>=10.0.0
-best-engine-ai-helper>=1.4
-wallet-helper>=1.3,<2
+best-engine-ai-helper>=0.4.0
+wallet-helper>=1.3.2,<2

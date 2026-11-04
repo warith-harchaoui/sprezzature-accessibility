@@ -2,6 +2,74 @@
 
 All notable changes to sprezzature-accessibility are documented here.
 
+## [Unreleased]
+
+### Fixed
+
+- **`--fix-alt` drafted in the machine's language, not the page's.** Without
+  `--alt-lang`, `fill_missing_alt` asked only the environment locale, while the
+  flag's help promised detection from the document: a French page linted on an
+  English machine got English alt text. It now uses the page's `<html lang>`,
+  then detection on the page text (the same `detect_text_language` the
+  single-image command uses), then the locale.
+  `tests/test_fix_alt_writes_in_the_page_language.py` holds the order; two of
+  its four tests fail on the previous code.
+- **The API's fallback alt-text limit said 125; the engine cuts at 150.** When
+  the engine cannot be imported, `api.py` now reads `DEFAULT_BASE` and
+  `MAX_CHARS` from the engine's source instead of keeping copies.
+  `tests/test_the_api_states_the_engine_limit.py` checks they agree.
+- `scripts/requirements-alt-text.txt` floors follow `pyproject.toml`
+  (`best-engine-ai-helper>=0.4.0`, `wallet-helper>=1.3.2`). Stale comments
+  about argparse twins and the `[alt]` extra are corrected in `pyproject.toml`,
+  `__init__.py`, `_tools.py`, `api.py`, `alt_from_ollama.run` and
+  `docker-compose.yml`.
+
+### Docs
+
+The documents now say what the code does today. Each claim was checked against
+the code, `--help` output and real runs.
+
+- **README / LISEZMOI.** The alt-text drafter was nearly absent: `--fix-alt`,
+  `--alt-lang`, `sprezzature-accessibility-alt`, `install-alt` and the
+  `tools` sub-command are now documented, with the five surfaces (library, CLI,
+  FastAPI with Docker and compose, MCP, skill), the five routes and their
+  `operation_id`, and the five MCP tools. Corrected: "stdlib only, no pip install
+  required" (the install needs click; the lint *imports* the standard library
+  only); "optional `langdetect`" (a base dependency since 1.3.0); "for a
+  pre-commit hook: three packages" over a body that said two; Python 3.10+ (the
+  manifest says 3.10 to 3.13). The unverifiable "57 packages" count is gone.
+  The `--fix-alt` language order is documented (see Fixed below).
+- **TRIGGERS.md.** `sprezzature-accessibility-lint --list-rules` does not exist;
+  the rules are listed by `list_rules` and `references/lint-rules.md`. Routing
+  now runs on the domain's closed vocabulary (elements, WCAG criteria, the six
+  image purposes, the rule ids). The tables cover every tool and all five MCP
+  tools (`list_kinds` and `draft_alt_text` were missing). Drafting is no longer
+  described as "behind the `[alt]` extra".
+- **references/alt-text-ai.md.** Every command named `python
+  scripts/alt_from_ollama.py`, which has no entry point; they now use
+  `sprezzature-accessibility-alt`. Python 3.9+ became 3.10 to 3.13. The cache is
+  a `wallet-helper` ledger, not a stdlib-only directory shared with
+  `meta_from_ollama.py` (a `sprezzature-publish` script). The hand-written
+  FastAPI proxy is replaced by `POST /v1/alt`. `OLLAMA_MODEL` is a test escape
+  hatch, not an override. Pillow is optional and not installed.
+- **references/lint-rules.md.** `aria-hidden-interactive` skips elements out of
+  the tab order; `body-text-tracking-tight` skips display-size text;
+  "decorative" video means `muted` without `controls`; `dialog-missing-close`
+  accepts an autofocused button, not any autofocused element.
+- **EXAMPLES.md.** The list of rules without a fixer named six of fourteen. The
+  pre-commit example passed file names to a command that takes one target;
+  it now sets `pass_filenames: false` and `language: system`.
+- **CONTRIBUTING.md.** CI's `ruff check .` and mypy steps, `requirements-dev.txt`,
+  the pre-push hook, `_SEVERITY`, and both rules tables.
+- **LANDSCAPE / PAYSAGE.** "2.3 ms on a 16 KiB page" had no measurement in the
+  repository behind it; replaced by what the tests do check.
+- **Docstrings and help strings.** `mcp.py` described the colour brick's tools
+  (`check_contrast`, `simulate_color_blindness`, `get_palette`); `alt_cli.py`
+  described an argparse twin removed on 2026-10-25;
+  `sprezzature-accessibility-install-alt --help` named a command
+  `sprezzature a11y alt` that does not exist, and its closing hint pointed at
+  `python scripts/alt_from_ollama.py`.
+
 ## [1.3.0] — 2026-11-01: one `pip install`
 
 ### Changed — one `pip install`

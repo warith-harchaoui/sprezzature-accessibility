@@ -1,51 +1,60 @@
 # sprezzature-accessibility
 
 [![License](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/python-3.10%20%C3%A0%203.13-blue.svg)](https://www.python.org/)
 
 🇫🇷 LISEZMOI.md · [🇬🇧 README.md](README.md)
 
 [![logo](assets/logo.png)](https://sprezzature.ai/)
 
 Une page web est accessible quand une personne qui utilise un lecteur d'écran, qui
-navigue au clavier seul (sans souris), ou qui a activé le réglage « mouvement réduit »
-de son navigateur, peut malgré tout s'en servir. Cet outil relit le code source HTML
-à la recherche des erreurs qui cassent le plus souvent cette expérience : une balise
-`<img>` sans texte alternatif est aussi invisible pour un lecteur d'écran que si
-l'image n'existait tout simplement pas sur la page.
+navigue au clavier seul (sans souris), ou qui a activé le réglage « mouvement réduit »
+de son navigateur, peut malgré tout s'en servir. Ce paquet relit le code source HTML
+à la recherche des erreurs qui cassent le plus souvent cette expérience, et rédige le
+contenu que ces erreurs laissent le plus souvent de côté : une balise `<img>` sans
+texte alternatif est aussi invisible pour un lecteur d'écran que si l'image n'existait
+pas sur la page.
 
-C'est un linter statique : vingt règles issues des WCAG (*Web Content
-Accessibility Guidelines*, la norme du W3C qui définit ce que « accessible » veut
-dire pour le web) et de WAI-ARIA (le vocabulaire d'attributs, `role`, `aria-label`
-et consorts, qui permet à un composant fait maison de se décrire aux logiciels
+La moitié audit est un linter statique : vingt règles issues des WCAG (*Web Content
+Accessibility Guidelines*, la norme du W3C qui définit ce que « accessible » veut
+dire pour le web) et de WAI-ARIA (*Web Accessibility Initiative, Accessible Rich
+Internet Applications* : le vocabulaire d'attributs, `role`, `aria-label` et
+consorts, qui permet à un composant fait maison de se décrire aux logiciels
 d'assistance), chacune décidable à la seule lecture du texte HTML. Aucun navigateur
-ne s'ouvre, aucune page ne s'affiche, aucun JavaScript ne s'exécute : il n'y a donc
-pas de DOM (l'arbre d'éléments qu'un navigateur construit en affichant une page) à
-inspecter, et rien à installer en dehors de Python lui-même. C'est ce qui rend
-l'outil assez rapide pour un hook pre-commit ou une étape d'intégration continue
-(CI) : une porte déterministe avant que la moindre modification n'atteigne la
-production.
+ne s'ouvre, aucune page ne s'affiche, aucun JavaScript ne s'exécute : il n'y a donc
+pas de DOM (*Document Object Model*, l'arbre d'éléments qu'un navigateur construit
+en affichant une page) à inspecter. Le lint n'importe que la bibliothèque standard de
+Python, et c'est ce qui le rend assez rapide pour un crochet de pré-commit ou une
+étape d'intégration continue (CI) : une porte déterministe avant que la moindre
+modification n'atteigne la production.
 
-Les violations couvertes représentent la majorité des problèmes d'accessibilité
-réels : textes alternatifs manquants, champs de formulaire sans étiquette, boutons
-vides, `<div>` cliquables qu'un clavier ne peut pas atteindre, fenêtres de dialogue
-sans moyen de les fermer au clavier, attribut `lang` absent (ce qui casse la
-prononciation du lecteur d'écran), niveaux de titre qui sautent au lieu de s'emboîter
-dans l'ordre, état montré par la seule couleur (un rouge et un vert qu'une personne
-daltonienne ne distingue pas), et animations sans moyen de les réduire pour qui y est
-sensible, et un espacement des lettres resserré sur du texte de lecture (ce qui
-ralentit la lecture des personnes dyslexiques). Six de ces vingt règles disposent
-en plus d'une correction automatique mécanique (`--fix`), pour que la porte répare
-elle-même ce qu'elle peut réparer sans risque, au lieu de se contenter de le
-signaler.
+Les règles couvrent les textes alternatifs manquants, les champs de formulaire sans
+étiquette, les boutons vides, les `<div>` cliquables qu'un clavier ne peut pas
+atteindre, les fenêtres de dialogue sans moyen de les fermer au clavier, l'attribut
+`lang` absent (ce qui casse la prononciation du lecteur d'écran), les niveaux de
+titre qui sautent au lieu de s'emboîter dans l'ordre, l'état montré par la seule
+couleur (un rouge et un vert qu'une personne daltonienne ne distingue pas), les
+animations sans garde de mouvement réduit, l'espacement des lettres resserré sur du
+texte de lecture (ce qui ralentit la lecture des personnes dyslexiques), et cinq
+contrôles sur les médias temporels : sous-titres, transcriptions, lecture
+automatique non muette, commandes au clavier et langue de la piste de sous-titres.
+Six de ces vingt règles disposent en plus d'une correction automatique mécanique
+(`--fix`), pour que la porte répare elle-même ce qu'elle peut réparer sans risque,
+au lieu de se contenter de le signaler.
 
-Cet outil ne lit que du code source : il ne peut donc pas détecter ce qui n'apparaît
-qu'une fois la page réellement affichée dans un navigateur, l'ordre de parcours au
-clavier, le minutage des annonces du lecteur d'écran, le contraste des couleurs sur
-un fond réel. Associez-le à axe-core, Pa11y ou Lighthouse, qui pilotent un vrai
-navigateur, pour cette couche-là. Les deux approches se complètent, elles ne se
-remplacent pas : celui-ci est la porte rapide sans navigateur ; les autres sont la
-passe plus lente mais fidèle au rendu réel.
+La moitié fabrication rédige le texte alternatif manquant avec un modèle de vision
+local (`qwen3-vl:8b` par Ollama), en suivant l'arbre de décision du W3C sur la
+fonction des images. `--fix-alt` le fait sur place, à partir de l'image et du texte
+qui l'entoure sur la même page. Rien ne quitte la machine, et chaque proposition
+reste un brouillon : une personne la relit avant qu'elle ne soit enregistrée.
+
+Ce paquet ne lit que du code source : il ne peut donc pas détecter ce qui n'apparaît
+qu'une fois la page affichée dans un navigateur, l'ordre de parcours au clavier, le
+minutage des annonces du lecteur d'écran, le contraste des couleurs sur un fond
+réel. Associez-le à axe-core, Pa11y ou Lighthouse, qui pilotent un vrai navigateur,
+pour cette couche-là. Les deux approches se complètent : celle-ci est la porte
+rapide sans navigateur ; les autres sont la passe plus lente mais fidèle au rendu
+réel.
 
 ## Comment ça marche
 
@@ -54,21 +63,80 @@ passe plus lente mais fidèle au rendu réel.
 ## Fonctionnalités
 
 - 20 règles couvrant img, a, button, div/span, input, dialog, html, tabindex, aria,
-  ordre des titres, état par couleur seule, guards motion-reduce, espacement des
-  lettres sur le texte de lecture, et les médias temporels : sous-titres vidéo,
-  transcription audio, lecture automatique non muette, commandes au clavier,
-  et langue de la piste de sous-titres
-- Correction automatique pour 6 règles : détection et insertion du lang, suppression
-  d'aria redondant, rétrogradation du tabindex, suppression d'aria-hidden, ajout du
-  guard motion-reduce, suppression du resserrement de lettres
-- `text_spacing_preset.py` : le pendant « make » de la règle d'espacement des
-  lettres — génère un bloc CSS optionnel « lecture confortable » aux minima WCAG
-  1.4.12, pour les pages qui veulent proposer la correction comme un réglage
-  visible par le lecteur
-- Sortie texte et JSON, composable avec jq ou tout parseur CI
-- Code de sortie 1 sur tout résultat (0 si propre), utilisable comme porte pre-commit
-- Stdlib Python uniquement à l'exécution : Python 3.10+, pas de pip install requis
-- `langdetect` optionnel pour le correcteur automatique `html-missing-lang`
+  l'ordre des titres, l'état par couleur seule, les gardes motion-reduce,
+  l'espacement des lettres sur le texte de lecture, et les médias temporels :
+  sous-titres vidéo, transcription audio, lecture automatique non muette,
+  commandes au clavier et langue de la piste de sous-titres.
+- Correction automatique pour 6 règles (`--fix`) : détection et insertion du
+  `lang`, suppression d'aria redondant, rétrogradation du tabindex, suppression
+  d'aria-hidden, ajout de la garde motion-reduce, suppression du resserrement de
+  lettres. Idempotente : un second passage n'applique rien.
+- Rédaction de textes alternatifs (`--fix-alt` pour une page entière,
+  `sprezzature-accessibility-alt` pour une image) : six fonctions d'image
+  (informative, décorative, fonctionnelle, texte, complexe, groupe), le texte de la
+  page comme contexte, une sortie plafonnée à 150 caractères, des résultats mis en
+  cache sur disque.
+- `sprezzature-accessibility-text-spacing` : le pendant « fabrication » de la règle
+  d'espacement des lettres. Il génère un bloc CSS optionnel « lecture confortable »
+  aux minima WCAG 1.4.12, pour les pages qui veulent proposer la correction comme
+  un réglage visible par le lecteur.
+- Sortie texte et JSON, composable avec jq ou tout parseur de CI.
+- Code de sortie 1 sur tout constat, 0 si la page est propre : utilisable comme
+  porte de pré-commit.
+- Python 3.10 à 3.13. Le chemin du lint n'importe que la bibliothèque standard,
+  plus `langdetect` s'il est installé (le correcteur de `html-missing-lang` s'en
+  sert pour deviner la langue de la page).
+
+## Installation
+
+Une ligne, et c'est tout : le lint, le rédacteur de textes alternatifs, la
+détection de langue, l'API HTTP et le serveur MCP.
+
+```bash
+pip install sprezzature-accessibility
+```
+
+`pip install 'sprezzature-accessibility[dev]'` ajoute l'outillage de test (pytest,
+ruff) et rien d'autre.
+
+Le rédacteur a aussi besoin d'Ollama et du modèle sur la machine. Une commande
+installe Ollama s'il manque (Homebrew, l'installateur officiel sous Linux, ou winget
+sous Windows), démarre son démon et télécharge `qwen3-vl:8b` :
+
+```bash
+sprezzature-accessibility-install-alt
+```
+
+Pillow n'est pas une dépendance. S'il est installé, les images sont réduites avant
+d'être envoyées au modèle (`--resize`) ; sinon, les octets d'origine partent tels
+quels.
+
+### Pour un crochet de pré-commit : deux paquets
+
+Le lint a besoin de la bibliothèque standard plus click, et c'est pour cela qu'il
+tient dans un crochet de pré-commit : il tourne en quelques millisecondes, sans
+navigateur ni modèle derrière lui. L'essentiel d'une installation complète, ce sont
+les surfaces HTTP et MCP, qui ne servent à rien dans un crochet. Donc un crochet
+installe le lint et rien d'autre :
+
+```bash
+pip install --no-deps sprezzature-accessibility
+pip install click
+```
+
+Cela fait deux paquets au-dessus d'un venv neuf : click, et celui-ci. C'est énoncé
+comme un delta et non comme un total, exprès : ce que `venv` sème est l'affaire de
+l'interpréteur, et ça diffère (3.11 ajoute setuptools, 3.13 non). Le delta est ce
+que ce paquet peut promettre. Sur une telle installation, `--fix` ne peut pas
+deviner la langue d'une page (pas de `langdetect`) : il laisse `html-missing-lang`
+à corriger par une personne.
+
+C'est testé à chaque poussée.
+`tests/test_the_hook_install_is_the_lint_and_nothing_else.py` construit exactement
+ce venv, vérifie par leur nom les paquets qui y ont atterri, et lance la commande
+`sprezzature-accessibility-lint` livrée contre une page portant un défaut connu. Et
+`tests/test_the_lint_stays_out_of_the_extra.py` vérifie que rien sur le chemin du
+lint n'importe les dépendances de rédaction.
 
 ## Démarrage rapide
 
@@ -76,7 +144,7 @@ passe plus lente mais fidèle au rendu réel.
 # Lint d'une page unique
 sprezzature-accessibility-lint public/index.html
 
-# Lint récursif d'un répertoire, sortie 1 sur tout résultat
+# Lint récursif d'un répertoire, sortie 1 sur tout constat
 sprezzature-accessibility-lint public/
 
 # Sortie JSON pour une chaîne CI
@@ -88,71 +156,141 @@ sprezzature-accessibility-lint --ignore heading-skip,motion-no-reduce-guard publ
 # Corriger automatiquement ce qui peut l'être
 sprezzature-accessibility-lint --fix public/
 
-# Prévisualiser sans écrire
+# Prévisualiser ce que --fix changerait, sans écrire (sortie toujours 0)
 sprezzature-accessibility-lint --fix --dry-run public/
+
+# Rédiger sur place les textes alternatifs manquants, puis appliquer les corrections mécaniques
+sprezzature-accessibility-lint --fix-alt public/
+
+# Idem, avec des textes alternatifs rédigés en français
+sprezzature-accessibility-lint --fix-alt --alt-lang fr public/
 ```
 
-## Une porte d'entrée, deux orthographes, quatre outils
+`--fix-alt` rédige un texte alternatif pour chaque `<img>` qui n'en a pas, en la
+traitant comme une image informative, à partir du texte qui entoure cette image dans
+le même document et des noms propres qu'on y trouve. Sans `--alt-lang`, la langue
+est celle du `<html lang>` de la page, à défaut celle détectée dans le texte de la
+page, à défaut la locale de l'environnement (`ALT_LANG`, puis `LC_ALL`, puis
+`LANG`). Les images distantes, les images absentes du disque et les
+balises qui s'étendent sur plusieurs lignes sont laissées telles quelles et
+signalées. Ce passage tourne avant les corrections mécaniques, si bien qu'une seule
+invocation laisse la page dans son état final.
+
+### Une image à la fois
 
 ```bash
-make-a11y --help                         # les quatre outils, et ce que fait chacun
-make-a11y lint public/                   # le nom historique
-sprezzature-accessibility lint public/   # le nom de la suite
+sprezzature-accessibility-alt --kind informative photo.jpg
+sprezzature-accessibility-alt --kind functional --context "Submit form" icon.png
+sprezzature-accessibility-alt --kind complex --longdesc --in docs/chart.md chart.png
 ```
 
-Les deux noms résolvent vers le même appelable, sur une table unique
-(`sprezzature_accessibility/cli.py`), donc un outil ne peut pas apparaître
-dans l'un et manquer dans l'autre. Il y a eu deux analyseurs jusqu'au
-2026-10-25, un argparse et un click qui partageaient cette table, et chaque
-sous-commande devait être écrite deux fois ; click est désormais le seul, et
-une dépendance de base plutôt qu'une option, parce qu'avec argparse parti
-plus aucun analyseur n'est livré avec Python. Les quatre
-sont `lint`, `text-spacing`, `alt` et `install-alt` ; chacun reste aussi sa
-propre commande — `sprezzature-accessibility-lint`, `-text-spacing`, `-alt` —
-et c'est ce qu'un script devrait appeler, comme dans les exemples ci-dessus.
+Le texte alternatif sort sur stdout. `--kind decorative` n'imprime rien et
+n'appelle aucun modèle : une image décorative prend `alt=""`. `--longdesc` écrit en
+plus une description longue dans `<image>.longdesc.md`. `--in DOC`, `--vocab FILE`,
+`--vocab-from PATH` et `--auto-project` donnent au modèle l'orthographe des noms
+propres du projet ; sans `--lang`, la langue est détectée à partir de ce texte.
+`--no-cache` contourne le cache pour un passage. `make-alt` est un autre nom de la
+même commande.
 
-## Installation
+## Les cinq surfaces
 
-Une ligne, et c'est tout — le lint, la moitié rédactionnelle, la détection de
-langue, la surface HTTP et le serveur MCP :
+Le même moteur répond sur cinq surfaces.
+
+| Surface | Point d'entrée |
+|---|---|
+| Bibliothèque | `import sprezzature_accessibility` |
+| Ligne de commande | `sprezzature-accessibility` (alias `make-a11y`) et une commande par outil |
+| API HTTP (FastAPI) | `uvicorn sprezzature_accessibility.api:app`, ou `docker compose up` |
+| Serveur MCP | `sprezzature-accessibility-mcp` |
+| Skill d'agent | `SKILL.md`, tenu dans le dépôt central [sprezzature](https://github.com/warith-harchaoui/sprezzature) |
+
+### Bibliothèque
+
+```python
+from pathlib import Path
+
+from sprezzature_accessibility import describe, fix_file, lint_file
+
+for f in lint_file(Path("public/index.html")):
+    print(f.line, f.rule, f.message)
+
+applied, skipped, remaining = fix_file(Path("public/index.html"), set(), dry_run=True)
+
+alt = describe("hero.jpg", kind="informative", lang="fr", context="Careers page hero")
+```
+
+`KINDS` liste les six fonctions d'image. `describe_long` rédige la description
+longue d'une image complexe. Les noms de la rédaction (`describe`, `describe_long`,
+`detect_lang`, `surrounding_text` et le reste de `__all__`) sont chargés au premier
+usage, si bien que `import sprezzature_accessibility` reste aussi léger que le lint.
+
+### Ligne de commande
+
+Une porte d'entrée, construite sur click, avec deux orthographes et quatre outils :
 
 ```bash
-pip install sprezzature-accessibility
+sprezzature-accessibility --help          # les quatre outils, et ce que fait chacun
+sprezzature-accessibility tools           # quels outils peuvent tourner sur cette machine
+sprezzature-accessibility lint public/    # identique à sprezzature-accessibility-lint public/
+make-a11y lint public/                    # l'orthographe historique de la même commande
 ```
 
-### Pour un crochet de pré-commit : trois paquets
+| Ce qu'elle fait | Sous-commande | Commande propre |
+|---|---|---|
+| Lint du HTML ; `--fix`, `--fix-alt`, `--dry-run`, `--format`, `--ignore`, `--alt-lang` | `lint` | `sprezzature-accessibility-lint` |
+| Génère le CSS de lecture confortable WCAG 1.4.12 | `text-spacing` | `sprezzature-accessibility-text-spacing` |
+| Rédige le texte alternatif d'une image | `alt` | `sprezzature-accessibility-alt` (alias `make-alt`) |
+| Installe Ollama, le démarre, télécharge `qwen3-vl:8b` | `install-alt` | `sprezzature-accessibility-install-alt` |
 
-Le lint tient dans la **bibliothèque standard plus click**, et c'est la raison
-pour laquelle ce paquet vaut la peine d'être mis dans un crochet de
-pré-commit : il tourne en quelques millisecondes, sans navigateur ni modèle
-derrière lui. L'installation complète fait 57 paquets, dont l'essentiel est les
-surfaces HTTP et MCP, qui ne servent à rien dans un crochet. Donc un crochet
-installe le lint et rien d'autre :
+Les deux orthographes de la porte d'entrée résolvent vers le même appelable, sur
+une table unique (`sprezzature_accessibility/_tools.py`), donc un outil ne peut pas
+apparaître dans l'une et manquer dans l'autre. Les commandes propres à chaque outil
+sont ce qu'un script ou un crochet devrait appeler. La complétion pour bash et zsh
+est imprimée à la fin de `sprezzature-accessibility --help`.
+
+### API HTTP
 
 ```bash
-pip install --no-deps sprezzature-accessibility
-pip install click
+uvicorn sprezzature_accessibility.api:app --host 127.0.0.1 --port 8000
+curl -s -X POST localhost:8000/v1/lint \
+  -H 'content-type: application/json' \
+  -d '{"html": "<img src=\"a.png\">"}'
 ```
 
-**Deux paquets au-dessus d'un venv neuf** — click, et celui-ci. Énoncé comme
-un delta et non comme un total, exprès : ce que `venv` sème est l'affaire de
-l'interpréteur et ça diffère (3.11 ajoute setuptools, 3.13 non). Le delta est
-ce que ce paquet peut promettre.
+| Route | operation_id | Ce qu'elle renvoie |
+|---|---|---|
+| `GET /health` | `health` | `{"status": "ok"}` |
+| `GET /v1/rules` | `list_rules` | Chaque règle, avec sa sévérité |
+| `POST /v1/lint` | `lint_html` | Les constats sur une chaîne HTML, avec le nombre d'erreurs et d'avertissements |
+| `GET /v1/kinds` | `list_kinds` | Les six fonctions d'image, chacune avec son usage |
+| `POST /v1/alt` | `draft_alt_text` | Un texte alternatif rédigé, et une description longue sur demande |
 
-Mesuré et non promis :
-`tests/test_the_hook_install_is_the_lint_and_nothing_else.py` construit
-exactement ce venv à chaque poussée, compte par leur nom ce qui y a atterri, et
-lance la
-commande `sprezzature-accessibility-lint` livrée contre une page portant un
-défaut connu. Et `tests/test_the_lint_stays_out_of_the_extra.py` tient l'autre
-moitié de la promesse — que rien sur le chemin du lint n'**importe** les
-dépendances de rédaction, ce qui depuis le 2026-11-01 est la seule chose entre
-un crochet qui prend des millisecondes et un qui charge un client de modèle.
+L'API lint une chaîne, jamais une URL : aller chercher une page pour le compte de
+l'appelant en ferait un proxy ouvert. `POST /v1/alt` répond 502 quand le modèle
+local est injoignable et 404 quand le fichier image n'existe pas. La documentation
+interactive est sur `/docs`.
 
-Jusqu'à cette date la séparation se faisait par des extras, et il fallait
-savoir lequel demander avant que le paquet puisse faire son travail. C'est une
-seule installation maintenant, et le crochet reçoit une façon documentée et
-testée de ne prendre que ce qu'il exécute.
+Avec Docker, `docker compose up -d` construit l'image et sert l'API sur le port
+8000, avec `./work` monté sur `/work`. `docker compose --profile alt up -d` démarre
+en plus un conteneur Ollama pour le rédacteur. L'image ne sert que les routes HTTP ;
+le point MCP est monté par `sprezzature-accessibility-mcp`.
+
+### Serveur MCP
+
+MCP (*Model Context Protocol*) permet à un hôte d'agent d'appeler ces routes comme
+des outils.
+
+```bash
+sprezzature-accessibility-mcp                      # 127.0.0.1:8000
+sprezzature-accessibility-mcp --host 0.0.0.0 --port 9000
+```
+
+Il sert la même application FastAPI, avec le point MCP monté sur `/mcp`. Les cinq
+outils sont les cinq routes ci-dessus, nommés par leur `operation_id` : `health`,
+`list_rules`, `lint_html`, `list_kinds`, `draft_alt_text`. Les valeurs par défaut
+viennent de `SPREZZATURE_ACCESSIBILITY_HOST` et `SPREZZATURE_ACCESSIBILITY_PORT`
+quand elles sont définies.
+
 ## Les règles
 
 | Règle | Sévérité | Description |
@@ -167,18 +305,20 @@ testée de ne prendre que ce qu'il exécute.
 | `dialog-missing-close` | erreur | `<dialog>` sans moyen de fermeture |
 | `html-missing-lang` | erreur | `<html>` sans attribut lang |
 | `tabindex-positive` | erreur | tabindex ≥ 1 casse l'ordre du DOM |
-| `aria-hidden-interactive` | erreur | aria-hidden sur un élément interactif |
+| `aria-hidden-interactive` | erreur | aria-hidden sur un élément interactif encore focalisable |
 | `heading-skip` | erreur | les titres sautent un niveau vers le bas |
 | `color-only-state` | avertissement | jeton rouge/vert sans icône ni texte |
 | `motion-no-reduce-guard` | avertissement | animation sans pair motion-reduce |
 | `body-text-tracking-tight` | avertissement | interlettrage resserré sur du texte de lecture |
 | `video-missing-captions` | erreur | `<video>` avec du son et sans `<track kind="captions">` (WCAG 1.2.2) |
 | `audio-missing-transcript` | erreur | `<audio>` sans alternative textuelle (WCAG 1.2.1) |
-| `track-missing-srclang` | avertissement | `<track>` sans `srclang` : langue des sous-titres inconnue |
+| `track-missing-srclang` | avertissement | `<track>` sans `srclang` : langue des sous-titres inconnue |
 | `media-missing-controls` | erreur | `<video>`/`<audio>` sans rien à actionner au clavier (WCAG 2.1.1) |
 | `media-autoplay-sound` | erreur | `autoplay` non muet, qui couvre un lecteur d'écran (WCAG 1.4.2) |
 
-Six de ces règles portent aussi un correcteur mécanique, appliqué par `--fix`.
+La sévérité est celle que rapporte l'API HTTP. La ligne de commande sort en 1 sur
+tout constat, avertissements compris. Six de ces règles portent aussi un correcteur
+mécanique, appliqué par `--fix`.
 
 ## Licence
 

@@ -882,10 +882,9 @@ def run(
 ) -> int:
     """Draft alt text for one image and write it out; return an exit code.
 
-    This is the command line's whole body, kept out of any one parser so that
-    the argparse command (``sprezzature_accessibility.alt_cli``) and the click command
-    (``_cli`` above) cannot drift apart. They differ in how they read
-    ``--kind``; they must not differ in what ``--kind`` then does.
+    This is the command line's whole body, kept out of the parser: the click
+    command in ``sprezzature_accessibility.alt_cli`` only reads the flags and
+    calls this, so what a flag does is decided in one place.
 
     Parameters
     ----------

@@ -41,7 +41,7 @@ After this finishes:
 
 ::
 
-    python scripts/alt_from_ollama.py path/to/image.jpg
+    sprezzature-accessibility-alt path/to/image.jpg
 
 Notes
 -----
@@ -323,7 +323,7 @@ else:
         "sprezzature-accessibility-install-alt",
         help=(
             "Install Ollama (Homebrew / official installer / winget), start its "
-            "daemon, and pull the vision model used by `sprezzature a11y alt`.\n\n"
+            "daemon, and pull the vision model used by `sprezzature-accessibility alt`.\n\n"
             "The one authorized model is qwen3-vl:8b (via Ollama). Env vars:\n"
             "  OLLAMA_MODEL  Bare escape hatch for tests (default: qwen3-vl:8b).\n"
             "  OLLAMA_URL    Daemon endpoint (default: http://localhost:11434)."
@@ -350,7 +350,7 @@ else:
         pull_model(model)
 
         print("\n→ Ready. Test with:")
-        print("    python scripts/alt_from_ollama.py /path/to/image.jpg")
+        print("    sprezzature-accessibility-alt /path/to/image.jpg")
         return 0
 
 

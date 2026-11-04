@@ -25,10 +25,9 @@ from __future__ import annotations
 #: package, the drafting half's command line is in this one. A table that
 #: assumed a single prefix would have quietly excluded ``alt``.
 #:
-#: ``extra`` is empty for the two halves that need nothing. That is the shape
-#: of this package and not an accident: the lint is standard-library only,
-#: milliseconds, no browser — which is what makes it worth putting in a
-#: pre-commit hook — and everything that needs a model sits behind ``[alt]``.
+#: ``extra`` is empty for all four: since 2026-11-01 every tool is in the base
+#: install. The field stays so ``missing_extra_message`` can tell a missing
+#: extra from a broken install, and only the second can happen now.
 TOOLS: dict[str, tuple[str, str, str]] = {
     "lint": (
         "sprezzature_accessibility_scripts.lint_a11y",

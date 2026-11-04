@@ -1,9 +1,9 @@
 """
-The click command line — ``sprezzature-accessibility``.
+The click command line — ``sprezzature-accessibility-alt`` (also ``make-alt``).
 
-The twin of ``sprezzature_accessibility.cli``: same options, same engine, a different
-parser. Both call :func:`sprezzature_accessibility_scripts.alt_from_ollama.run`, so
-they cannot disagree about what a flag does.
+The front door ``sprezzature-accessibility alt`` lands here too. The work is in
+:func:`sprezzature_accessibility_scripts.alt_from_ollama.run`; this module only
+parses the flags, so no second parser can disagree about what a flag does.
 
 Why this lives here and not beside the engine
 ---------------------------------------------
@@ -26,12 +26,8 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-# Guarded, like every other Click front door in this suite. Click is an extra
-# here — the argparse twin needs nothing, which is the point of shipping both
-# — so a bare `pip install` leaves this command on PATH and unable to start.
-# Unguarded, what it printed was `ModuleNotFoundError: No module named
-# 'click'`: a traceback about a package the reader never asked for, for a
-# command their own install had just created.
+# Click is a base dependency since 2026-10-25, when the argparse twin of this
+# command was removed, so this import needs no guard.
 import click
 from sprezzature_accessibility_scripts._click import (
     run_command,
@@ -147,7 +143,7 @@ def _cli(
     vocab_from: Path | None,
     auto_project: bool,
 ) -> int:
-    """Click wrapper. The work is in :func:`run`, which argparse calls too."""
+    """Click wrapper. The work is in :func:`run`."""
     return run(
         src,
         kind=kind,

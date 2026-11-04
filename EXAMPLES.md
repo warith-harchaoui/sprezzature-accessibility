@@ -30,7 +30,7 @@ sprezzature-accessibility-lint public/
 sprezzature-accessibility-lint --format json public/index.html | jq '.findings_total'
 ```
 
-Output:
+That prints `2`. The full document, without the jq filter:
 
 ```json
 {
@@ -59,20 +59,25 @@ sprezzature-accessibility-lint --ignore heading-skip,motion-no-reduce-guard publ
 sprezzature-accessibility-lint --fix public/index.html
 ```
 
-stderr output:
+Output (the first line on stderr, the second on stdout):
 
 ```
 public/index.html: applied 2 fix(es); 1 unfixable finding(s); 1 remaining.
 1 remaining finding(s) after fix pass.
 ```
 
+Exit code: `1` while findings remain, `0` once none do.
+
 Rules with a fixer: `html-missing-lang`, `img-redundant-aria`,
 `tabindex-positive`, `aria-hidden-interactive`, `motion-no-reduce-guard`,
 `body-text-tracking-tight`.
 
-Rules without a fixer (require a content decision): `a-empty`,
-`button-empty`, `input-missing-label`, `heading-skip`, `dialog-missing-close`,
-`color-only-state`.
+The other fourteen need a content decision and are reported, not fixed:
+`img-missing-alt` (see `--fix-alt` below), `a-missing-href`, `a-empty`,
+`button-empty`, `div-onclick`, `input-missing-label`, `dialog-missing-close`,
+`heading-skip`, `color-only-state`, and the five media rules
+(`video-missing-captions`, `audio-missing-transcript`, `track-missing-srclang`,
+`media-missing-controls`, `media-autoplay-sound`).
 
 ## Preview fix without writing
 
@@ -81,6 +86,25 @@ sprezzature-accessibility-lint --fix --dry-run public/index.html
 ```
 
 Exits 0 always (preview, not a verdict).
+
+## Draft the missing alt text
+
+```bash
+sprezzature-accessibility-lint --fix-alt public/index.html
+```
+
+Every `<img>` without `alt` gets a draft from the local vision model, made from
+the image and the text around it in that page. One line per draft goes to stderr,
+then a reminder that drafts are drafts. The mechanical fixes run in the same pass.
+It needs Ollama and `qwen3-vl:8b` (`sprezzature-accessibility-install-alt`).
+
+One image at a time, with its purpose declared:
+
+```bash
+sprezzature-accessibility-alt --kind functional --context "Search" icons/magnifier.png
+```
+
+Output: the alt text on stdout, nothing else. See `references/alt-text-ai.md`.
 
 ## Make-side: emit a comfortable-reading CSS toggle
 
@@ -130,6 +154,11 @@ sprezzature-accessibility-text-spacing \
 
 ## Pre-commit hook
 
+The lint takes one target, a file or a directory, so the hook lints the
+directory and does not receive file names. `language: system` uses the command
+already on `PATH`, for instance from the two-package install in the README
+(`pip install --no-deps sprezzature-accessibility` then `pip install click`).
+
 ```yaml
 # .pre-commit-config.yaml
 repos:
@@ -138,7 +167,8 @@ repos:
       - id: a11y-lint
         name: Accessibility lint
         entry: sprezzature-accessibility-lint
-        language: python
+        language: system
         files: \.html$
+        pass_filenames: false
         args: ["public/"]
 ```
