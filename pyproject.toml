@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "sprezzature-accessibility"
 version = "1.3.0"
-description = "Static HTML accessibility linter: 20 WCAG/WAI rules decidable from source, time-based media included, stdlib only, CI-ready."
+description = "Static HTML accessibility linter: 20 WCAG/WAI rules decidable from source, time-based media included, CI-ready; drafts the missing alt text with a local vision model."
 readme = "README.md"
 # The upper bound is not housekeeping: it is inherited, and it was being
 # promised away. `wallet-helper` — a base dependency — declares
@@ -76,6 +76,12 @@ dependencies = [
     "langdetect>=1.0.9",
     "fastapi-mcp>=0.3",
     "mcp<2.0",
+    # `--resize` (1024 px by default) downscales an image before the drafter
+    # sends it to the model. Pillow was undeclared until 2026-11-04, so on a
+    # default install the flag was accepted and did nothing: the original
+    # bytes went out at full size, and nothing said so. Imported only by the
+    # drafter, never on the lint path.
+    "Pillow>=10.0.0",
 ]
 
 [project.optional-dependencies]

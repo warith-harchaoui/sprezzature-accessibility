@@ -96,9 +96,8 @@ Language: `--lang` wins. Without it, the language is detected from the context
 text (`--context`, the `--in` document, the vocabulary); with no text at all, it
 falls back to the environment locale (`ALT_LANG`, then `LC_ALL`, then `LANG`).
 
-`--resize N` downscales the longest edge to N pixels (1024 by default, 0 disables)
-when Pillow is installed. Pillow is not a dependency; without it, the original
-image is sent.
+`--resize N` downscales the longest edge to N pixels (1024 by default, 0 disables).
+Pillow, which does the downscaling, is in the base install.
 
 ### A whole page at once
 
@@ -190,7 +189,7 @@ Drafts are cached on disk so the same input never reaches the model twice.
 |---|---|---|
 | Model unreachable, exit code 2 (502 over HTTP) | Daemon not running | `sprezzature-accessibility-install-alt` (harmless to re-run) or `ollama serve`. |
 | `Error: model not found` | Model never pulled | Re-run the installer, or `ollama pull qwen3-vl:8b`. |
-| Garbled or hallucinated text | Very small or very large image | With Pillow installed the image is downscaled to 1024 px by default; improve the source or try `--resize 768`. |
+| Garbled or hallucinated text | Very small or very large image | The image is downscaled to 1024 px by default; improve the source or try `--resize 768`. |
 | Very slow first call | First inference loads the weights | Later calls are faster; keep the daemon up. |
 
 ## Related: meta tags

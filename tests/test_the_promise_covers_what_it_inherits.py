@@ -60,6 +60,9 @@ MEASURED: dict[str, tuple[str, ...]] = {
     "langdetect": ("3.10", "3.11", "3.12", "3.13", "3.14", "3.15"),
     "fastapi-mcp": ("3.10", "3.11", "3.12", "3.13", "3.14", "3.15"),
     "mcp": ("3.10", "3.11", "3.12", "3.13", "3.14", "3.15"),
+    # Added 2026-11-04 with the dependency. Every release from 10.0.0 declares
+    # a floor only (>=3.8 up to >=3.11 for 13.0.0) and no ceiling.
+    "Pillow": ("3.10", "3.11", "3.12", "3.13", "3.14", "3.15"),
 }
 
 

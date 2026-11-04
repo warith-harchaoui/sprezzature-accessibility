@@ -43,8 +43,10 @@ from sprezzature_accessibility_scripts.alt_from_ollama import run
         "vision model. Matches the WAI image-purpose decision tree "
         "(informative / decorative / functional / text / complex / group)."
     ),
+    # ``\b`` keeps the examples one per line: click rewraps an epilog into a
+    # single paragraph otherwise.
     epilog=(
-        "Examples:\n"
+        "\b\nExamples:\n"
         "  sprezzature-accessibility-alt --kind informative photo.jpg\n"
         "  sprezzature-accessibility-alt --kind functional --context 'Submit form' icon.png\n"
         "  sprezzature-accessibility-alt --kind complex --in docs/chart.md chart.png\n"

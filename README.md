@@ -94,8 +94,8 @@ Windows), starts its daemon and pulls `qwen3-vl:8b`:
 sprezzature-accessibility-install-alt
 ```
 
-Pillow is not a dependency. When it is installed, images are downscaled before
-they are sent to the model (`--resize`); without it, the original bytes are sent.
+Images are downscaled before they are sent to the model: `--resize N` caps the
+longest edge at N pixels (1024 by default, 0 sends the original bytes).
 
 ### For a pre-commit hook: two packages
 
@@ -227,7 +227,9 @@ Both front-door spellings resolve to one callable over one table
 (`sprezzature_accessibility/_tools.py`), so a tool cannot be listed in one and
 missing from the other. The per-tool commands are what a script or a hook should
 call. Shell completion for bash and zsh is printed at the end of
-`sprezzature-accessibility --help`.
+`sprezzature-accessibility --help`. Every command, the per-tool ones and the MCP
+server included, is click: one help layout, `-h` and `-V`, and exit code 2 on a
+usage error.
 
 ### HTTP API
 
@@ -253,8 +255,9 @@ reached and 404 when the image file does not exist. Interactive documentation is
 
 With Docker, `docker compose up -d` builds the image and serves the API on port
 8000, with `./work` mounted at `/work`. `docker compose --profile alt up -d` also
-starts an Ollama container for the drafter. The image serves the HTTP routes only;
-the MCP endpoint is mounted by `sprezzature-accessibility-mcp`.
+starts an Ollama container for the drafter. The container runs
+`sprezzature-accessibility-mcp`, so the same port answers both the HTTP routes
+and the MCP endpoint at `/mcp`.
 
 ### MCP server
 

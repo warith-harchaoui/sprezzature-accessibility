@@ -68,7 +68,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _argparse import make_parser  # noqa: E402
+import click  # noqa: E402
+from _click import run_command, sprezzature_command  # noqa: E402
 from lint_a11y import BODY_TEXT_TAGS  # noqa: E402
 
 #: Paragraph-like block elements that get the "spacing following
@@ -111,16 +112,12 @@ def build_css(
     str
         A complete, deterministic CSS block ending in a newline.
     """
-    body_selector = ",\n".join(
-        f'[{attr}="{value}"] {tag}' for tag in sorted(BODY_TEXT_TAGS)
-    )
-    paragraph_selector = ",\n".join(
-        f'[{attr}="{value}"] {tag}' for tag in sorted(PARAGRAPH_TAGS)
-    )
+    body_selector = ",\n".join(f'[{attr}="{value}"] {tag}' for tag in sorted(BODY_TEXT_TAGS))
+    paragraph_selector = ",\n".join(f'[{attr}="{value}"] {tag}' for tag in sorted(PARAGRAPH_TAGS))
     return (
-        f'/* Comfortable reading: WCAG 1.4.12 Text Spacing minimums, opt-in via\n'
+        f"/* Comfortable reading: WCAG 1.4.12 Text Spacing minimums, opt-in via\n"
         f'   [{attr}="{value}"]. Pairs with the body-text-tracking-tight audit\n'
-        f'   rule in sprezzature-accessibility/scripts/lint_a11y.py. */\n'
+        f"   rule in sprezzature-accessibility/scripts/lint_a11y.py. */\n"
         f"{body_selector} {{\n"
         f"  line-height: {line_height};\n"
         f"  letter-spacing: {letter_spacing_em}em;\n"
@@ -132,67 +129,108 @@ def build_css(
     )
 
 
-def main() -> int:
-    """CLI entry point."""
-    p = make_parser(
-        prog="sprezzature-accessibility-text-spacing",
-        description=(
-            "Emit an opt-in 'comfortable reading' CSS block (WCAG 1.4.12 Text "
-            "Spacing minimums) for the elements lint_a11y.py's "
-            "body-text-tracking-tight rule audits. Make-side counterpart to "
-            "that audit rule."
-        ),
-        epilog=(
-            "Examples:\n"
-            "  sprezzature-accessibility-text-spacing\n"
-            "  sprezzature-accessibility-text-spacing --letter-spacing 0.16 "
-            "--word-spacing 0.32 --out reading-mode.css\n"
-        ),
-    )
-    p.add_argument(
-        "--attr", default="data-text-spacing",
-        help="Toggle attribute name. Default: data-text-spacing.",
-    )
-    p.add_argument(
-        "--value", default="comfortable",
-        help="Toggle attribute value. Default: comfortable.",
-    )
-    p.add_argument(
-        "--line-height", type=float, default=1.5,
-        help="Default: 1.5 (WCAG 1.4.12 minimum).",
-    )
-    p.add_argument(
-        "--letter-spacing", type=float, default=0.12,
-        help="In em. Default: 0.12 (WCAG 1.4.12 minimum).",
-    )
-    p.add_argument(
-        "--word-spacing", type=float, default=0.16,
-        help="In em. Default: 0.16 (WCAG 1.4.12 minimum).",
-    )
-    p.add_argument(
-        "--paragraph-spacing", type=float, default=2.0,
-        help="In em. Default: 2.0 (WCAG 1.4.12 minimum).",
-    )
-    p.add_argument(
-        "--out", type=Path, default=None,
-        help="Write to this file instead of stdout.",
-    )
-    args = p.parse_args()
-
+@sprezzature_command(
+    name="sprezzature-accessibility-text-spacing",
+    help=(
+        "Emit an opt-in 'comfortable reading' CSS block (WCAG 1.4.12 Text "
+        "Spacing minimums) for the elements lint_a11y.py's "
+        "body-text-tracking-tight rule audits. Make-side counterpart to "
+        "that audit rule."
+    ),
+    # ``\b`` keeps the examples one per line: click rewraps an epilog into a
+    # single paragraph otherwise.
+    epilog=(
+        "\b\nExamples:\n"
+        "  sprezzature-accessibility-text-spacing\n"
+        "  sprezzature-accessibility-text-spacing --letter-spacing 0.16 "
+        "--word-spacing 0.32 --out reading-mode.css\n"
+    ),
+)
+@click.option(
+    "--attr",
+    default="data-text-spacing",
+    help="Toggle attribute name. Default: data-text-spacing.",
+)
+@click.option(
+    "--value",
+    default="comfortable",
+    help="Toggle attribute value. Default: comfortable.",
+)
+@click.option(
+    "--line-height",
+    "line_height",
+    type=float,
+    default=1.5,
+    help="Default: 1.5 (WCAG 1.4.12 minimum).",
+)
+@click.option(
+    "--letter-spacing",
+    "letter_spacing",
+    type=float,
+    default=0.12,
+    help="In em. Default: 0.12 (WCAG 1.4.12 minimum).",
+)
+@click.option(
+    "--word-spacing",
+    "word_spacing",
+    type=float,
+    default=0.16,
+    help="In em. Default: 0.16 (WCAG 1.4.12 minimum).",
+)
+@click.option(
+    "--paragraph-spacing",
+    "paragraph_spacing",
+    type=float,
+    default=2.0,
+    help="In em. Default: 2.0 (WCAG 1.4.12 minimum).",
+)
+@click.option(
+    "--out",
+    type=click.Path(path_type=Path),
+    default=None,
+    help="Write to this file instead of stdout.",
+)
+def _cli(
+    attr: str,
+    value: str,
+    line_height: float,
+    letter_spacing: float,
+    word_spacing: float,
+    paragraph_spacing: float,
+    out: Path | None,
+) -> int:
+    """Write the preset to *out*, or to stdout."""
     css = build_css(
-        attr=args.attr,
-        value=args.value,
-        line_height=args.line_height,
-        letter_spacing_em=args.letter_spacing,
-        word_spacing_em=args.word_spacing,
-        paragraph_spacing_em=args.paragraph_spacing,
+        attr=attr,
+        value=value,
+        line_height=line_height,
+        letter_spacing_em=letter_spacing,
+        word_spacing_em=word_spacing,
+        paragraph_spacing_em=paragraph_spacing,
     )
-    if args.out:
-        args.out.write_text(css, encoding="utf-8")
-        sys.stderr.write(f"Wrote {args.out}\n")
+    if out:
+        out.write_text(css, encoding="utf-8")
+        sys.stderr.write(f"Wrote {out}\n")
     else:
         sys.stdout.write(css)
     return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    """
+    CLI entry point.
+
+    Parameters
+    ----------
+    argv : list of str or None, optional
+        Argument vector excluding ``argv[0]``. ``None`` reads ``sys.argv``.
+
+    Returns
+    -------
+    int
+        ``0`` on success, ``2`` on a usage error.
+    """
+    return run_command(_cli, argv)
 
 
 if __name__ == "__main__":

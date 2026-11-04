@@ -1,3 +1,3 @@
-# Core: stdlib only. No third-party runtime deps.
+# Runtime dependencies are declared in pyproject.toml and installed by `pip install sprezzature-accessibility`; the lint itself imports only the standard library.
 # Optional language detection:
 # langdetect>=1.0.9

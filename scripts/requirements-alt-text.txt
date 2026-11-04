@@ -9,9 +9,9 @@
 #   - langdetect           : detect language from --in DOC / --context text
 #                            so the output language matches the page without
 #                            relying on shell locale.
-#   - Pillow               : optional, and not a dependency in pyproject.toml:
-#                            downscales large images before sending them to
-#                            the model. The script works without it.
+#   - Pillow               : downscales large images before sending them to
+#                            the model (`--resize`). A base dependency in
+#                            pyproject.toml since 2026-11-04.
 #   - best-engine-ai-helper: routes the actual LLM/VLM call (Ollama by
 #                            default; see SPREZZATURE_LLM_* env vars).
 #   - wallet-helper        : memoizes those calls — content-addressed, bounded,

@@ -5,6 +5,7 @@
 #
 #   docker compose up -d
 #   curl -s localhost:8000/health
+#   # and the MCP endpoint on the same port: http://localhost:8000/mcp
 #   docker compose run --rm api sprezzature-accessibility-lint /work/public
 #   docker compose --profile alt up -d          # + the model the drafter needs
 #
@@ -17,6 +18,9 @@ services:
   api:
     build: .
     image: sprezzature-accessibility:local
+    # Stated rather than inherited from the Dockerfile, so a reader of this
+    # file sees that the one port carries the HTTP routes and `/mcp` both.
+    command: ["sprezzature-accessibility-mcp", "--host", "0.0.0.0", "--port", "8000"]
     ports:
       - "8000:8000"
     environment:

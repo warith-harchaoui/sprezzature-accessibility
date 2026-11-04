@@ -107,9 +107,8 @@ sous Windows), démarre son démon et télécharge `qwen3-vl:8b` :
 sprezzature-accessibility-install-alt
 ```
 
-Pillow n'est pas une dépendance. S'il est installé, les images sont réduites avant
-d'être envoyées au modèle (`--resize`) ; sinon, les octets d'origine partent tels
-quels.
+Les images sont réduites avant d'être envoyées au modèle : `--resize N` limite le
+plus grand côté à N pixels (1024 par défaut, 0 envoie les octets d'origine).
 
 ### Pour un crochet de pré-commit : deux paquets
 
@@ -246,7 +245,9 @@ Les deux orthographes de la porte d'entrée résolvent vers le même appelable, 
 une table unique (`sprezzature_accessibility/_tools.py`), donc un outil ne peut pas
 apparaître dans l'une et manquer dans l'autre. Les commandes propres à chaque outil
 sont ce qu'un script ou un crochet devrait appeler. La complétion pour bash et zsh
-est imprimée à la fin de `sprezzature-accessibility --help`.
+est imprimée à la fin de `sprezzature-accessibility --help`. Toutes les commandes,
+celles de chaque outil et le serveur MCP compris, sont en click : une seule mise en
+page de l'aide, `-h` et `-V`, et le code de sortie 2 sur une erreur d'usage.
 
 ### API HTTP
 
@@ -272,8 +273,9 @@ interactive est sur `/docs`.
 
 Avec Docker, `docker compose up -d` construit l'image et sert l'API sur le port
 8000, avec `./work` monté sur `/work`. `docker compose --profile alt up -d` démarre
-en plus un conteneur Ollama pour le rédacteur. L'image ne sert que les routes HTTP ;
-le point MCP est monté par `sprezzature-accessibility-mcp`.
+en plus un conteneur Ollama pour le rédacteur. Le conteneur lance
+`sprezzature-accessibility-mcp` : le même port répond aux routes HTTP et au point
+MCP sur `/mcp`.
 
 ### Serveur MCP
 

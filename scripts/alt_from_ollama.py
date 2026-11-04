@@ -41,8 +41,8 @@ Usage
 
 Notes
 -----
-* Requires Python 3.10+, ``requests``. Pillow is opportunistic
-  (used to downscale images before sending; if missing, the original is sent).
+* Requires Python 3.10+ and Pillow, which downscales images before sending
+  (``--resize``). Pillow is a base dependency of the package.
 * Model: ``qwen3-vl:8b`` — the one authorized LLM (multimodal, via Ollama).
 * Default Ollama endpoint: ``http://localhost:11434``. Override with ``OLLAMA_URL``.
 * On-disk cache lives under ``~/.cache/sprezzature-skill/alt/`` by default, now as a
@@ -105,9 +105,11 @@ sys.path.insert(0, str(Path(__file__).parent))
 from _lang import detect_text_language, language_name  # noqa: E402
 from _vocab import resolve_vocab_terms, surrounding_text  # noqa: E402
 
-# Pillow is *optional*. If available it is used to downscale the image before
-# sending to the model (faster inference, smaller HTTP payload). The script
-# stays functional without it; large images simply travel uncompressed.
+# Pillow downscales the image before it is sent to the model (faster
+# inference, smaller HTTP payload). It is a base dependency since 2026-11-04;
+# until then it was undeclared, so `--resize` did nothing on a default install.
+# The guard stays for a clone run with bare `python scripts/...`, where the
+# drafter still works and large images travel uncompressed.
 try:
     from PIL import Image  # type: ignore[import-not-found]
     HAVE_PILLOW: bool = True

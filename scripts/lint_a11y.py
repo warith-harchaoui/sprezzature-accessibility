@@ -88,7 +88,8 @@ Usage
 
 Notes
 -----
-* Python 3.10+, stdlib only (``html.parser``, ``argparse``, ``pathlib``).
+* Python 3.10+, the standard library plus click (``html.parser``, ``pathlib``,
+  and click for the command line).
 * The parser is forgiving: it walks documents that contain mixed-case
   tags, missing closures, and inline scripts without raising.
 * This linter is a *first pass*, not a replacement for ``axe-core`` or
@@ -106,15 +107,17 @@ import re
 import sys
 from pathlib import Path as _PathHelper
 
-# Shared parser factory: prog name, RawDescriptionHelpFormatter, --version.
+# Shared click helpers: prog name, -h/--help, -V/--version, argparse exit codes.
 sys.path.insert(0, str(_PathHelper(__file__).resolve().parent))
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
-from _argparse import make_parser  # noqa: E402
+import click  # noqa: E402
+from _click import run_command, sprezzature_command  # noqa: E402
 from _lang import detect_text_language, extract_body_text  # noqa: E402
 
 # ── Data structures ────────────────────────────────────────────────────────
@@ -1168,78 +1171,100 @@ def collect_targets(target: Path) -> list[Path]:
     return sorted(target.rglob("*.html"))
 
 
-def main() -> int:
-    """
-    CLI entry point.
-
-    Returns
-    -------
-    int
-        ``0`` on no findings, ``1`` on any finding.
-    """
-    p = make_parser(
-        prog="sprezzature-accessibility-lint",
-        description="W3C/WAI accessibility linter for HTML emitted by the sprezzature skill. "
-                    "20 rules, exit 1 on any finding. Pre-commit gate — pair with axe-core "
-                    "or Pa11y for runtime DOM audits.",
-        epilog="Examples:\n"
-               "  sprezzature-accessibility-lint public/index.html\n"
-               "  sprezzature-accessibility-lint --format json public/\n"
-               "  sprezzature-accessibility-lint --ignore img-missing-alt,a-missing-href dist/\n",
+@sprezzature_command(
+    name="sprezzature-accessibility-lint",
+    help="W3C/WAI accessibility linter for HTML emitted by the sprezzature skill. "
+    "20 rules, exit 1 on any finding. Pre-commit gate — pair with axe-core "
+    "or Pa11y for runtime DOM audits.",
+    # ``\b`` keeps the examples one per line: click rewraps an epilog into a
+    # single paragraph otherwise.
+    epilog="\b\nExamples:\n"
+    "  sprezzature-accessibility-lint public/index.html\n"
+    "  sprezzature-accessibility-lint --format json public/\n"
+    "  sprezzature-accessibility-lint --ignore img-missing-alt,a-missing-href dist/\n",
+)
+@click.argument("target", type=click.Path(path_type=Path))
+@click.option(
+    "--format",
+    "format_",
+    type=click.Choice(["text", "json"]),
+    default="text",
+    help="Output format. Default: text.",
+)
+@click.option(
+    "--ignore",
+    default="",
+    help="Comma-separated list of rule ids to skip.",
+)
+@click.option(
+    "--fix",
+    is_flag=True,
+    help=(
+        "Apply safe mechanical fixes in place: add lang to <html>, "
+        "strip redundant role/aria-hidden from decorative <img alt=''>, "
+        "demote tabindex>0 to 0, strip aria-hidden from interactive "
+        "elements, append motion-reduce:transform-none to animated "
+        "elements, strip tracking-tight/tighter from body text. "
+        "Rules without a fixer (empty button, missing "
+        "label, heading skip, etc.) are passed through honestly. "
+        "Idempotent."
+    ),
+)
+@click.option(
+    "--fix-alt",
+    "fix_alt",
+    is_flag=True,
+    help=(
+        "Draft the missing alt text and write it in, using the image AND "
+        "the surrounding text of the very page being fixed. Separate from "
+        "--fix on purpose: --fix is mechanical, offline and idempotent, "
+        "while this calls a local vision model, takes seconds per image, "
+        "and writes prose a human should read before committing. Needs "
+        "the drafting half: pip install 'sprezzature-accessibility'."
+    ),
+)
+@click.option(
+    "--alt-lang",
+    "alt_lang",
+    default=None,
+    metavar="TAG",
+    help=(
+        "BCP-47 base tag for drafted alt text. When omitted: the page's "
+        "<html lang>, then detection on the page text, then the "
+        "environment locale. A French page should not get English alt "
+        "because the machine's locale is English."
+    ),
+)
+@click.option(
+    "--dry-run",
+    "dry_run",
+    is_flag=True,
+    help=(
+        "With --fix, print what would change without touching the "
+        "files. Implies --fix when used alone. Always exits 0."
+    ),
+)
+def _cli(
+    target: Path,
+    format_: str,
+    ignore: str,
+    fix: bool,
+    fix_alt: bool,
+    alt_lang: str | None,
+    dry_run: bool,
+) -> int:
+    """Run the lint, the fixers or the drafter over *target*."""
+    # One namespace so the body below reads the flags as it did when argparse
+    # built them; click hands them over as keyword arguments instead.
+    args = SimpleNamespace(
+        target=target,
+        format=format_,
+        ignore=ignore,
+        fix=fix,
+        fix_alt=fix_alt,
+        alt_lang=alt_lang,
+        dry_run=dry_run,
     )
-    p.add_argument(
-        "target", type=Path,
-        help="HTML file or directory to lint.",
-    )
-    p.add_argument(
-        "--format", choices=["text", "json"], default="text",
-        help="Output format. Default: text.",
-    )
-    p.add_argument(
-        "--ignore", default="",
-        help="Comma-separated list of rule ids to skip.",
-    )
-    p.add_argument(
-        "--fix", action="store_true",
-        help=(
-            "Apply safe mechanical fixes in place: add lang to <html>, "
-            "strip redundant role/aria-hidden from decorative <img alt=''>, "
-            "demote tabindex>0 to 0, strip aria-hidden from interactive "
-            "elements, append motion-reduce:transform-none to animated "
-            "elements, strip tracking-tight/tighter from body text. "
-            "Rules without a fixer (empty button, missing "
-            "label, heading skip, etc.) are passed through honestly. "
-            "Idempotent."
-        ),
-    )
-    p.add_argument(
-        "--fix-alt", dest="fix_alt", action="store_true",
-        help=(
-            "Draft the missing alt text and write it in, using the image AND "
-            "the surrounding text of the very page being fixed. Separate from "
-            "--fix on purpose: --fix is mechanical, offline and idempotent, "
-            "while this calls a local vision model, takes seconds per image, "
-            "and writes prose a human should read before committing. Needs "
-            "the drafting half: pip install 'sprezzature-accessibility'."
-        ),
-    )
-    p.add_argument(
-        "--alt-lang", dest="alt_lang", default=None, metavar="TAG",
-        help=(
-            "BCP-47 base tag for drafted alt text. When omitted: the page's "
-            "<html lang>, then detection on the page text, then the "
-            "environment locale. A French page should not get English alt "
-            "because the machine's locale is English."
-        ),
-    )
-    p.add_argument(
-        "--dry-run", action="store_true",
-        help=(
-            "With --fix, print what would change without touching the "
-            "files. Implies --fix when used alone. Always exits 0."
-        ),
-    )
-    args = p.parse_args()
 
     ignored: set[str] = {r.strip() for r in args.ignore.split(",") if r.strip()}
     paths = collect_targets(args.target)
@@ -1363,6 +1388,23 @@ def main() -> int:
             print(f"{total} finding(s) across {failing_files} file(s).")
 
     return 0 if total == 0 else 1
+
+
+def main(argv: list[str] | None = None) -> int:
+    """
+    CLI entry point.
+
+    Parameters
+    ----------
+    argv : list of str or None, optional
+        Argument vector excluding ``argv[0]``. ``None`` reads ``sys.argv``.
+
+    Returns
+    -------
+    int
+        ``0`` on no findings, ``1`` on any finding, ``2`` on a usage error.
+    """
+    return run_command(_cli, argv)
 
 
 if __name__ == "__main__":

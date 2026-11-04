@@ -4,8 +4,32 @@ All notable changes to sprezzature-accessibility are documented here.
 
 ## [Unreleased]
 
+### Changed
+
+- **The last three argparse commands are click.** `sprezzature-accessibility-lint`,
+  `sprezzature-accessibility-text-spacing` and `sprezzature-accessibility-mcp`
+  keep their flags, defaults, choices, help texts and exit codes (2 on a usage
+  error), and each `main` takes `argv`. `scripts/_argparse.py` had no caller left
+  and is deleted. `tests/test_every_command_is_click.py` asks every console
+  script for `--help` and scans the shipped sources for an argparse import; it
+  fails on the previous code. The examples in the `--help` epilogs stay one per
+  line, which `sprezzature-accessibility-alt` had lost to click's rewrapping.
+- **The container serves `/mcp` too.** The Dockerfile CMD and the compose
+  service run `sprezzature-accessibility-mcp --host 0.0.0.0 --port 8000`, which
+  mounts the MCP endpoint on the same app as `/v1/...`. The previous CMD,
+  uvicorn on `api:app`, never imported the MCP module. Checked by starting the
+  server and calling `/health` and MCP `initialize` on one port;
+  `tests/test_the_image_serves_mcp.py` holds the CMD.
+- **The `description` on PyPI no longer says "stdlib only".** The lint needs
+  click, and the package drafts alt text with a local model.
+
 ### Fixed
 
+- **`--resize` did nothing on a default install.** Pillow was declared nowhere,
+  so `maybe_resize` found no Pillow and sent the original bytes, whatever the
+  flag said. `Pillow>=10.0.0` is a base dependency, and the README lines saying
+  Pillow was optional are gone. `tests/test_resize_shrinks_the_image.py` drives
+  `--resize 64` on a generated 400x200 image and reads 64x32 at the model.
 - **`--fix-alt` drafted in the machine's language, not the page's.** Without
   `--alt-lang`, `fill_missing_alt` asked only the environment locale, while the
   flag's help promised detection from the document: a French page linted on an
