@@ -116,8 +116,6 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
-import click  # noqa: E402
-from _click import run_command, sprezzature_command  # noqa: E402
 from _lang import detect_text_language, extract_body_text  # noqa: E402
 
 # ── Data structures ────────────────────────────────────────────────────────
@@ -1171,223 +1169,235 @@ def collect_targets(target: Path) -> list[Path]:
     return sorted(target.rglob("*.html"))
 
 
-@sprezzature_command(
-    name="sprezzature-accessibility-lint",
-    help="W3C/WAI accessibility linter for HTML emitted by the sprezzature skill. "
-    "20 rules, exit 1 on any finding. Pre-commit gate — pair with axe-core "
-    "or Pa11y for runtime DOM audits.",
-    # ``\b`` keeps the examples one per line: click rewraps an epilog into a
-    # single paragraph otherwise.
-    epilog="\b\nExamples:\n"
-    "  sprezzature-accessibility-lint public/index.html\n"
-    "  sprezzature-accessibility-lint --format json public/\n"
-    "  sprezzature-accessibility-lint --ignore img-missing-alt,a-missing-href dist/\n",
-)
-@click.argument("target", type=click.Path(path_type=Path))
-@click.option(
-    "--format",
-    "format_",
-    type=click.Choice(["text", "json"]),
-    default="text",
-    help="Output format. Default: text.",
-)
-@click.option(
-    "--ignore",
-    default="",
-    help="Comma-separated list of rule ids to skip.",
-)
-@click.option(
-    "--fix",
-    is_flag=True,
-    help=(
-        "Apply safe mechanical fixes in place: add lang to <html>, "
-        "strip redundant role/aria-hidden from decorative <img alt=''>, "
-        "demote tabindex>0 to 0, strip aria-hidden from interactive "
-        "elements, append motion-reduce:transform-none to animated "
-        "elements, strip tracking-tight/tighter from body text. "
-        "Rules without a fixer (empty button, missing "
-        "label, heading skip, etc.) are passed through honestly. "
-        "Idempotent."
-    ),
-)
-@click.option(
-    "--fix-alt",
-    "fix_alt",
-    is_flag=True,
-    help=(
-        "Draft the missing alt text and write it in, using the image AND "
-        "the surrounding text of the very page being fixed. Separate from "
-        "--fix on purpose: --fix is mechanical, offline and idempotent, "
-        "while this calls a local vision model, takes seconds per image, "
-        "and writes prose a human should read before committing. Needs "
-        "the drafting half: pip install 'sprezzature-accessibility'."
-    ),
-)
-@click.option(
-    "--alt-lang",
-    "alt_lang",
-    default=None,
-    metavar="TAG",
-    help=(
-        "BCP-47 base tag for drafted alt text. When omitted: the page's "
-        "<html lang>, then detection on the page text, then the "
-        "environment locale. A French page should not get English alt "
-        "because the machine's locale is English."
-    ),
-)
-@click.option(
-    "--dry-run",
-    "dry_run",
-    is_flag=True,
-    help=(
-        "With --fix, print what would change without touching the "
-        "files. Implies --fix when used alone. Always exits 0."
-    ),
-)
-def _cli(
-    target: Path,
-    format_: str,
-    ignore: str,
-    fix: bool,
-    fix_alt: bool,
-    alt_lang: str | None,
-    dry_run: bool,
-) -> int:
-    """Run the lint, the fixers or the drafter over *target*."""
-    # One namespace so the body below reads the flags as it did when argparse
-    # built them; click hands them over as keyword arguments instead.
-    args = SimpleNamespace(
-        target=target,
-        format=format_,
-        ignore=ignore,
-        fix=fix,
-        fix_alt=fix_alt,
-        alt_lang=alt_lang,
-        dry_run=dry_run,
+def _build_cli() -> Any:
+    """Build the click command. click is imported here, not at module top.
+
+    ``from lint_a11y import lint_html`` is how the downloadable toolbox kit on
+    sprezzature.ai uses this module, with nothing installed: the rules need
+    only the standard library, and only the command line needs click.
+    """
+    import click
+    from _click import sprezzature_command
+
+    @sprezzature_command(
+        name="sprezzature-accessibility-lint",
+        help="W3C/WAI accessibility linter for HTML emitted by the sprezzature skill. "
+        "20 rules, exit 1 on any finding. Pre-commit gate — pair with axe-core "
+        "or Pa11y for runtime DOM audits.",
+        # ``\b`` keeps the examples one per line: click rewraps an epilog into a
+        # single paragraph otherwise.
+        epilog="\b\nExamples:\n"
+        "  sprezzature-accessibility-lint public/index.html\n"
+        "  sprezzature-accessibility-lint --format json public/\n"
+        "  sprezzature-accessibility-lint --ignore img-missing-alt,a-missing-href dist/\n",
     )
+    @click.argument("target", type=click.Path(path_type=Path))
+    @click.option(
+        "--format",
+        "format_",
+        type=click.Choice(["text", "json"]),
+        default="text",
+        help="Output format. Default: text.",
+    )
+    @click.option(
+        "--ignore",
+        default="",
+        help="Comma-separated list of rule ids to skip.",
+    )
+    @click.option(
+        "--fix",
+        is_flag=True,
+        help=(
+            "Apply safe mechanical fixes in place: add lang to <html>, "
+            "strip redundant role/aria-hidden from decorative <img alt=''>, "
+            "demote tabindex>0 to 0, strip aria-hidden from interactive "
+            "elements, append motion-reduce:transform-none to animated "
+            "elements, strip tracking-tight/tighter from body text. "
+            "Rules without a fixer (empty button, missing "
+            "label, heading skip, etc.) are passed through honestly. "
+            "Idempotent."
+        ),
+    )
+    @click.option(
+        "--fix-alt",
+        "fix_alt",
+        is_flag=True,
+        help=(
+            "Draft the missing alt text and write it in, using the image AND "
+            "the surrounding text of the very page being fixed. Separate from "
+            "--fix on purpose: --fix is mechanical, offline and idempotent, "
+            "while this calls a local vision model, takes seconds per image, "
+            "and writes prose a human should read before committing. Needs "
+            "the drafting half: pip install 'sprezzature-accessibility'."
+        ),
+    )
+    @click.option(
+        "--alt-lang",
+        "alt_lang",
+        default=None,
+        metavar="TAG",
+        help=(
+            "BCP-47 base tag for drafted alt text. When omitted: the page's "
+            "<html lang>, then detection on the page text, then the "
+            "environment locale. A French page should not get English alt "
+            "because the machine's locale is English."
+        ),
+    )
+    @click.option(
+        "--dry-run",
+        "dry_run",
+        is_flag=True,
+        help=(
+            "With --fix, print what would change without touching the "
+            "files. Implies --fix when used alone. Always exits 0."
+        ),
+    )
+    def _cli(
+        target: Path,
+        format_: str,
+        ignore: str,
+        fix: bool,
+        fix_alt: bool,
+        alt_lang: str | None,
+        dry_run: bool,
+    ) -> int:
+        """Run the lint, the fixers or the drafter over *target*."""
+        # One namespace so the body below reads the flags as it did when argparse
+        # built them; click hands them over as keyword arguments instead.
+        args = SimpleNamespace(
+            target=target,
+            format=format_,
+            ignore=ignore,
+            fix=fix,
+            fix_alt=fix_alt,
+            alt_lang=alt_lang,
+            dry_run=dry_run,
+        )
 
-    ignored: set[str] = {r.strip() for r in args.ignore.split(",") if r.strip()}
-    paths = collect_targets(args.target)
-    if not paths:
-        sys.stderr.write(f"No HTML files found under {args.target}\n")
-        return 0
+        ignored: set[str] = {r.strip() for r in args.ignore.split(",") if r.strip()}
+        paths = collect_targets(args.target)
+        if not paths:
+            sys.stderr.write(f"No HTML files found under {args.target}\n")
+            return 0
 
-    # ── Drafting pass ─────────────────────────────────────────────────
-    # Runs before the mechanical pass so the alt it writes is visible to the
-    # lint that follows: an image that now has alt="" would be reported as a
-    # decorative one with a redundant role, and --fix should get to clean
-    # that up in the same invocation.
-    if args.fix_alt:
-        from fill_alt import fill_missing_alt
+        # ── Drafting pass ─────────────────────────────────────────────────
+        # Runs before the mechanical pass so the alt it writes is visible to the
+        # lint that follows: an image that now has alt="" would be reported as a
+        # decorative one with a redundant role, and --fix should get to clean
+        # that up in the same invocation.
+        if args.fix_alt:
+            from fill_alt import fill_missing_alt
 
-        drafted = 0
-        for path in paths:
-            drafts, unreachable = fill_missing_alt(
-                path, ignored, lang=args.alt_lang, dry_run=args.dry_run
-            )
-            drafted += len(drafts)
-            for draft in drafts:
-                sys.stderr.write(
-                    f"{path}:{draft.line}: drafted from {draft.src} "
-                    f"with {draft.context_chars} chars of page context\n"
+            drafted = 0
+            for path in paths:
+                drafts, unreachable = fill_missing_alt(
+                    path, ignored, lang=args.alt_lang, dry_run=args.dry_run
                 )
-            for finding in unreachable:
+                drafted += len(drafts)
+                for draft in drafts:
+                    sys.stderr.write(
+                        f"{path}:{draft.line}: drafted from {draft.src} "
+                        f"with {draft.context_chars} chars of page context\n"
+                    )
+                for finding in unreachable:
+                    sys.stderr.write(
+                        f"{path}:{finding.line}: left alone — the image is remote, "
+                        f"missing, or the tag spans lines\n"
+                    )
+            if drafted:
                 sys.stderr.write(
-                    f"{path}:{finding.line}: left alone — the image is remote, "
-                    f"missing, or the tag spans lines\n"
+                    f"{drafted} draft(s) written. They are drafts: a model cannot "
+                    f"know that the photograph on the About page is the founder. "
+                    f"Read them before committing.\n"
                 )
-        if drafted:
-            sys.stderr.write(
-                f"{drafted} draft(s) written. They are drafts: a model cannot "
-                f"know that the photograph on the About page is the founder. "
-                f"Read them before committing.\n"
-            )
 
-    # ── Fix mode ──────────────────────────────────────────────────────
-    # ``--dry-run`` alone implies ``--fix`` (preview only). When the
-    # user runs ``--fix``, we apply the safe mechanical fixes in place,
-    # then emit the residual findings in the requested format so a CI
-    # pipeline can still gate on them.
-    if args.fix or args.dry_run or args.fix_alt:
-        total_applied: int = 0
-        total_skipped: int = 0
-        total_remaining: list[Finding] = []
+        # ── Fix mode ──────────────────────────────────────────────────────
+        # ``--dry-run`` alone implies ``--fix`` (preview only). When the
+        # user runs ``--fix``, we apply the safe mechanical fixes in place,
+        # then emit the residual findings in the requested format so a CI
+        # pipeline can still gate on them.
+        if args.fix or args.dry_run or args.fix_alt:
+            total_applied: int = 0
+            total_skipped: int = 0
+            total_remaining: list[Finding] = []
+            for path in paths:
+                applied, skipped, remaining = fix_file(
+                    path, ignored, dry_run=args.dry_run
+                )
+                total_applied += applied
+                total_skipped += skipped
+                total_remaining.extend(remaining)
+                verb: str = "would apply" if args.dry_run else "applied"
+                sys.stderr.write(
+                    f"{path}: {verb} {applied} fix(es); "
+                    f"{skipped} unfixable finding(s); "
+                    f"{len(remaining)} remaining.\n"
+                )
+            if args.format == "json":
+                json.dump(
+                    {
+                        "applied": total_applied,
+                        "skipped": total_skipped,
+                        "findings_total": len(total_remaining),
+                        "findings": [
+                            {"rule": f.rule, "line": f.line, "message": f.message}
+                            for f in total_remaining
+                        ],
+                    },
+                    sys.stdout, indent=2, ensure_ascii=False,
+                )
+                sys.stdout.write("\n")
+            else:
+                if total_remaining:
+                    print(
+                        f"{len(total_remaining)} remaining finding(s) after "
+                        f"{'preview' if args.dry_run else 'fix'} pass."
+                    )
+                else:
+                    print("0 findings remaining.")
+            # Dry-run is a preview, not a verdict — always exit 0.
+            if args.dry_run:
+                return 0
+            return 0 if not total_remaining else 1
+
+        # ── Audit-only mode ───────────────────────────────────────────────
+        total: int = 0
+        failing_files: int = 0
+        report: list[dict] = []
         for path in paths:
-            applied, skipped, remaining = fix_file(
-                path, ignored, dry_run=args.dry_run
-            )
-            total_applied += applied
-            total_skipped += skipped
-            total_remaining.extend(remaining)
-            verb: str = "would apply" if args.dry_run else "applied"
-            sys.stderr.write(
-                f"{path}: {verb} {applied} fix(es); "
-                f"{skipped} unfixable finding(s); "
-                f"{len(remaining)} remaining.\n"
-            )
+            findings = lint_file(path, ignored)
+            if not findings:
+                continue
+            total += len(findings)
+            failing_files += 1
+            if args.format == "text":
+                print(f"{path}:")
+                for f in findings:
+                    print(f"  L{f.line:>4}  [{f.rule}] {f.message}")
+            # ``report`` is populated in both formats so the JSON output has the
+            # same coverage as the text output.
+            report.append({
+                "file": str(path),
+                "findings": [
+                    {"rule": f.rule, "line": f.line, "message": f.message}
+                    for f in findings
+                ],
+            })
+
         if args.format == "json":
-            json.dump(
-                {
-                    "applied": total_applied,
-                    "skipped": total_skipped,
-                    "findings_total": len(total_remaining),
-                    "findings": [
-                        {"rule": f.rule, "line": f.line, "message": f.message}
-                        for f in total_remaining
-                    ],
-                },
-                sys.stdout, indent=2, ensure_ascii=False,
-            )
+            json.dump({"findings_total": total, "files": report},
+                      sys.stdout, indent=2, ensure_ascii=False)
             sys.stdout.write("\n")
         else:
-            if total_remaining:
-                print(
-                    f"{len(total_remaining)} remaining finding(s) after "
-                    f"{'preview' if args.dry_run else 'fix'} pass."
-                )
+            print()
+            if total == 0:
+                print("0 findings.")
             else:
-                print("0 findings remaining.")
-        # Dry-run is a preview, not a verdict — always exit 0.
-        if args.dry_run:
-            return 0
-        return 0 if not total_remaining else 1
+                print(f"{total} finding(s) across {failing_files} file(s).")
 
-    # ── Audit-only mode ───────────────────────────────────────────────
-    total: int = 0
-    failing_files: int = 0
-    report: list[dict] = []
-    for path in paths:
-        findings = lint_file(path, ignored)
-        if not findings:
-            continue
-        total += len(findings)
-        failing_files += 1
-        if args.format == "text":
-            print(f"{path}:")
-            for f in findings:
-                print(f"  L{f.line:>4}  [{f.rule}] {f.message}")
-        # ``report`` is populated in both formats so the JSON output has the
-        # same coverage as the text output.
-        report.append({
-            "file": str(path),
-            "findings": [
-                {"rule": f.rule, "line": f.line, "message": f.message}
-                for f in findings
-            ],
-        })
+        return 0 if total == 0 else 1
 
-    if args.format == "json":
-        json.dump({"findings_total": total, "files": report},
-                  sys.stdout, indent=2, ensure_ascii=False)
-        sys.stdout.write("\n")
-    else:
-        print()
-        if total == 0:
-            print("0 findings.")
-        else:
-            print(f"{total} finding(s) across {failing_files} file(s).")
-
-    return 0 if total == 0 else 1
+    return _cli
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -1404,7 +1414,9 @@ def main(argv: list[str] | None = None) -> int:
     int
         ``0`` on no findings, ``1`` on any finding, ``2`` on a usage error.
     """
-    return run_command(_cli, argv)
+    from _click import run_command
+
+    return run_command(_build_cli(), argv)
 
 
 if __name__ == "__main__":
