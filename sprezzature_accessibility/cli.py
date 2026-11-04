@@ -95,6 +95,9 @@ def _attach(name: str, module_name: str, extra: str, summary: str) -> None:
         context_settings={
             "ignore_unknown_options": True,
             "allow_extra_args": True,
+            # --help belongs to the tool: with a help option of its own this
+            # stub answered it, with one line and a REST argument.
+            "help_option_names": [],
         },
     )
     @click.argument("rest", nargs=-1, type=click.UNPROCESSED)
@@ -114,7 +117,7 @@ def _attach(name: str, module_name: str, extra: str, summary: str) -> None:
         saved = sys.argv
         try:
             sys.argv = [f"sprezzature-accessibility {_name}", *rest]
-            raise SystemExit(int(module.main() or 0))
+            raise SystemExit(int(module.main(list(rest)) or 0))
         finally:
             sys.argv = saved
 
