@@ -4,6 +4,8 @@ All notable changes to sprezzature-accessibility are documented here.
 
 ## [Unreleased]
 
+## [1.4.0] — 2026-11-04: click everywhere, the page's own language for --fix-alt
+
 ### Changed
 
 - **The last three argparse commands are click.** `sprezzature-accessibility-lint`,
