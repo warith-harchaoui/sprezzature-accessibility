@@ -4,6 +4,8 @@ All notable changes to sprezzature-accessibility are documented here.
 
 ## [Unreleased]
 
+## [1.4.1] — 2026-11-05
+
 ### Fixed
 
 - **`sprezzature-accessibility -V` was a usage error.** The front door answered

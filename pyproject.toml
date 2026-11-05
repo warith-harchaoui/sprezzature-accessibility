@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sprezzature-accessibility"
-version = "1.4.0"
+version = "1.4.1"
 description = "Static HTML accessibility linter: 20 WCAG/WAI rules decidable from source, time-based media included, CI-ready; drafts the missing alt text with a local vision model."
 readme = "README.md"
 # The upper bound is not housekeeping: it is inherited, and it was being
