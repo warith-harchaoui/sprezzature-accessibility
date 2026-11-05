@@ -4,6 +4,18 @@ All notable changes to sprezzature-accessibility are documented here.
 
 ## [Unreleased]
 
+### Docs
+
+- `references/lint-rules.md`: `motion-no-reduce-guard` names the classes it
+  actually reads, `animate-spin`, `-ping`, `-pulse`, `-bounce`,
+  `transition-transform` and `transition-all`. It said "an `animate-*`
+  class", and a custom `animate-*` keyframe is not flagged.
+- The skill's `references/lint-a11y.md` (in the hub) says `input-missing-label`
+  accepts an `aria-label` and exempts hidden, submit, button, reset and image
+  inputs, as the code does.
+- `pyproject.toml` lists the Python 3.13 classifier. `requires-python` and
+  the README already promised 3.10 to 3.13; the classifiers stopped at 3.12.
+
 ## [1.4.2] — 2026-11-05
 
 ### Fixed
