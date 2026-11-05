@@ -209,3 +209,26 @@ def test_the_drafting_route_says_so_when_it_did_not_import(monkeypatch) -> None:
         f"the 503 does not name what failed to import, so the deployer cannot "
         f"tell a broken install from a deliberate one: {detail!r}"
     )
+
+
+@pytest.mark.parametrize(
+    ("code", "status", "said"),
+    [(1, 503, "best-engine-ai-helper"), (2, 502, "Is Ollama running")],
+)
+def test_a_broken_install_is_not_a_dead_daemon_over_http(
+    monkeypatch: pytest.MonkeyPatch, code: int, status: int, said: str
+) -> None:
+    """The engine's two exits become two statuses, each with its own repair.
+
+    Exit 1 (the model client is missing) was answered 502 "Is Ollama
+    running", which sends a deployer to the wrong fix.
+    """
+    import sprezzature_accessibility.api as api
+
+    def exits(*_args: object, **_kwargs: object) -> str:
+        raise SystemExit(code)
+
+    monkeypatch.setattr(api, "describe", exits)
+    response = TestClient(api.app).post("/v1/alt", json={"src": "a.png", "lang": "en"})
+    assert response.status_code == status
+    assert said in response.json()["detail"]

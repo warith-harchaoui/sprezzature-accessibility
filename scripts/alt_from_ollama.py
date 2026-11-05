@@ -88,18 +88,67 @@ from typing import Any, TextIO
 # a package they have never heard of and did not ask for. The command cannot
 # work without it -- but `--help` can, and the message that replaces the
 # traceback names the install line rather than only the dependency.
+class ModelClientMissing(RuntimeError):
+    """``best-engine-ai-helper`` did not import: a broken install, not a dead daemon.
+
+    A subclass of :class:`RuntimeError` so a caller that only knows the old
+    contract still catches it, but its own class so :func:`_chat_or_exit` can
+    tell it apart. Until it existed, a missing model client was reported as
+    "Cannot reach Ollama", and the advice that followed (start the daemon)
+    could not fix it.
+    """
+
+
+#: Exit code when the model client is missing from the install. Distinct from
+#: ``2`` (the model cannot be reached) because the repair is a reinstall, not
+#: ``ollama serve``; and ``1`` rather than a new number because it is a plain
+#: failure of this process, which is what ``1`` means everywhere else here.
+EXIT_BROKEN_INSTALL: int = 1
+
+#: Exit code when the model cannot be reached or answers with an error.
+EXIT_MODEL_UNREACHABLE: int = 2
+
+
 def _llm_chat(*args: object, **kwargs: object) -> object:
     """Call the suite's one LLM entry point, or say how to repair the install."""
     try:
         from best_engine_ai_helper.llm import chat
     except ImportError as exc:
-        raise RuntimeError(
+        raise ModelClientMissing(
             "drafting alt text needs a model client, best-engine-ai-helper, "
             "which is a base dependency missing from this environment (a "
             "--no-deps install, or a broken one). Reinstall with:\n"
             "    pip install sprezzature-accessibility"
         ) from exc
     return chat(*args, **kwargs)
+
+
+def _chat_or_exit(prompt: str, data: bytes, model: str) -> str:
+    """Ask the model, or report why it could not be asked and exit.
+
+    Two failures, two messages, two exit codes. A missing model client is a
+    broken install (:data:`EXIT_BROKEN_INSTALL`, repaired by a reinstall);
+    anything else ``best_engine_ai_helper.llm.chat`` raises is a
+    :class:`RuntimeError` covering connection failures and HTTP errors alike
+    (:data:`EXIT_MODEL_UNREACHABLE`, repaired by starting the daemon).
+    """
+    try:
+        return str(_llm_chat(prompt, images=[data], model=model))
+    except ModelClientMissing as e:
+        sys.stderr.write(f"{e}\n")
+        sys.exit(EXIT_BROKEN_INSTALL)
+    except RuntimeError as e:
+        sys.stderr.write(
+            f"Cannot reach Ollama at {OLLAMA_URL}, or it returned an error: {e}\n"
+            # Names the installed command, not a repo path: this module now
+            # ships as a wheel, where `scripts/install_alt_ai.py` does not
+            # exist. The fallback keeps the path for anyone running from a
+            # clone, where the console script may not be on PATH.
+            f"Start the daemon (`ollama serve`) or run:\n"
+            f"    sprezzature-accessibility-install-alt\n"
+            f"    (from a clone: python scripts/install_alt_ai.py)\n"
+        )
+        sys.exit(EXIT_MODEL_UNREACHABLE)
 
 # Vocabulary + language helpers — shared with the other Ollama-backed scripts.
 sys.path.insert(0, str(Path(__file__).parent))
@@ -676,7 +725,8 @@ def describe_long(
     Raises
     ------
     SystemExit
-        With code ``2`` when Ollama is unreachable.
+        With code ``2`` when Ollama is unreachable, ``1`` when the model
+        client (``best-engine-ai-helper``) is missing from the install.
     """
     lang = (lang or detect_lang()).lower()[:2]
     model = model or pick_default_model()
@@ -698,25 +748,9 @@ def describe_long(
             # comfortably fits in 600 tokens for most languages.
             "options": {"temperature": 0.25, "num_predict": 600},
         }
-        try:
-            # Long descriptions are NOT post-processed by ``post_process`` —
-            # that would strip Markdown bullets and clip mid-list.
-            return str(_llm_chat(payload["prompt"], images=[data], model=model)).strip()
-        except RuntimeError as e:
-            # best_engine_ai_helper.llm.chat wraps both connection failures and
-            # HTTP error responses into RuntimeError (not requests.exceptions.*)
-            # regardless of backend, so both cases are one except clause now.
-            sys.stderr.write(
-                f"Cannot reach Ollama at {OLLAMA_URL}, or it returned an error: {e}\n"
-                # Names the installed command, not a repo path: this module now
-                # ships as a wheel, where `scripts/install_alt_ai.py` does not
-                # exist. The fallback keeps the path for anyone running from a
-                # clone, where the console script may not be on PATH.
-                f"Start the daemon (`ollama serve`) or run:\n"
-                f"    sprezzature-accessibility-install-alt\n"
-                f"    (from a clone: python scripts/install_alt_ai.py)\n"
-            )
-            sys.exit(2)
+        # Long descriptions are NOT post-processed by ``post_process`` —
+        # that would strip Markdown bullets and clip mid-list.
+        return _chat_or_exit(payload["prompt"], data, model).strip()
 
     return _run_once(key, work)
 
@@ -797,7 +831,9 @@ def describe(
     Raises
     ------
     SystemExit
-        With code ``2`` when Ollama is unreachable or returns an HTTP error.
+        With code ``2`` when Ollama is unreachable or returns an HTTP error,
+        ``1`` when the model client (``best-engine-ai-helper``) is missing
+        from the install.
 
     Examples
     --------
@@ -841,25 +877,7 @@ def describe(
             # short so 120 tokens is generous.
             "options": {"temperature": 0.2, "num_predict": 120},
         }
-        try:
-            return post_process(
-                str(_llm_chat(payload["prompt"], images=[data], model=model)), lang
-            )
-        except RuntimeError as e:
-            # best_engine_ai_helper.llm.chat wraps both connection failures and
-            # HTTP error responses into RuntimeError (not requests.exceptions.*)
-            # regardless of backend, so both cases are one except clause now.
-            sys.stderr.write(
-                f"Cannot reach Ollama at {OLLAMA_URL}, or it returned an error: {e}\n"
-                # Names the installed command, not a repo path: this module now
-                # ships as a wheel, where `scripts/install_alt_ai.py` does not
-                # exist. The fallback keeps the path for anyone running from a
-                # clone, where the console script may not be on PATH.
-                f"Start the daemon (`ollama serve`) or run:\n"
-                f"    sprezzature-accessibility-install-alt\n"
-                f"    (from a clone: python scripts/install_alt_ai.py)\n"
-            )
-            sys.exit(2)
+        return post_process(_chat_or_exit(payload["prompt"], data, model), lang)
 
     return _run_once(key, work)
 
@@ -916,7 +934,8 @@ def run(
     Returns
     -------
     int
-        ``0`` on success, ``2`` when the local model cannot be reached.
+        ``0`` on success, ``2`` when the local model cannot be reached, ``1``
+        when the model client is missing from the install.
     """
     out = sys.stdout if out is None else out
     err = sys.stderr if err is None else err

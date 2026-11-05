@@ -407,7 +407,19 @@ def draft_alt_text(request: AltRequest) -> AltResponse:
         )
     except SystemExit as exc:
         # The script layer exits on an unreachable model; over HTTP that has
-        # to become a status code, not a dead worker.
+        # to become a status code, not a dead worker. Exit 1 is the other
+        # failure it reports: the model client is missing from the install,
+        # which no amount of starting Ollama repairs, so it is a 503 like the
+        # import guard above rather than a 502 that points at the daemon.
+        if exc.code == 1:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "the model client (best-engine-ai-helper) is missing from "
+                    "this install. It is a base dependency: pip install "
+                    "sprezzature-accessibility."
+                ),
+            ) from exc
         raise HTTPException(
             status_code=502,
             detail=(

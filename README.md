@@ -250,7 +250,8 @@ curl -s -X POST localhost:8000/v1/lint \
 
 The API lints a string, never a URL: fetching on a caller's behalf would turn it
 into an open proxy. `POST /v1/alt` answers 502 when the local model cannot be
-reached and 404 when the image file does not exist. Interactive documentation is at
+reached, 503 when the install is missing the model client, and 404 when the image
+file does not exist. Interactive documentation is at
 `/docs`.
 
 With Docker, `docker compose up -d` builds the image and serves the API on port

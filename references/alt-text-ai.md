@@ -90,7 +90,8 @@ sprezzature-accessibility-alt --kind decorative ./public/divider.svg
 
 Output: one line of alt text on stdout, capped at 150 characters (`MAX_CHARS`) at a
 word boundary, **never** with a trailing `…`. Empty stdout for decorative. Exit code
-0 on success, 2 when the model cannot be reached.
+0 on success, 2 when the model cannot be reached, 1 when the model client
+(`best-engine-ai-helper`) is missing from the install.
 
 Language: `--lang` wins. Without it, the language is detected from the context
 text (`--context`, the `--in` document, the vocabulary); with no text at all, it
@@ -131,8 +132,9 @@ same arguments except `vocabulary`.
 
 `POST /v1/alt` (MCP tool `draft_alt_text`) takes `src`, `kind`, `lang`, `context`,
 `resize`, `model`, `vocabulary` and `long`, and returns `alt`, `long`, `lang`,
-`kind` and `draft` (always true). It answers 502 when the model cannot be reached
-and 404 when the image does not exist. A browser page cannot call Ollama directly
+`kind` and `draft` (always true). It answers 502 when the model cannot be reached,
+503 when the model client is missing from the install, and 404 when the image does
+not exist. A browser page cannot call Ollama directly
 (Ollama does not answer CORS requests from web pages), so this route is the proxy
 to put in front of it.
 
@@ -188,6 +190,7 @@ Drafts are cached on disk so the same input never reaches the model twice.
 | Symptom | Likely cause | Fix |
 |---|---|---|
 | Model unreachable, exit code 2 (502 over HTTP) | Daemon not running | `sprezzature-accessibility-install-alt` (harmless to re-run) or `ollama serve`. |
+| Exit code 1 (503 over HTTP), "model client … missing" | `best-engine-ai-helper` absent, as after a `--no-deps` install | `pip install sprezzature-accessibility`. Starting Ollama does not help. |
 | `Error: model not found` | Model never pulled | Re-run the installer, or `ollama pull qwen3-vl:8b`. |
 | Garbled or hallucinated text | Very small or very large image | The image is downscaled to 1024 px by default; improve the source or try `--resize 768`. |
 | Very slow first call | First inference loads the weights | Later calls are faster; keep the daemon up. |

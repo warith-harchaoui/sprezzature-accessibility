@@ -175,7 +175,8 @@ def main(argv: list[str] | None = None) -> int:
     -------
     int
         Process exit code. ``0`` on success, ``2`` on infrastructure failure
-        (Ollama unreachable / HTTP error or a usage error).
+        (Ollama unreachable / HTTP error or a usage error), ``1`` when the
+        model client is missing from the install.
     """
     return run_command(_cli, argv)
 

@@ -268,7 +268,8 @@ curl -s -X POST localhost:8000/v1/lint \
 
 L'API lint une chaîne, jamais une URL : aller chercher une page pour le compte de
 l'appelant en ferait un proxy ouvert. `POST /v1/alt` répond 502 quand le modèle
-local est injoignable et 404 quand le fichier image n'existe pas. La documentation
+local est injoignable, 503 quand il manque à l'installation le client du modèle,
+et 404 quand le fichier image n'existe pas. La documentation
 interactive est sur `/docs`.
 
 Avec Docker, `docker compose up -d` construit l'image et sert l'API sur le port

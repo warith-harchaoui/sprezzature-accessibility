@@ -303,6 +303,38 @@ class TestDescribe:
                 alt.describe(str(tiny_png), kind="informative", lang="en", model="m")
         assert excinfo.value.code == 2
 
+    def test_missing_model_client_is_not_reported_as_a_dead_daemon(
+        self, fresh_cache, tiny_png, capsys
+    ):
+        # A missing best-engine-ai-helper used to land in the same
+        # `except RuntimeError` as a refused connection, so the user was told
+        # to start Ollama — advice that cannot repair a broken install.
+        with patch.object(
+            alt, "_llm_chat", side_effect=alt.ModelClientMissing("no client")
+        ):
+            with pytest.raises(SystemExit) as excinfo:
+                alt.describe(str(tiny_png), kind="informative", lang="en", model="m")
+        assert excinfo.value.code == alt.EXIT_BROKEN_INSTALL != alt.EXIT_MODEL_UNREACHABLE
+        err = capsys.readouterr().err
+        assert "no client" in err
+        assert "Cannot reach Ollama" not in err
+
+    def test_the_import_failure_raises_the_distinct_class(self, monkeypatch):
+        # The real path, not a mock of it: with the client unimportable,
+        # `_llm_chat` raises ModelClientMissing and names the reinstall.
+        import builtins
+
+        real_import = builtins.__import__
+
+        def no_client(name, *args, **kwargs):
+            if name.startswith("best_engine_ai_helper"):
+                raise ImportError(name)
+            return real_import(name, *args, **kwargs)
+
+        monkeypatch.setattr(builtins, "__import__", no_client)
+        with pytest.raises(alt.ModelClientMissing, match="pip install sprezzature-accessibility"):
+            alt._llm_chat("prompt", images=[b""], model="m")
+
 
 # ── describe_long ─────────────────────────────────────────────────────────
 

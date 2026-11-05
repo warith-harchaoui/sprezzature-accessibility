@@ -11,6 +11,16 @@ All notable changes to sprezzature-accessibility are documented here.
   and `-V`. The group now takes both.
 - **`sprezzature-accessibility tools` cut a summary at its first dot**, so the
   text-spacing line ended on "at the WCAG 1." It now cuts on a sentence end.
+- **A missing model client was reported as a dead daemon.** When
+  `best-engine-ai-helper` did not import, the drafter said "Cannot reach
+  Ollama" and advised `ollama serve`, which cannot repair an install. It now
+  raises `ModelClientMissing`, prints the reinstall line and exits 1 (2 stays
+  "model unreachable"); `POST /v1/alt` answers 503 for it instead of 502. Two
+  tests in `tests/test_alt_from_ollama.py` and one in `tests/test_api_mcp.py`
+  hold the split.
+- **CI installed `wallet-helper>=1.3,<2`**, looser than the package's own
+  `>=1.3.2,<2`, with a comment saying 1.3.2 was not on PyPI. It is; the extra
+  constraint is gone and the install follows `pyproject.toml`.
 
 ### Docs
 
