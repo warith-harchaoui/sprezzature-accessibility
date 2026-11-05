@@ -4,6 +4,8 @@ All notable changes to sprezzature-accessibility are documented here.
 
 ## [Unreleased]
 
+## [1.4.2] — 2026-11-05
+
 ### Fixed
 
 - **The drafter called one server and named another.** `make-alt`,
