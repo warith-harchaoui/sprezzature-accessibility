@@ -4,6 +4,8 @@ All notable changes to sprezzature-accessibility are documented here.
 
 ## [Unreleased]
 
+## [1.4.3] — 2026-11-05
+
 ### Docs
 
 - `references/lint-rules.md`: `motion-no-reduce-guard` names the classes it
