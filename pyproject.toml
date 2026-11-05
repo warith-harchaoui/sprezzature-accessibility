@@ -55,7 +55,14 @@ dependencies = [
     # The surfaces are not features and they are not optional any more: the
     # HTTP app and the MCP server are two of this package's five front doors,
     # and a door you have to install separately is a door people do not find.
-    "best-engine-ai-helper>=0.4.0",
+    #
+    # The floor is 1.11.0 since 2026-11-05, read off the index. The drafter
+    # passes the server it names to `chat(engine=...)`, which exists from
+    # 1.1.0; and every release from 1.0.0 to 1.10.0 caps `os-helper` below 3
+    # or 4, so none of them installs beside a suite brick that needs
+    # `os-helper>=4`. 1.11.0 is the first that has both. 0.4.0 resolved only
+    # because it named `os-helper>=1.5.0` uncapped, and it had no `engine=`.
+    "best-engine-ai-helper>=1.11.0",
     # The floor is 1.3.2 and it is load-bearing, not housekeeping. Up to and
     # including 1.3.1, `SqliteLedger.__init__` ran `PRAGMA journal_mode=WAL`,
     # which needs exclusive access to the file; SQLite answers a journal-mode

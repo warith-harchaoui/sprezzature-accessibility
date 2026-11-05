@@ -274,7 +274,10 @@ interactive est sur `/docs`.
 
 Avec Docker, `docker compose up -d` construit l'image et sert l'API sur le port
 8000, avec `./work` monté sur `/work`. `docker compose --profile alt up -d` démarre
-en plus un conteneur Ollama pour le rédacteur. Le conteneur lance
+en plus un conteneur Ollama pour le rédacteur, et le compose pose
+`OLLAMA_URL=http://ollama:11434` : le rédacteur envoie chaque appel au modèle à
+l'adresse de `OLLAMA_URL` (`http://localhost:11434` si elle est absente), et une
+erreur nomme cette même adresse. Le conteneur lance
 `sprezzature-accessibility-mcp` : le même port répond aux routes HTTP et au point
 MCP sur `/mcp`.
 

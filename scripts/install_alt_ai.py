@@ -326,7 +326,9 @@ else:
             "daemon, and pull the vision model used by `sprezzature-accessibility alt`.\n\n"
             "The one authorized model is qwen3-vl:8b (via Ollama). Env vars:\n"
             "  OLLAMA_MODEL  Bare escape hatch for tests (default: qwen3-vl:8b).\n"
-            "  OLLAMA_URL    Daemon endpoint (default: http://localhost:11434)."
+            "  OLLAMA_URL    Not read here: this installer drives the `ollama` "
+            "command, which reads OLLAMA_HOST. OLLAMA_URL is where `alt` sends "
+            "its model calls (default: http://localhost:11434)."
         ),
         epilog=(
             "Example:\n"

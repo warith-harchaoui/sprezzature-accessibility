@@ -12,8 +12,10 @@
 #   - Pillow               : downscales large images before sending them to
 #                            the model (`--resize`). A base dependency in
 #                            pyproject.toml since 2026-11-04.
-#   - best-engine-ai-helper: routes the actual LLM/VLM call (Ollama by
-#                            default; see SPREZZATURE_LLM_* env vars).
+#   - best-engine-ai-helper: routes the actual VLM call, to the Ollama server
+#                            OLLAMA_URL names (localhost:11434 by default).
+#                            1.11.0 is the floor: `engine=` needs 1.1.0, and
+#                            nothing before 1.11.0 admits os-helper>=4.
 #   - wallet-helper        : memoizes those calls — content-addressed, bounded,
 #                            and single-flight across processes, which is the
 #                            one of the four the cache written here could not
@@ -23,5 +25,5 @@
 click>=8.1
 langdetect>=1.0.9
 Pillow>=10.0.0
-best-engine-ai-helper>=0.4.0
+best-engine-ai-helper>=1.11.0
 wallet-helper>=1.3.2,<2

@@ -59,7 +59,7 @@ def test_the_flag_resizes_what_the_model_receives(tmp_path: Path) -> None:
 
     sent: list[bytes] = []
 
-    def fake_chat(prompt: str, *, images: list[bytes], model: str) -> str:
+    def fake_chat(prompt: str, *, images: list[bytes], model: str, engine: object) -> str:
         sent.extend(images)
         return "A red rectangle"
 

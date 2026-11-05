@@ -27,7 +27,7 @@ import sys
 
 import click
 
-from sprezzature_accessibility._tools import TOOLS, missing_extra_message
+from sprezzature_accessibility._tools import TOOLS, broken_install_message
 
 #: Shown under the command list. Completion is click's, and worth saying out
 #: loud: a front door with several tools is exactly where tab completion pays
@@ -69,25 +69,23 @@ def list_tools() -> None:
     List the tools, and say which ones can run here.
 
     The second half is the point: "installed" and "will run" are different
-    questions when a tool needs an extra, and a reader should not have to
-    discover the difference from a traceback.
+    questions on a broken install, and a reader should not have to discover
+    the difference from a traceback.
     """
     width = max(len(name) for name in TOOLS)
-    for name, entry in TOOLS.items():
-        _module, extra = (entry[0], entry[1]) if len(entry) == 3 else (entry[0], "")
-        target = _module
+    for name, (module_name, summary) in TOOLS.items():
         try:
-            importlib.import_module(target)
+            importlib.import_module(module_name)
             mark = "ready"
         except ImportError:
-            mark = f"needs [{extra}]" if extra else "unavailable"
+            mark = "unavailable"
         # First sentence, cut on ". " rather than "." so a version number in
         # it survives: "WCAG 1.4.12" was printed as "WCAG 1.".
-        summary = entry[-1].split(". ")[0].rstrip(".")
+        summary = summary.split(". ")[0].rstrip(".")
         click.echo(f"  {name:<{width}}  {mark:<14}  {summary}.")
 
 
-def _attach(name: str, module_name: str, extra: str, summary: str) -> None:
+def _attach(name: str, module_name: str, summary: str) -> None:
     """Register one tool as a click sub-command.
 
     Built in a loop rather than written out four times: the catalogue
@@ -111,12 +109,11 @@ def _attach(name: str, module_name: str, extra: str, summary: str) -> None:
         rest: tuple[str, ...],
         _module: str = module_name,
         _name: str = name,
-        _extra: str = extra,
     ) -> None:
         try:
             module = importlib.import_module(_module)
         except ImportError as exc:  # pragma: no cover - dependency guard
-            raise SystemExit(missing_extra_message(_name, _extra, exc).rstrip()) from exc
+            raise SystemExit(broken_install_message(_name, exc).rstrip()) from exc
 
         # The tools read sys.argv themselves — they were commands before
         # they were sub-commands, and they still are.
@@ -128,8 +125,8 @@ def _attach(name: str, module_name: str, extra: str, summary: str) -> None:
             sys.argv = saved
 
 
-for _tool, (_module_name, _extra, _summary) in TOOLS.items():
-    _attach(_tool, _module_name, _extra, _summary)
+for _tool, (_module_name, _summary) in TOOLS.items():
+    _attach(_tool, _module_name, _summary)
 
 
 if __name__ == "__main__":

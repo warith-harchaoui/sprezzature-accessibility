@@ -4,6 +4,46 @@ All notable changes to sprezzature-accessibility are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The drafter called one server and named another.** `make-alt`,
+  `sprezzature-accessibility-alt`, `--fix-alt` and `POST /v1/alt` read
+  `OLLAMA_URL` only to print it in "Cannot reach Ollama at …", while the model
+  call went through `best_engine_ai_helper.llm.chat` with no endpoint, so to
+  best-engine-ai-helper's own setting (`SPREZZATURE_LLM_BASE_URL`, localhost by
+  default). In the compose stack, which sets `OLLAMA_URL=http://ollama:11434`,
+  the draft failed against the API container and the message blamed the
+  `ollama` service. Every call now passes
+  `engine={"backend": "ollama", "base_url": OLLAMA_URL, "llm": …, "vlm": …}`;
+  the `vlm` section is the one `chat` reads for a call with an image, and a
+  descriptor without it raises `KeyError` before any request.
+  `tests/test_the_model_call_goes_where_the_message_points.py` records the
+  arguments with a fake `chat` (no server, no model) and fails on the old code.
+- **`best-engine-ai-helper>=1.11.0`**, up from `>=0.4.0`, in `pyproject.toml`
+  and `scripts/requirements-alt-text.txt`. `engine=` exists from 1.1.0, and
+  every release from 1.0.0 to 1.10.0 caps `os-helper` below 3 or 4, so none
+  installs beside a brick that needs `os-helper>=4`; 1.11.0 is the first with
+  both. Its Python window is unchanged (`>=3.10`), so the reachability table in
+  `tests/test_the_promise_covers_what_it_inherits.py` stands.
+
+### Removed
+
+- **The branch that told a reader to install an extra.** `TOOLS` carried an
+  extra per tool, empty for all four since 2026-11-01, and its only reader was
+  a branch of `missing_extra_message` printing
+  `pip install 'sprezzature-accessibility[…]'` plus a `needs […]` mark in
+  `sprezzature-accessibility tools`. The field and both branches are gone;
+  the message is now `broken_install_message(tool, exc)`, with the same text
+  as before. A test holds the premise: pyproject declares no extra but `[dev]`.
+
+### Docs
+
+- README, LISEZMOI and `references/alt-text-ai.md` say what `OLLAMA_URL` does:
+  it is the address the call reaches and the one an error names.
+  `sprezzature-accessibility-install-alt --help` no longer lists it as the
+  installer's endpoint: the installer drives the `ollama` command, which reads
+  `OLLAMA_HOST`.
+
 ## [1.4.1] — 2026-11-05
 
 ### Fixed

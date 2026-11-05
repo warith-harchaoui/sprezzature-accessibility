@@ -256,7 +256,10 @@ file does not exist. Interactive documentation is at
 
 With Docker, `docker compose up -d` builds the image and serves the API on port
 8000, with `./work` mounted at `/work`. `docker compose --profile alt up -d` also
-starts an Ollama container for the drafter. The container runs
+starts an Ollama container for the drafter, and the compose file sets
+`OLLAMA_URL=http://ollama:11434`: the drafter sends every model call to the
+address in `OLLAMA_URL` (`http://localhost:11434` when unset), and an error
+names that same address. The container runs
 `sprezzature-accessibility-mcp`, so the same port answers both the HTTP routes
 and the MCP endpoint at `/mcp`.
 

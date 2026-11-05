@@ -44,7 +44,9 @@ Notes
 * Requires Python 3.10+ and Pillow, which downscales images before sending
   (``--resize``). Pillow is a base dependency of the package.
 * Model: ``qwen3-vl:8b`` — the one authorized LLM (multimodal, via Ollama).
-* Default Ollama endpoint: ``http://localhost:11434``. Override with ``OLLAMA_URL``.
+* Ollama endpoint: ``http://localhost:11434``, overridden by ``OLLAMA_URL``.
+  That address is the one the model call reaches and the one an error names;
+  best-engine-ai-helper's own ``SPREZZATURE_LLM_BASE_URL`` is not consulted.
 * On-disk cache lives under ``~/.cache/sprezzature-skill/alt/`` by default, now as a
   ``wallet-helper`` ledger. Override the directory with ``SPREZZATURE_CACHE_DIR``;
   disable globally with ``SPREZZATURE_NO_CACHE=1`` or for a single run with
@@ -76,10 +78,11 @@ from typing import Any, TextIO
 
 
 # Every LLM/VLM call across sprezzature-* routes through this one function —
-# no script imports an Ollama/OpenAI/LangChain client directly. It resolves
-# the backend and model tag from the SPREZZATURE_LLM_* environment variables
-# (SPREZZATURE_LLM_BACKEND defaults to "ollama"); the `model` argument passed
-# at each call site below is a per-call override on top of that.
+# no script imports an Ollama/OpenAI/LangChain client directly. Here it is
+# always called with an explicit engine descriptor (:func:`ollama_engine`):
+# backend ollama, the address in OLLAMA_URL, the model tag passed at the call
+# site. The SPREZZATURE_LLM_* variables best-engine-ai-helper reads on its
+# own are therefore not consulted for the endpoint.
 #
 # Resolved on first use, not at import. It used to be a module-level import,
 # and the cost of that was paid by the one person least able to read it:
@@ -123,6 +126,35 @@ def _llm_chat(*args: object, **kwargs: object) -> object:
     return chat(*args, **kwargs)
 
 
+def ollama_engine(url: str, model: str) -> dict[str, Any]:
+    """The engine descriptor that sends one call to ``url``, and only there.
+
+    Passed to ``chat(engine=...)`` so the server this module names in its
+    messages is the server the call reaches. Both sections carry the model:
+    ``chat`` reads the ``vlm`` one for a call with images, which is every call
+    here, and a descriptor with ``llm`` alone raises ``KeyError`` on the first
+    picture instead of reaching the daemon.
+
+    Parameters
+    ----------
+    url : str
+        Ollama endpoint, e.g. ``http://localhost:11434``.
+    model : str
+        Ollama model tag, e.g. ``qwen3-vl:8b``.
+
+    Returns
+    -------
+    dict
+        ``{"backend": "ollama", "base_url": url, "llm": ..., "vlm": ...}``.
+    """
+    return {
+        "backend": "ollama",
+        "base_url": url,
+        "llm": {"model": model},
+        "vlm": {"model": model},
+    }
+
+
 def _chat_or_exit(prompt: str, data: bytes, model: str) -> str:
     """Ask the model, or report why it could not be asked and exit.
 
@@ -131,9 +163,23 @@ def _chat_or_exit(prompt: str, data: bytes, model: str) -> str:
     anything else ``best_engine_ai_helper.llm.chat`` raises is a
     :class:`RuntimeError` covering connection failures and HTTP errors alike
     (:data:`EXIT_MODEL_UNREACHABLE`, repaired by starting the daemon).
+
+    The call goes to :data:`OLLAMA_URL`, the address the error message names.
+    Until 2026-11-05 it did not: ``chat`` was called with no endpoint and went
+    wherever best-engine-ai-helper was configured to go
+    (``SPREZZATURE_LLM_BASE_URL``, localhost by default), while this message
+    blamed ``OLLAMA_URL``. In the compose stack the two differ, so the drafter
+    failed against its own container and reported the ``ollama`` service.
     """
     try:
-        return str(_llm_chat(prompt, images=[data], model=model))
+        return str(
+            _llm_chat(
+                prompt,
+                images=[data],
+                model=model,
+                engine=ollama_engine(OLLAMA_URL, model),
+            )
+        )
     except ModelClientMissing as e:
         sys.stderr.write(f"{e}\n")
         sys.exit(EXIT_BROKEN_INSTALL)
@@ -169,7 +215,9 @@ except ImportError:
 
 # ── Module-level configuration ────────────────────────────────────────────────
 
-#: Ollama daemon endpoint. Override with the ``OLLAMA_URL`` env var.
+#: Ollama daemon endpoint. Override with the ``OLLAMA_URL`` env var. Every
+#: model call is sent here (see :func:`ollama_engine`), read at call time so a
+#: caller that rebinds it moves the call and the error message together.
 OLLAMA_URL: str = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 
 #: The one authorized model: ``qwen3-vl:8b`` (multimodal, via Ollama). No other
@@ -230,7 +278,7 @@ CACHE_MAX_ENTRIES: int = 20_000
 # somebody else is already computing wait for that answer instead of starting
 # a second run. Same experiment, same three processes, one model call.
 #
-# It lands in the ``[alt]`` extra beside ``best-engine-ai-helper`` and is
+# It is a base dependency beside ``best-engine-ai-helper`` and is
 # imported on first use, never at module import, for the same reason
 # ``_llm_chat`` is: the lint half of this package must stay installable and
 # runnable with nothing but ``click``, which is the whole reason anyone reaches
@@ -277,7 +325,7 @@ _WALLET: tuple[Path, Any] | None = None
 
 def _wallet() -> Any:
     """
-    The memo wallet over :data:`CACHE_DIR`, or say which extra is missing.
+    The memo wallet over :data:`CACHE_DIR`, or say how to repair the install.
 
     Resolved on first use rather than at import, and re-resolved whenever
     :data:`CACHE_DIR` moves. The second half is not hygiene: the tests point
@@ -293,8 +341,8 @@ def _wallet() -> Any:
     Raises
     ------
     RuntimeError
-        When ``wallet-helper`` is absent, naming the extra rather than the
-        package nobody asked for.
+        When ``wallet-helper`` is absent, naming the reinstall rather than
+        only the package nobody asked for.
     """
     global _WALLET
     db = CACHE_DIR / "ledger.db"

@@ -12,7 +12,7 @@ monorepo caught it by comparing the nine skills against the nine
 The moment there are two front doors, the interesting failure is not that one
 breaks: it is that they quietly stop agreeing. A tool added to one, an extra
 named differently by the other, a summary edited in one place. So both read
-one table and share one sentence about a missing extra, and these tests hold
+one table and share one sentence about a broken install, and these tests hold
 that shape rather than the behaviour of either.
 
 The last tests are the ones with teeth. The lint half of this package has
@@ -39,7 +39,7 @@ import pytest
 
 from sprezzature_accessibility.cli import (
     TOOLS,
-    missing_extra_message,
+    broken_install_message,
 )
 
 DISTRIBUTION = "sprezzature-accessibility"
@@ -109,7 +109,7 @@ def test_every_tool_names_a_module_that_can_be_found() -> None:
     drafting half's command line is in the main one. A table that assumed a
     single prefix would have quietly excluded `alt`.
     """
-    for tool, (module_name, _extra, _summary) in TOOLS.items():
+    for tool, (module_name, _summary) in TOOLS.items():
         assert importlib.util.find_spec(module_name) is not None, (
             f"{tool} dispatches to {module_name}, which cannot be imported"
         )
@@ -117,7 +117,7 @@ def test_every_tool_names_a_module_that_can_be_found() -> None:
 
 def test_the_table_spans_both_halves_of_the_package() -> None:
     """Audit and make, in one catalogue — that is what the front door is for."""
-    prefixes = {module.rsplit(".", 1)[0] for module, _, _ in TOOLS.values()}
+    prefixes = {module.rsplit(".", 1)[0] for module, _ in TOOLS.values()}
     assert prefixes == {
         "sprezzature_accessibility_scripts",
         "sprezzature_accessibility",
@@ -126,76 +126,38 @@ def test_the_table_spans_both_halves_of_the_package() -> None:
 
 def test_every_tool_has_a_summary_the_help_can_print() -> None:
     """An undocumented tool is a tool nobody finds."""
-    for tool, (_module, _extra, summary) in TOOLS.items():
+    for tool, (_module, summary) in TOOLS.items():
         assert summary.strip(), f"{tool} has no summary"
         assert summary.rstrip().endswith("."), f"{tool}'s summary is not a sentence"
 
 
-def test_an_extra_named_in_the_table_is_an_extra_that_exists() -> None:
-    """Install advice has to be real, whichever shape it takes.
+def test_no_extra_is_declared_for_a_tool_to_need() -> None:
+    """Every tool is in the base install, so there is no install advice to name.
 
-    Since 2026-11-01 every entry in ``TOOLS`` names ``""``: the extras were
-    folded into the base install. The loop below would therefore pass
-    vacuously, so the assertion after it checks that the table really is in
-    that state -- a test that iterates an empty condition reads exactly like
-    a test that checked something.
+    Until 2026-11-05 ``TOOLS`` carried an extra per tool and this test checked
+    that a named extra existed; every entry had named ``""`` since 2026-11-01,
+    and the field and the branch that printed it are gone. What is left to
+    hold is the premise: pyproject declares nothing beyond ``[dev]``, so a
+    feature extra that came back would need a front door that can name it.
     """
-    pyproject = (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    section = re.search(
-        r"^\[project\.optional-dependencies\]\s*$(.*?)(?=^\[|\Z)",
-        pyproject,
-        re.M | re.S,
+    assert _extras() == {"dev"}, (
+        f"pyproject declares extras beyond [dev]: {sorted(_extras() - {'dev'})}; "
+        "the front door no longer has a way to tell a reader to install one"
     )
-    assert section
-    declared = set(re.findall(r"^\s*([A-Za-z0-9._-]+)\s*=", section.group(1), re.M))
-    named = {extra for _module, extra, _summary in TOOLS.values() if extra}
-    assert named <= declared, (
-        f"these tools tell the reader to install extras pyproject.toml does "
-        f"not declare: {sorted(named - declared)}"
-    )
-    assert named or declared == {"dev"}, (
-        "no tool names an extra and pyproject declares more than [dev], so "
-        "either the table went stale or an extra came back without the table "
-        "learning about it"
-    )
-    for tool, (_module, extra, _summary) in TOOLS.items():
-        if extra:
-            assert extra in declared, (
-                f"{tool} tells the reader to install [{extra}], "
-                f"which pyproject.toml does not declare"
-            )
 
 
-def test_the_lint_needs_no_extra() -> None:
-    """The whole design of this package is in this one assertion.
+def test_the_broken_install_message_carries_a_runnable_install_line() -> None:
+    """Both entry points print this, so it has to carry a command that works.
 
-    The audit half runs on the standard library, in milliseconds, with no
-    browser. If it ever acquires an extra, the pre-commit story goes with it.
+    It replaced ``missing_extra_message`` on 2026-11-05, whose other branch
+    printed ``pip install '<package>[extra]'`` and could no longer be reached.
     """
-    assert TOOLS["lint"][1] == ""
-    assert TOOLS["text-spacing"][1] == ""
-
-
-def test_the_missing_extra_message_carries_a_runnable_install_line() -> None:
-    """Both front doors print this, so it has to carry a command that works.
-
-    The second case is the only live one since 2026-11-01: every tool names
-    ``""`` now. It used to assert ``"pip install" not in said`` -- correct when
-    there was nothing to install, and wrong now, because the honest advice for
-    a complete install that failed to import is to reinstall the package.
-    """
-    said = missing_extra_message("alt", "alt", ImportError("no module named click"))
-    # Assembled rather than written out: the hub's
-    # `test_no_document_promises_an_extra_that_does_not_exist` reads literal
-    # `pip install` lines anywhere in the suite and fails on one naming an
-    # extra nobody declares. It is right to -- a literal line in a test is a
-    # line a reader can copy -- and `[alt]` is exactly such a name now.
-    assert f"pip install '{DISTRIBUTION}[alt]'" in said
-
-    said = missing_extra_message("lint", "", ImportError("boom"))
-    assert "pip install sprezzature-accessibility" in said, (
-        f"the no-extra branch gives the reader nothing to run: {said!r}"
+    said = broken_install_message("lint", ImportError("boom"))
+    assert "pip install sprezzature-accessibility\n" in said, said
+    assert "[" not in said.split("(boom)")[0], (
+        f"the message names an extra, and there is none: {said!r}"
     )
+    assert "boom" in said, "the import error itself must reach the reader"
 
 
 @pytest.mark.parametrize("front_door", ["make-a11y", "sprezzature-accessibility"])

@@ -6,9 +6,12 @@ W3C / WAI (Web Accessibility Initiative) image decision tree
 vision model served by Ollama**: nothing leaves the machine.
 
 - **Model:** `qwen3-vl:8b`, the one model this package uses. The call goes through
-  `best_engine_ai_helper.llm.chat`, which reads the `SPREZZATURE_LLM_*` environment
-  variables (backend `ollama` by default).
-- **Endpoint:** `http://localhost:11434`, overridden by `OLLAMA_URL`.
+  `best_engine_ai_helper.llm.chat` with an explicit engine descriptor: backend
+  `ollama`, the endpoint below, this model.
+- **Endpoint:** `http://localhost:11434`, overridden by `OLLAMA_URL`. That is the
+  address the call reaches and the one an error message names. The
+  `SPREZZATURE_LLM_*` variables best-engine-ai-helper reads on its own do not move
+  it (until 2026-11-05 they did, and the message then named a server nobody called).
 - `OLLAMA_MODEL` exists as an escape hatch for tests. It is not a supported way to
   choose another model.
 
