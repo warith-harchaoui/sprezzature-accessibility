@@ -4,6 +4,25 @@ All notable changes to sprezzature-accessibility are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- **`sprezzature-accessibility -V` was a usage error.** The front door answered
+  `--version` only, while every per-tool command and the README promised `-h`
+  and `-V`. The group now takes both.
+- **`sprezzature-accessibility tools` cut a summary at its first dot**, so the
+  text-spacing line ended on "at the WCAG 1." It now cuts on a sentence end.
+
+### Docs
+
+- Help and error strings that still spoke of an optional extra (the front door
+  epilog, `import sprezzature_accessibility` on a `--no-deps` install, the
+  model-client message, the `--fix-alt` help) now say the install is broken
+  or name `sprezzature-accessibility-install-alt`. The rule catalogue in
+  `lint_a11y.py`'s docstring listed fifteen rules; it lists the twenty.
+  Stale "optional" and "extra" comments in `requirements.txt` and the
+  Dockerfile are gone. `EXAMPLES.md` names the text-spacing command rather than
+  its script file.
+
 ## [1.4.0] — 2026-11-04: click everywhere, the page's own language for --fix-alt
 
 ### Changed

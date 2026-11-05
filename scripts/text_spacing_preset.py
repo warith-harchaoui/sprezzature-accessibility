@@ -46,7 +46,7 @@ Usage
 
 Notes
 -----
-* Python 3.10+, stdlib only.
+* Python 3.10+, the standard library plus click for the command line.
 * Output is plain CSS, meant to be pasted into (or concatenated with)
   the project's stylesheet entry point — the same way this site's
   existing ``[data-color-scheme=dark]`` / ``[data-color-mode=corporate]``

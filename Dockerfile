@@ -4,12 +4,10 @@ WORKDIR /app
 
 COPY . .
 
-# Everything the image is worth running. The static lint needs no extras at
-# all — that is its point — but an image exists to serve the API, and the API
-# is only interesting with the alt-text drafter and the language guess behind
-# it. A plain `pip install .` built an image that could not serve the thing
-# its own CMD named: fastapi and uvicorn live behind the `api` extra so that
-# nobody installing the library pays for a web server.
+# Everything the image is worth running, in one plain install: since
+# 2026-11-01 the package has no feature extras, so `pip install .` brings the
+# lint, the alt-text drafter, the language guess, FastAPI, uvicorn and
+# fastapi-mcp together.
 RUN pip install --no-cache-dir "."
 
 EXPOSE 8000

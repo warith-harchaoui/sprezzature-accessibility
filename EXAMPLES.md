@@ -109,8 +109,8 @@ Output: the alt text on stdout, nothing else. See `references/alt-text-ai.md`.
 ## Make-side: emit a comfortable-reading CSS toggle
 
 The audit-side `body-text-tracking-tight` rule flags narrow letter-spacing on
-running text; `text_spacing_preset.py` emits the opposite — an opt-in CSS
-block a page can ship, at the WCAG 1.4.12 Text Spacing minimums:
+running text; `sprezzature-accessibility-text-spacing` emits the opposite, an
+opt-in CSS block a page can ship, at the WCAG 1.4.12 Text Spacing minimums:
 
 ```bash
 sprezzature-accessibility-text-spacing

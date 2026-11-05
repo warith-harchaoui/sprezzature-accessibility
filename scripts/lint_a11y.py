@@ -62,6 +62,15 @@ Rule catalogue
                             the anti-pattern a 2012 Zorzi et al. study found
                             slows reading for dyslexic readers; the same
                             tokens on a heading or nav label are unflagged.
+``video-missing-captions``  ``<video>`` with no ``<track kind="captions">`` or
+                            ``kind="subtitles"`` (WCAG 1.2.2). A ``muted``
+                            video without ``controls`` is decorative, exempt.
+``audio-missing-transcript`` ``<audio>`` with no track and no accessible name
+                            pointing at a transcript (WCAG 1.2.1).
+``track-missing-srclang``   ``<track>`` without ``srclang``.
+``media-missing-controls``  ``<video>`` / ``<audio>`` without ``controls``
+                            (WCAG 2.1.1). Decorative video exempt.
+``media-autoplay-sound``    ``autoplay`` without ``muted`` (WCAG 1.4.2).
 ========================  =====================================================
 
 Output
@@ -1228,7 +1237,7 @@ def _build_cli() -> Any:
             "--fix on purpose: --fix is mechanical, offline and idempotent, "
             "while this calls a local vision model, takes seconds per image, "
             "and writes prose a human should read before committing. Needs "
-            "the drafting half: pip install 'sprezzature-accessibility'."
+            "Ollama and qwen3-vl:8b: sprezzature-accessibility-install-alt."
         ),
     )
     @click.option(

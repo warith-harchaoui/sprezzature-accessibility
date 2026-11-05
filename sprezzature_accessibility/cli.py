@@ -39,8 +39,9 @@ Shell completion:
   eval "$(_SPREZZATURE_ACCESSIBILITY_COMPLETE=bash_source sprezzature-accessibility)"   # bash
   eval "$(_SPREZZATURE_ACCESSIBILITY_COMPLETE=zsh_source sprezzature-accessibility)"    # zsh
 
-Run `sprezzature-accessibility tools` to see which tools are ready on this machine
-and which need an extra installed.
+Run `sprezzature-accessibility tools` to see which tools can run on this
+machine. Every tool is in the base install, so one marked unavailable means a
+broken install, not a missing extra.
 """
 
 
@@ -54,7 +55,10 @@ and which need an extra installed.
         "script should call."
     ),
 )
-@click.version_option(package_name="sprezzature-accessibility")
+# ``-V`` as well as ``--version``: every per-tool command answers both, and
+# the README promises ``-h`` and ``-V`` on every command. The group answered
+# ``--version`` only, so ``sprezzature-accessibility -V`` was a usage error.
+@click.version_option(None, "-V", "--version", package_name="sprezzature-accessibility")
 def main() -> None:  # pragma: no cover - click dispatches
     """Front door over the four tools this package ships."""
 
@@ -77,7 +81,9 @@ def list_tools() -> None:
             mark = "ready"
         except ImportError:
             mark = f"needs [{extra}]" if extra else "unavailable"
-        summary = entry[-1].split(".")[0]
+        # First sentence, cut on ". " rather than "." so a version number in
+        # it survives: "WCAG 1.4.12" was printed as "WCAG 1.".
+        summary = entry[-1].split(". ")[0].rstrip(".")
         click.echo(f"  {name:<{width}}  {mark:<14}  {summary}.")
 
 

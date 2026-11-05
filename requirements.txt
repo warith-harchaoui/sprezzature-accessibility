@@ -1,3 +1,4 @@
 # Runtime dependencies are declared in pyproject.toml and installed by `pip install sprezzature-accessibility`; the lint itself imports only the standard library.
-# Optional language detection:
-# langdetect>=1.0.9
+# langdetect, used by the lint's `html-missing-lang` fixer to guess a page's
+# language, is one of those base dependencies; only the `--no-deps` hook
+# install goes without it, and that fixer then leaves the finding alone.

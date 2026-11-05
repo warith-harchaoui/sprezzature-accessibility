@@ -66,10 +66,10 @@ _ALT_EXPORTS = {
 def __getattr__(name: str) -> Any:
     """Resolve a drafting export on first use, per PEP 562.
 
-    A caller who only lints never triggers this, and so never needs the extra.
-    A caller who asks for ``describe`` without the extra installed gets a
-    sentence naming the install command rather than a bare ImportError about
-    a module they have never heard of.
+    A caller who only lints never triggers this, and so never loads the model
+    client. A caller who asks for ``describe`` on a broken install (the
+    ``--no-deps`` hook install, say) gets a sentence naming the install command
+    rather than a bare ImportError about a module they have never heard of.
     """
     if name not in _ALT_EXPORTS:
         raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
@@ -81,8 +81,9 @@ def __getattr__(name: str) -> Any:
     except ImportError as exc:
         raise ImportError(
             f"`{name}` belongs to the alt-text drafting half of this package, "
-            f"which is an optional extra so the lint stays dependency-free. "
-            f"Install it with: pip install 'sprezzature-accessibility'"
+            f"whose dependencies are in the base install but missing here "
+            f"(a --no-deps install, or a broken one). Reinstall with: "
+            f"pip install sprezzature-accessibility"
         ) from exc
     return getattr(engine, name)
 

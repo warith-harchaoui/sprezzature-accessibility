@@ -84,7 +84,7 @@ except ImportError as exc:  # pragma: no cover - exercised by a bare install
     _why = str(exc)
 
     def main(argv: list[str] | None = None) -> int:  # type: ignore[misc]
-        """Say which extra installs this command, and exit non-zero."""
+        """Say that click is missing from a broken install, and exit non-zero."""
         print(_why, file=sys.stderr)
         return 1
 
