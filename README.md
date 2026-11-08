@@ -251,7 +251,7 @@ curl -s -X POST localhost:8000/v1/lint \
 
 `POST /v1/lint` takes a string, never a URL: fetching on a caller's behalf would
 turn it into an open proxy. `POST /v1/alt` is the exception: its `src` is a path the
-server opens or an `http(s)` URL it fetches, so keep that port on a trusted network.
+server opens or an `http(s)` URL it fetches, so keep that port on a trusted network; `docker-compose.yml` publishes it on `127.0.0.1` only.
 It answers 502 when the local model cannot be reached, 503 when the install is
 missing the model client, and 404 when the image cannot be read, as a file or as a
 URL. Interactive documentation is at `/docs`.

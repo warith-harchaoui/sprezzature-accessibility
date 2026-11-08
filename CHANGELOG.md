@@ -8,6 +8,9 @@ All notable changes to sprezzature-accessibility are documented here.
 
 ### Fixed
 
+- **`docker-compose.yml` publishes its ports on loopback only.** `POST /v1/alt`
+  opens the path or fetches the URL it is given, and the compose file offered
+  that on every interface.
 - **`--fix` destroyed what it could not read.** It read the page with
   `errors="ignore"` and wrote back what was left, whether or not a fix applied:
   a Latin-1 page lost every accented letter, and a CRLF file came out LF. It now

@@ -22,7 +22,9 @@ services:
     # file sees that the one port carries the HTTP routes and `/mcp` both.
     command: ["sprezzature-accessibility-mcp", "--host", "0.0.0.0", "--port", "8000"]
     ports:
-      - "8000:8000"
+      # Loopback only: POST /v1/alt opens the path or fetches the URL it is
+      # given, so publishing this port on every interface hands that to the LAN.
+      - "127.0.0.1:8000:8000"
     environment:
       # The package reads OLLAMA_URL; the ollama server reads OLLAMA_HOST.
       # They are not interchangeable, and getting it wrong is invisible until
@@ -48,7 +50,7 @@ services:
     # drafter (`alt`, and `lint --fix-alt`) needs a model.
     profiles: ["alt"]
     ports:
-      - "11434:11434"
+      - "127.0.0.1:11434:11434"
     volumes:
       # Named volume, not a bind mount: the weights survive `down` and a
       # rebuild, and are not something anyone wants in their working tree.

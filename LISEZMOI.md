@@ -270,7 +270,7 @@ curl -s -X POST localhost:8000/v1/lint \
 `POST /v1/lint` prend une chaîne, jamais une URL : aller chercher une page pour le
 compte de l'appelant en ferait un proxy ouvert. `POST /v1/alt` fait exception : son
 `src` est un chemin que le serveur ouvre ou une URL `http(s)` qu'il va chercher,
-donc gardez ce port sur un réseau de confiance. Il répond 502 quand le modèle local
+donc gardez ce port sur un réseau de confiance ; `docker-compose.yml` ne le publie que sur `127.0.0.1`. Il répond 502 quand le modèle local
 est injoignable, 503 quand il manque à l'installation le client du modèle, et 404
 quand l'image ne peut pas être lue, comme fichier ou comme URL. La documentation
 interactive est sur `/docs`.

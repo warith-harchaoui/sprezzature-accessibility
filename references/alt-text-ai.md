@@ -137,7 +137,7 @@ same arguments except `vocabulary`.
 `POST /v1/alt` (MCP tool `draft_alt_text`) takes `src`, `kind`, `lang`, `context`,
 `resize`, `model`, `vocabulary` and `long`, and returns `alt`, `long`, `lang`,
 `kind` and `draft` (always true). `src` is a path the server opens or an `http(s)`
-URL it fetches, so keep the port on a trusted network. It answers 502 when the model
+URL it fetches, so keep the port on a trusted network (`docker-compose.yml` publishes it on `127.0.0.1` only). It answers 502 when the model
 cannot be reached, 503 when the model client is missing from the install, and 404
 when the image cannot be read, as a file or as a URL. A browser page cannot call Ollama directly
 (Ollama does not answer CORS requests from web pages), so this route is the proxy
