@@ -24,7 +24,7 @@ halves of one job, and splitting them across two packages meant the
 audit could only ever say what was wrong.
 """
 
-__version__ = "1.4.3"
+__version__ = "1.4.4"
 __author__ = "Warith HARCHAOUI"
 __email__ = "warithmetics@deraison.ai"
 __license__ = "BSD-3-Clause"

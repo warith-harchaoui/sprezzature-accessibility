@@ -4,6 +4,49 @@ All notable changes to sprezzature-accessibility are documented here.
 
 ## [Unreleased]
 
+## [1.4.4] — 2026-11-08
+
+### Fixed
+
+- **`--fix` destroyed what it could not read.** It read the page with
+  `errors="ignore"` and wrote back what was left, whether or not a fix applied:
+  a Latin-1 page lost every accented letter, and a CRLF file came out LF. It now
+  round-trips the bytes, and leaves a file with nothing to fix untouched.
+  `--fix-alt` does the same, and on a page that is not UTF-8 it writes the draft
+  as character references.
+- **`--fix` edited the wrong element on a minified line.** A finding has a line
+  and no column, and the fixers took the first matching attribute on it: the
+  decorative icon beside a control lost its `aria-hidden`, and the motion guard
+  landed on the parent's `class` while the finding stayed. Each fixer now finds
+  the tag with the test its rule uses.
+- **`--fix-alt` wrote into the first `<img` of the line.** With two images on a
+  line, the first got two `alt` attributes and the second none, and `data-src`
+  was taken for the source. Each image now gets its own draft.
+- **A name written as a character reference was no name.** `<button>&times;</button>`
+  was reported `button-empty`: the parser dropped references. `aria-labelledby`
+  now counts as a name too, for `a-empty`, `button-empty` and
+  `input-missing-label`.
+- **A path that does not exist exited 0.** `sprezzature-accessibility-lint typo/`
+  said "No HTML files found" and passed, so a CI step on the wrong folder stayed
+  green. It is now a usage error, exit 2.
+- **An unreadable image was a traceback.** `sprezzature-accessibility-alt missing.png`
+  and a missing `--in` document ended on a traceback and exit 1, the code for a
+  missing model client; they are now a usage error, exit 2. `POST /v1/alt` answered
+  500 for a URL that did not respond; it answers 404, like a missing file.
+
+- **The MCP server announced a sentence as its version.** fastapi-mcp 0.4 passes
+  its description in the version slot of `Server`, so `serverInfo.version` read
+  "Sprezzature Accessibility MCP tools: …". It now carries `__version__`, and the
+  description goes in `instructions`.
+
+  All in `tests/test_the_repair_touches_only_what_it_names.py`.
+
+### Docs
+
+- README, LISEZMOI and `references/alt-text-ai.md` say that `POST /v1/alt` opens
+  the path or fetches the URL it is given. The README said the API never fetches
+  a URL, which is true of `POST /v1/lint` only.
+
 ## [1.4.3] — 2026-11-05
 
 ### Docs

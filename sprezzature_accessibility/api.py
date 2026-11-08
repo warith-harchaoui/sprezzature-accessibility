@@ -3,17 +3,19 @@ sprezzature-accessibility: the FastAPI HTTP surface.
 
 Module summary
 --------------
-Exposes the accessibility linter over HTTP, so a CI job in any language, a
-CMS preview, or an editor plugin can check markup without shelling out to
-Python. Every route calls :func:`lint_a11y.lint_html` — the same function
-the command line calls — so the HTTP answer and the terminal answer cannot
-disagree.
+Exposes the accessibility linter and the alt-text drafter over HTTP, so a CI
+job in any language, a CMS preview, or an editor plugin can use them without
+shelling out to Python. ``POST /v1/lint`` calls :func:`lint_a11y.lint_html`,
+the function the command line calls, so the HTTP answer and the terminal
+answer cannot disagree.
 
 What ships here
 ---------------
 - ``GET  /health``: a liveness probe.
 - ``GET  /v1/rules``: every rule this build knows, with its severity.
 - ``POST /v1/lint``: lint a string of HTML and return the findings.
+- ``GET  /v1/kinds``: the six image purposes.
+- ``POST /v1/alt``: draft alt text for one image with the local model.
 
 Why lint a string rather than a URL
 ------------------------------------
@@ -21,6 +23,10 @@ Fetching a URL on a caller's behalf turns this service into an open proxy:
 anything that can reach the API can then reach whatever the API can reach,
 including a cloud metadata endpoint or an internal host. The caller fetches
 its own markup and posts it; the linter stays a pure function of its input.
+
+``POST /v1/alt`` is the exception and has no such protection: its ``src`` is a
+path this server opens or an ``http(s)`` URL it fetches. Keep the port on a
+trusted network.
 
 FastAPI and uvicorn are base dependencies since 2026-11-01, so there
 is no extra to ask for::
@@ -363,7 +369,8 @@ def draft_alt_text(request: AltRequest) -> AltResponse:
         ``502`` when the local model cannot be reached or refuses the
         request. Reported as a gateway error rather than a server error
         because the failure is upstream of this process, and the fix is to
-        start Ollama rather than to retry here.
+        start Ollama rather than to retry here. ``404`` when the image
+        cannot be read, as a file or as a URL.
     """
     if not _ALT_READY:
         raise HTTPException(
@@ -428,7 +435,11 @@ def draft_alt_text(request: AltRequest) -> AltResponse:
                 f"{DEFAULT_BASE} pulled?"
             ),
         ) from exc
-    except FileNotFoundError as exc:
+    except OSError as exc:
+        # Wider than FileNotFoundError: a URL that does not answer is a
+        # URLError, and a directory is an IsADirectoryError. Both are OSError
+        # and both were a bare 500. The model's own failures do not arrive
+        # here: the engine turns them into the SystemExit above.
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     return AltResponse(alt=alt, long=long_text, lang=language, kind=request.kind)

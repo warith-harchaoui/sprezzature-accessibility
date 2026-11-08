@@ -93,8 +93,9 @@ sprezzature-accessibility-alt --kind decorative ./public/divider.svg
 
 Output: one line of alt text on stdout, capped at 150 characters (`MAX_CHARS`) at a
 word boundary, **never** with a trailing `…`. Empty stdout for decorative. Exit code
-0 on success, 2 when the model cannot be reached, 1 when the model client
-(`best-engine-ai-helper`) is missing from the install.
+0 on success, 2 when the model cannot be reached or the image or a named document
+cannot be read, 1 when the model client (`best-engine-ai-helper`) is missing from
+the install.
 
 Language: `--lang` wins. Without it, the language is detected from the context
 text (`--context`, the `--in` document, the vocabulary); with no text at all, it
@@ -135,9 +136,10 @@ same arguments except `vocabulary`.
 
 `POST /v1/alt` (MCP tool `draft_alt_text`) takes `src`, `kind`, `lang`, `context`,
 `resize`, `model`, `vocabulary` and `long`, and returns `alt`, `long`, `lang`,
-`kind` and `draft` (always true). It answers 502 when the model cannot be reached,
-503 when the model client is missing from the install, and 404 when the image does
-not exist. A browser page cannot call Ollama directly
+`kind` and `draft` (always true). `src` is a path the server opens or an `http(s)`
+URL it fetches, so keep the port on a trusted network. It answers 502 when the model
+cannot be reached, 503 when the model client is missing from the install, and 404
+when the image cannot be read, as a file or as a URL. A browser page cannot call Ollama directly
 (Ollama does not answer CORS requests from web pages), so this route is the proxy
 to put in front of it.
 

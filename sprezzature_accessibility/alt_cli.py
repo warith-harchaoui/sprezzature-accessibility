@@ -146,19 +146,26 @@ def _cli(
     auto_project: bool,
 ) -> int:
     """Click wrapper. The work is in :func:`run`."""
-    return run(
-        src,
-        kind=kind,
-        lang=lang,
-        context=context,
-        resize=resize,
-        no_cache=no_cache,
-        longdesc=longdesc,
-        in_doc=in_doc,
-        vocab=vocab,
-        vocab_from=vocab_from,
-        auto_project=auto_project,
-    )
+    # An unreadable image or document is the caller's input, so a usage error
+    # (exit 2) in one line. It was a traceback and exit 1, the code that means
+    # the model client is missing from the install. A URL's failure is an
+    # OSError too, and the model's own failures never arrive here as one.
+    try:
+        return run(
+            src,
+            kind=kind,
+            lang=lang,
+            context=context,
+            resize=resize,
+            no_cache=no_cache,
+            longdesc=longdesc,
+            in_doc=in_doc,
+            vocab=vocab,
+            vocab_from=vocab_from,
+            auto_project=auto_project,
+        )
+    except OSError as exc:
+        raise click.UsageError(str(exc)) from exc
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -81,8 +81,9 @@ réel.
   aux minima WCAG 1.4.12, pour les pages qui veulent proposer la correction comme
   un réglage visible par le lecteur.
 - Sortie texte et JSON, composable avec jq ou tout parseur de CI.
-- Code de sortie 1 sur tout constat, 0 si la page est propre : utilisable comme
-  porte de pré-commit.
+- Code de sortie 1 sur tout constat, 0 si la page est propre, 2 sur une erreur
+  d'usage (un chemin qui n'existe pas en est une) : utilisable comme porte de
+  pré-commit.
 - Python 3.10 à 3.13. Le chemin du lint n'importe que la bibliothèque standard,
   plus `langdetect` s'il est installé (le correcteur de `html-missing-lang` s'en
   sert pour deviner la langue de la page).
@@ -266,10 +267,12 @@ curl -s -X POST localhost:8000/v1/lint \
 | `GET /v1/kinds` | `list_kinds` | Les six fonctions d'image, chacune avec son usage |
 | `POST /v1/alt` | `draft_alt_text` | Un texte alternatif rédigé, et une description longue sur demande |
 
-L'API lint une chaîne, jamais une URL : aller chercher une page pour le compte de
-l'appelant en ferait un proxy ouvert. `POST /v1/alt` répond 502 quand le modèle
-local est injoignable, 503 quand il manque à l'installation le client du modèle,
-et 404 quand le fichier image n'existe pas. La documentation
+`POST /v1/lint` prend une chaîne, jamais une URL : aller chercher une page pour le
+compte de l'appelant en ferait un proxy ouvert. `POST /v1/alt` fait exception : son
+`src` est un chemin que le serveur ouvre ou une URL `http(s)` qu'il va chercher,
+donc gardez ce port sur un réseau de confiance. Il répond 502 quand le modèle local
+est injoignable, 503 quand il manque à l'installation le client du modèle, et 404
+quand l'image ne peut pas être lue, comme fichier ou comme URL. La documentation
 interactive est sur `/docs`.
 
 Avec Docker, `docker compose up -d` construit l'image et sert l'API sur le port

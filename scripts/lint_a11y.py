@@ -36,11 +36,13 @@ Rule catalogue
                             ``aria-hidden="true"``: redundant.
 ``a-missing-href``          ``<a>`` without ``href`` (use ``<button>``).
 ``a-empty``                 ``<a>`` with no text and no accessible name.
-``button-empty``            ``<button>`` with no text and no ``aria-label``.
+``button-empty``            ``<button>`` with no text, no ``aria-label`` or
+                            ``aria-labelledby``, and no ``<svg>`` / ``<img>``.
 ``div-onclick``             ``<div>`` / ``<span>`` with ``onclick`` but no
                             ``role="button"`` and ``tabindex``.
-``input-missing-label``     ``<input>`` not wrapped in a ``<label>`` and not
-                            referenced by a ``<label for=>``.
+``input-missing-label``     ``<input>`` not wrapped in a ``<label>``, not
+                            referenced by a ``<label for=>``, and with neither
+                            ``aria-label`` nor ``aria-labelledby``.
 ``dialog-missing-close``    ``<dialog>`` without a close affordance
                             (``<button>``, ``value="cancel"``, ``[autofocus]``).
 ``html-missing-lang``       ``<html>`` without ``lang``.
@@ -53,8 +55,9 @@ Rule catalogue
 ``color-only-state``        Tailwind ``*-red-*`` / ``*-green-*`` on a span
                             with no icon, label, or text sibling. Catches the
                             "red is bad / green is good" anti-pattern.
-``motion-no-reduce-guard``  ``animate-*`` or ``transition-transform`` without
-                            a ``motion-reduce:`` peer.
+``motion-no-reduce-guard``  ``animate-{spin,ping,pulse,bounce}``,
+                            ``transition-transform`` or ``transition-all``
+                            without a ``motion-reduce:`` peer.
 ``body-text-tracking-tight`` Tailwind ``tracking-tight`` / ``tracking-tighter``
                             (negative letter-spacing) on a body-text element
                             (``p``, ``li``, ``dd``, ``blockquote``, ``td``,
@@ -76,8 +79,8 @@ Rule catalogue
 Output
 ------
 Plain-text report by default; use ``--format json`` for machine consumption.
-Exit code ``1`` on any finding (unless ``--ignore`` covers it), ``0``
-otherwise. The script can be pointed at a single file or a directory.
+Exit code ``1`` on any finding (unless ``--ignore`` covers it), ``2`` on a
+usage error such as a path that does not exist, ``0`` otherwise. The script can be pointed at a single file or a directory.
 
 Usage
 -----
@@ -198,10 +201,12 @@ class TreeBuilder(HTMLParser):
     """
 
     def __init__(self) -> None:
-        # ``convert_charrefs=False`` keeps entities literal so ``<pre>`` blocks
-        # in user docs survive the round-trip unchanged.
+        # ``convert_charrefs=True`` so a character reference is text. With
+        # False, html.parser hands ``&times;`` to ``handle_entityref``, which
+        # nothing here implements, and the character was lost: a close button
+        # whose whole label is ``&times;`` was reported as having no name.
         """Initialise the audit parser's element and text accumulators."""
-        super().__init__(convert_charrefs=False)
+        super().__init__(convert_charrefs=True)
         # The root is a synthetic ``html`` element so the tree always has a
         # single entry point; the real ``<html>`` becomes its only child.
         self.root: Element = Element(tag="root", line=0)
@@ -281,6 +286,10 @@ def accessible_name(elem: Element) -> str:
        This is what a screen reader announces by default — the simple
        direct-text-only view misses the common ``<a><span>Label</span></a>``
        shape.
+    4. ``aria-labelledby``, whose value is returned as it stands. It names
+       ids rather than words, so it comes last: every caller but the
+       ``<dialog>`` one only asks whether a name exists, and that one
+       compares words, which an id must not shadow.
 
     Parameters
     ----------
@@ -299,7 +308,8 @@ def accessible_name(elem: Element) -> str:
     # Aggregate text from this element and every descendant.
     parts: list[str] = [elem.text]
     parts.extend(d.text for d in walk(elem))
-    return " ".join(p.strip() for p in parts if p and p.strip()).strip()
+    name = " ".join(p.strip() for p in parts if p and p.strip()).strip()
+    return name or elem.attrs.get("aria-labelledby", "").strip()
 
 
 def has_descendant(elem: Element, tag: str) -> bool:
@@ -322,6 +332,18 @@ def check_html_lang(root: Element) -> list[Finding]:
     return findings
 
 
+def _has_redundant_aria(elem: Element) -> bool:
+    """An ``<img alt="">`` that also carries a redundant role or aria-hidden."""
+    return (
+        elem.tag == "img"
+        and elem.attrs.get("alt") == ""
+        and (
+            elem.attrs.get("role", "") == "presentation"
+            or elem.attrs.get("aria-hidden", "") == "true"
+        )
+    )
+
+
 def check_img(root: Element) -> list[Finding]:
     """Rules ``img-missing-alt`` and ``img-redundant-aria``."""
     findings: list[Finding] = []
@@ -337,10 +359,7 @@ def check_img(root: Element) -> list[Finding]:
             continue
         # ``role="presentation"`` and ``aria-hidden`` are redundant with
         # an explicit empty ``alt`` per W3C / WAI guidance.
-        if elem.attrs.get("alt", "") == "" and (
-            elem.attrs.get("role", "") == "presentation"
-            or elem.attrs.get("aria-hidden", "") == "true"
-        ):
+        if _has_redundant_aria(elem):
             findings.append(Finding(
                 rule="img-redundant-aria",
                 line=elem.line,
@@ -441,10 +460,12 @@ def check_input_label(root: Element) -> list[Finding]:
             continue
         if elem.attrs.get("aria-label", "").strip():
             continue
+        if elem.attrs.get("aria-labelledby", "").strip():
+            continue
         findings.append(Finding(
             rule="input-missing-label",
             line=elem.line,
-            message="<input> has no associated <label> and no aria-label.",
+            message="<input> has no associated <label>, no aria-label and no aria-labelledby.",
         ))
     return findings
 
@@ -530,15 +551,20 @@ def _is_focusable(elem: Element) -> bool:
     return "disabled" not in elem.attrs
 
 
+def _hides_a_focusable_control(elem: Element) -> bool:
+    """A control a keyboard can reach, marked ``aria-hidden="true"``."""
+    return (
+        elem.tag in _FOCUSABLE_TAGS
+        and elem.attrs.get("aria-hidden", "") == "true"
+        and _is_focusable(elem)
+    )
+
+
 def check_aria_hidden_interactive(root: Element) -> list[Finding]:
     """Rule ``aria-hidden-interactive``: hidden interactive elements are unreachable."""
     findings: list[Finding] = []
     for elem in walk(root):
-        if elem.tag not in _FOCUSABLE_TAGS:
-            continue
-        if elem.attrs.get("aria-hidden", "") != "true":
-            continue
-        if not _is_focusable(elem):
+        if not _hides_a_focusable_control(elem):
             continue
         findings.append(Finding(
             rule="aria-hidden-interactive",
@@ -647,14 +673,17 @@ def check_color_only_state(root: Element) -> list[Finding]:
     return findings
 
 
+def _animates_unguarded(elem: Element) -> bool:
+    """An animation class with no ``motion-reduce:`` peer on the same element."""
+    cls: str = elem.attrs.get("class", "")
+    return bool(_MOTION_PAT.search(cls)) and not _MOTION_REDUCE_PAT.search(cls)
+
+
 def check_motion_reduce(root: Element) -> list[Finding]:
     """Rule ``motion-no-reduce-guard``: animations need a reduced-motion peer."""
     findings: list[Finding] = []
     for elem in walk(root):
-        cls: str = elem.attrs.get("class", "")
-        if not _MOTION_PAT.search(cls):
-            continue
-        if _MOTION_REDUCE_PAT.search(cls):
+        if not _animates_unguarded(elem):
             continue
         findings.append(Finding(
             rule="motion-no-reduce-guard",
@@ -662,6 +691,16 @@ def check_motion_reduce(root: Element) -> list[Finding]:
             message=f"<{elem.tag}> animates without a motion-reduce: peer (prefers-reduced-motion ignored).",
         ))
     return findings
+
+
+def _is_tight_body_text(elem: Element) -> bool:
+    """Running text set with ``tracking-tight`` or ``tracking-tighter``."""
+    cls: str = elem.attrs.get("class", "")
+    return (
+        elem.tag in BODY_TEXT_TAGS
+        and bool(_TIGHT_TRACKING_PAT.search(cls))
+        and not _is_display_type(cls)  # display type, not running text
+    )
 
 
 def check_body_text_tracking(root: Element) -> list[Finding]:
@@ -687,13 +726,7 @@ def check_body_text_tracking(root: Element) -> list[Finding]:
     """
     findings: list[Finding] = []
     for elem in walk(root):
-        if elem.tag not in BODY_TEXT_TAGS:
-            continue
-        cls: str = elem.attrs.get("class", "")
-        if not _TIGHT_TRACKING_PAT.search(cls):
-            continue
-        if _is_display_type(cls):
-            # Display type, not running text. See :func:`_is_display_type`.
+        if not _is_tight_body_text(elem):
             continue
         findings.append(Finding(
             rule="body-text-tracking-tight",
@@ -838,6 +871,75 @@ ALL_RULES: dict[str, Callable[..., Any]] = {
 
 # ── Auto-fix machinery ────────────────────────────────────────────────────
 
+#: One opening tag, up to its ``>`` or the end of the line. Quoted attribute
+#: values are matched whole, so a ``>`` inside one does not end the tag.
+_TAG_RE: re.Pattern[str] = re.compile(r"""<[a-zA-Z][\w:-]*(?:[^<>"']|"[^"]*"|'[^']*')*>?""")
+
+#: The ``class`` attribute inside one tag, and not ``data-class``.
+_CLASS_ATTR_RE: re.Pattern[str] = re.compile(r"""(?<![-\w])class=(["'])((?:(?!\1).)*)\1""")
+
+
+def read_source(path: Path) -> str:
+    """Read an HTML file so that :func:`write_source` gives its bytes back.
+
+    ``newline=""`` keeps the line endings, and ``surrogateescape`` carries a
+    byte that is not UTF-8 through as a placeholder. The fixers used to read
+    with ``errors="ignore"`` and write back what was left: on a Latin-1 page
+    every accented letter vanished, even when no fix applied, and a CRLF file
+    came out LF. A read for the lint alone can drop such a byte; a read that
+    will be written back cannot.
+    """
+    with path.open(encoding="utf-8", errors="surrogateescape", newline="") as handle:
+        return handle.read()
+
+
+def write_source(path: Path, text: str) -> None:
+    """Write text obtained from :func:`read_source`, byte for byte."""
+    with path.open("w", encoding="utf-8", errors="surrogateescape", newline="") as handle:
+        handle.write(text)
+
+
+def tags_on_line(line: str, offending: Callable[[Element], bool]) -> list[re.Match[str]]:
+    """The opening tags on ``line`` that ``offending`` accepts, left to right.
+
+    A finding carries a line and no column, and on a minified page one line
+    holds many elements. The fixers used to edit the first attribute of the
+    right name on the line, whichever element it belonged to, so a repair
+    could strip the ``aria-hidden`` of the decorative icon beside the control
+    it was meant for. Each tag is parsed by the parser the rules read, and
+    ``offending`` is the rule's own test, so the two cannot disagree.
+    """
+    found: list[re.Match[str]] = []
+    for match in _TAG_RE.finditer(line):
+        source = match.group(0)
+        builder = TreeBuilder()
+        builder.feed(source if source.endswith(">") else f"{source}>")
+        builder.close()
+        if builder.root.children and offending(builder.root.children[0]):
+            found.append(match)
+    return found
+
+
+def _edit_offending_tag(
+    lines: list[str],
+    finding: Finding,
+    offending: Callable[[Element], bool],
+    edit: Callable[[str], str],
+) -> bool:
+    """Apply ``edit`` to the first tag on the finding's line that offends."""
+    idx: int = finding.line - 1
+    if not (0 <= idx < len(lines)):
+        return False
+    tags = tags_on_line(lines[idx], offending)
+    if not tags:
+        return False
+    match = tags[0]
+    new_tag: str = edit(match.group(0))
+    if new_tag == match.group(0):
+        return False
+    lines[idx] = lines[idx][: match.start()] + new_tag + lines[idx][match.end() :]
+    return True
+
 
 def _detect_html_lang(lines: list[str]) -> str | None:
     """Detect the document language from the HTML's own visible body text.
@@ -897,20 +999,12 @@ def _fix_html_missing_lang(lines: list[str], finding: Finding) -> bool:
 
 def _fix_img_redundant_aria(lines: list[str], finding: Finding) -> bool:
     """Strip redundant ``role="presentation"`` / ``aria-hidden="true"`` from <img alt="">."""
-    idx: int = finding.line - 1
-    if not (0 <= idx < len(lines)):
-        return False
-    line: str = lines[idx]
-    new_line: str = re.sub(
-        r'\s+role=["\']presentation["\']', "", line, count=1
-    )
-    new_line = re.sub(
-        r'\s+aria-hidden=["\']true["\']', "", new_line, count=1
-    )
-    if new_line == line:
-        return False
-    lines[idx] = new_line
-    return True
+
+    def edit(tag: str) -> str:
+        tag = re.sub(r'\s+role=["\']presentation["\']', "", tag, count=1)
+        return re.sub(r'\s+aria-hidden=["\']true["\']', "", tag, count=1)
+
+    return _edit_offending_tag(lines, finding, _has_redundant_aria, edit)
 
 
 def _fix_tabindex_positive(lines: list[str], finding: Finding) -> bool:
@@ -931,54 +1025,39 @@ def _fix_tabindex_positive(lines: list[str], finding: Finding) -> bool:
 
 def _fix_aria_hidden_interactive(lines: list[str], finding: Finding) -> bool:
     """Strip ``aria-hidden="true"`` from an interactive element."""
-    idx: int = finding.line - 1
-    if not (0 <= idx < len(lines)):
-        return False
-    line: str = lines[idx]
-    new_line: str = re.sub(
-        r'\s+aria-hidden=["\']true["\']', "", line, count=1
-    )
-    if new_line == line:
-        return False
-    lines[idx] = new_line
-    return True
+
+    def edit(tag: str) -> str:
+        return re.sub(r'\s+aria-hidden=["\']true["\']', "", tag, count=1)
+
+    return _edit_offending_tag(lines, finding, _hides_a_focusable_control, edit)
 
 
 def _fix_motion_reduce_guard(lines: list[str], finding: Finding) -> bool:
     """Append a ``motion-reduce:`` guard to the offending element's class list."""
-    idx: int = finding.line - 1
-    if not (0 <= idx < len(lines)):
-        return False
-    line: str = lines[idx]
-    m = re.search(r'''class=(["'])((?:(?!\1).)*)\1''', line)
-    if not m:
-        return False
-    existing: list[str] = m.group(2).split()
-    # Already has any motion-reduce token? No-op.
-    if any(c.startswith("motion-reduce:") for c in existing):
-        return False
-    new_classes: str = " ".join(existing + ["motion-reduce:transform-none"])
-    lines[idx] = line[: m.start(2)] + new_classes + line[m.end(2) :]
-    return True
+
+    def edit(tag: str) -> str:
+        m = _CLASS_ATTR_RE.search(tag)
+        if m is None:
+            return tag
+        new_classes: str = " ".join([*m.group(2).split(), "motion-reduce:transform-none"])
+        return tag[: m.start(2)] + new_classes + tag[m.end(2) :]
+
+    return _edit_offending_tag(lines, finding, _animates_unguarded, edit)
 
 
 def _fix_body_text_tracking_tight(lines: list[str], finding: Finding) -> bool:
     """Strip ``tracking-tight``/``tracking-tighter`` from the offending element's class list."""
-    idx: int = finding.line - 1
-    if not (0 <= idx < len(lines)):
-        return False
-    line: str = lines[idx]
-    m = re.search(r'''class=(["'])((?:(?!\1).)*)\1''', line)
-    if not m:
-        return False
-    remaining: list[str] = [
-        c for c in m.group(2).split() if not _TIGHT_TRACKING_PAT.fullmatch(c)
-    ]
-    new_classes: str = " ".join(remaining)
-    if new_classes == m.group(2):
-        return False
-    lines[idx] = line[: m.start(2)] + new_classes + line[m.end(2) :]
-    return True
+
+    def edit(tag: str) -> str:
+        m = _CLASS_ATTR_RE.search(tag)
+        if m is None:
+            return tag
+        remaining: list[str] = [
+            c for c in m.group(2).split() if not _TIGHT_TRACKING_PAT.fullmatch(c)
+        ]
+        return tag[: m.start(2)] + " ".join(remaining) + tag[m.end(2) :]
+
+    return _edit_offending_tag(lines, finding, _is_tight_body_text, edit)
 
 
 #: Mapping of rule id → fixer. Only rules whose violations have a
@@ -1030,8 +1109,12 @@ def fix_file(
         landed, count of findings with no fixer, and the residual
         findings after the final write.
     """
-    raw: str = path.read_text(encoding="utf-8", errors="ignore")
-    bare_lines: list[str] = raw.splitlines()
+    raw: str = read_source(path)
+    # ``split``, not ``splitlines``: the latter also breaks on a form feed or a
+    # U+2028, which the parser's line numbers do not count, and the join below
+    # would turn them into newlines.
+    bare_lines: list[str] = raw.split("\n")
+    written: str = raw
     applied: int = 0
     skipped: int = 0
     skipped_seen: bool = False
@@ -1048,11 +1131,16 @@ def fix_file(
                 applied += 1
         return applied, skipped, findings
 
-    for _ in range(MAX_FIX_ITERATIONS):
+    def write_if_changed() -> None:
+        """Write the working lines back, and leave an unchanged file untouched."""
+        nonlocal written
         new_text: str = "\n".join(bare_lines)
-        if raw.endswith("\n"):
-            new_text += "\n"
-        path.write_text(new_text, encoding="utf-8")
+        if new_text != written:
+            write_source(path, new_text)
+            written = new_text
+
+    for _ in range(MAX_FIX_ITERATIONS):
+        write_if_changed()
         findings = lint_file(path, ignored)
         round_applied: int = 0
         round_skipped: int = 0
@@ -1069,10 +1157,7 @@ def fix_file(
             skipped_seen = True
         if round_applied == 0:
             break
-    new_text = "\n".join(bare_lines)
-    if raw.endswith("\n"):
-        new_text += "\n"
-    path.write_text(new_text, encoding="utf-8")
+    write_if_changed()
     remaining: list[Finding] = lint_file(path, ignored)
     return applied, skipped, remaining
 
@@ -1200,7 +1285,9 @@ def _build_cli() -> Any:
         "  sprezzature-accessibility-lint --format json public/\n"
         "  sprezzature-accessibility-lint --ignore img-missing-alt,a-missing-href dist/\n",
     )
-    @click.argument("target", type=click.Path(path_type=Path))
+    # ``exists=True``: a path with a typo in it used to print "No HTML files
+    # found" and exit 0, so a CI step pointing at the wrong folder stayed green.
+    @click.argument("target", type=click.Path(exists=True, path_type=Path))
     @click.option(
         "--format",
         "format_",

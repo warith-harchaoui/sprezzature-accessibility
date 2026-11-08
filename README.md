@@ -69,7 +69,8 @@ second pass.
   WCAG 1.4.12 Text Spacing minimums, for pages that want to ship the fix as a
   reader-facing toggle.
 - Text and JSON output, composable with jq or any CI parser.
-- Exit code 1 on any finding, 0 on a clean run: usable as a pre-commit gate.
+- Exit code 1 on any finding, 0 on a clean run, 2 on a usage error (a path that
+  does not exist is one): usable as a pre-commit gate.
 - Python 3.10 to 3.13. The lint path imports the standard library only, plus
   `langdetect` when it is installed (the `html-missing-lang` fixer uses it to
   guess the page language).
@@ -248,11 +249,12 @@ curl -s -X POST localhost:8000/v1/lint \
 | `GET /v1/kinds` | `list_kinds` | The six image purposes, each with what it is for |
 | `POST /v1/alt` | `draft_alt_text` | A drafted alt text, and a long description on request |
 
-The API lints a string, never a URL: fetching on a caller's behalf would turn it
-into an open proxy. `POST /v1/alt` answers 502 when the local model cannot be
-reached, 503 when the install is missing the model client, and 404 when the image
-file does not exist. Interactive documentation is at
-`/docs`.
+`POST /v1/lint` takes a string, never a URL: fetching on a caller's behalf would
+turn it into an open proxy. `POST /v1/alt` is the exception: its `src` is a path the
+server opens or an `http(s)` URL it fetches, so keep that port on a trusted network.
+It answers 502 when the local model cannot be reached, 503 when the install is
+missing the model client, and 404 when the image cannot be read, as a file or as a
+URL. Interactive documentation is at `/docs`.
 
 With Docker, `docker compose up -d` builds the image and serves the API on port
 8000, with `./work` mounted at `/work`. `docker compose --profile alt up -d` also

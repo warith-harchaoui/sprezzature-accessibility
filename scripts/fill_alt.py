@@ -34,18 +34,21 @@ from __future__ import annotations
 import html
 import re
 import sys
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from lint_a11y import Finding, lint_file  # noqa: E402
-
-#: ``src="…"`` on the offending line. Single or double quoted.
-_SRC_RE = re.compile(r"""\bsrc\s*=\s*["']([^"']+)["']""")
-
-#: Where to splice the new attribute: right after ``<img``.
-_IMG_OPEN_RE = re.compile(r"<img\b", re.IGNORECASE)
+from lint_a11y import (  # noqa: E402
+    Element,
+    Finding,
+    TreeBuilder,
+    lint_file,
+    read_source,
+    tags_on_line,
+    write_source,
+)
 
 #: ``lang="…"`` on the ``<html>`` opening tag, base subtag only (``fr-CA`` → ``fr``).
 _HTML_LANG_RE = re.compile(
@@ -115,13 +118,42 @@ def _resolve(document: Path, src: str) -> Path | None:
     return candidate if candidate.is_file() else None
 
 
-def _insert_alt(line: str, alt: str) -> str | None:
-    """Splice ``alt="…"`` into the first ``<img`` on this line."""
-    match = _IMG_OPEN_RE.search(line)
-    if match is None:
+def _lacks_alt(elem: Element) -> bool:
+    """The test ``img-missing-alt`` applies, for one parsed tag."""
+    return elem.tag == "img" and "alt" not in elem.attrs
+
+
+def _src_of(tag: str) -> str:
+    """The ``src`` of one opening ``<img>`` tag, or ``""``.
+
+    Read by the parser rather than a regular expression, which took the
+    ``data-src`` of a lazy-loaded image for its ``src``.
+    """
+    builder = TreeBuilder()
+    builder.feed(tag if tag.endswith(">") else f"{tag}>")
+    builder.close()
+    return builder.root.children[0].attrs.get("src", "") if builder.root.children else ""
+
+
+def _insert_alt(line: str, alt: str, position: int = 0, *, ascii_only: bool = False) -> str | None:
+    """Splice ``alt="…"`` into the ``position``-th alt-less ``<img`` on this line.
+
+    On a minified page one line holds several images. This used to write into
+    the first ``<img`` of the line whatever it was, so an image that already
+    had an ``alt`` got a second one, and the image the finding was about got
+    none.
+
+    ``ascii_only`` is for a page that is not UTF-8: the draft goes in as
+    character references, which read the same in any ASCII-compatible encoding.
+    """
+    tags = tags_on_line(line, _lacks_alt)
+    if position >= len(tags):
         return None
+    start = tags[position].start() + len("<img")
     escaped = html.escape(alt, quote=True)
-    return f'{line[: match.end()]} alt="{escaped}"{line[match.end():]}'
+    if ascii_only:
+        escaped = escaped.encode("ascii", "xmlcharrefreplace").decode("ascii")
+    return f'{line[:start]} alt="{escaped}"{line[start:]}'
 
 
 def fill_missing_alt(
@@ -161,9 +193,9 @@ def fill_missing_alt(
         that could not be drafted — a remote source, an image not on disk, or
         a tag the line-based splice could not reach.
     """
-    # Imported here, not at module scope: the drafting half lives behind the
-    # ``[alt]`` extra, and this module is importable without it so the error
-    # message can name the extra instead of a traceback.
+    # Imported here, not at module scope: a ``--no-deps`` install has the lint
+    # and not the drafting half's dependencies, and this module stays
+    # importable there so the error can name the reinstall.
     try:
         from _vocab import resolve_vocab_terms, surrounding_text
         from alt_from_ollama import describe
@@ -179,24 +211,36 @@ def fill_missing_alt(
     if not findings:
         return [], []
 
-    raw = path.read_text(encoding="utf-8", errors="ignore")
-    lines = raw.splitlines()
-    language = lang or document_language(raw)
+    raw = read_source(path)
+    lines = raw.split("\n")
+    # A byte that is not UTF-8 came through as a lone surrogate.
+    ascii_only = any("\udc80" <= char <= "\udcff" for char in raw)
+    # The language detector must not see those placeholders.
+    language = lang or document_language(raw.encode("utf-8", "ignore").decode("utf-8"))
     drafts: list[Draft] = []
     unreachable: list[Finding] = []
+    #: Per line, how many alt-less images were left alone. A drafted image
+    #: stops being alt-less; one left alone stays first in the list, and the
+    #: next finding on that line has to look past it.
+    passed: Counter[int] = Counter()
+
+    def leave_alone(finding: Finding, index: int) -> None:
+        unreachable.append(finding)
+        passed[index] += 1
 
     for finding in findings:
         index = finding.line - 1
         if not 0 <= index < len(lines):
             unreachable.append(finding)
             continue
-        match = _SRC_RE.search(lines[index])
-        if match is None:
-            unreachable.append(finding)
+        tags = tags_on_line(lines[index], _lacks_alt)
+        if passed[index] >= len(tags):
+            leave_alone(finding, index)
             continue
-        image = _resolve(path, match.group(1))
+        src = _src_of(tags[passed[index]].group(0))
+        image = _resolve(path, src) if src else None
         if image is None:
-            unreachable.append(finding)
+            leave_alone(finding, index)
             continue
 
         # The second input, and the reason this lives in the linter rather
@@ -213,27 +257,24 @@ def fill_missing_alt(
             vocabulary=vocabulary,
         )
         if not alt:
-            unreachable.append(finding)
+            leave_alone(finding, index)
             continue
 
-        spliced = _insert_alt(lines[index], alt)
+        spliced = _insert_alt(lines[index], alt, passed[index], ascii_only=ascii_only)
         if spliced is None:
-            unreachable.append(finding)
+            leave_alone(finding, index)
             continue
         lines[index] = spliced
         drafts.append(
             Draft(
                 line=finding.line,
-                src=match.group(1),
+                src=src,
                 alt=alt,
                 context_chars=len(context),
             )
         )
 
     if drafts and not dry_run:
-        text = "\n".join(lines)
-        if raw.endswith("\n"):
-            text += "\n"
-        path.write_text(text, encoding="utf-8")
+        write_source(path, "\n".join(lines))
 
     return drafts, unreachable
