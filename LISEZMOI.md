@@ -15,10 +15,11 @@ contenu que ces erreurs laissent le plus souvent de côté : une balise `<img>`
 texte alternatif est aussi invisible pour un lecteur d'écran que si l'image n'existait
 pas sur la page.
 
-La moitié audit est un linter statique : vingt règles issues des WCAG (*Web Content
-Accessibility Guidelines*, la norme du W3C qui définit ce que « accessible » veut
-dire pour le web) et de WAI-ARIA (*Web Accessibility Initiative, Accessible Rich
-Internet Applications* : le vocabulaire d'attributs, `role`, `aria-label` et
+La moitié audit est un linter statique, qui rend ses constats en texte ou en JSON
+(*JavaScript Object Notation*, du texte en champs nommés qu'un script sait lire : une entrée par constat, avec sa règle, sa ligne et son message) : vingt règles issues des WCAG (*Web Content
+Accessibility Guidelines*, la norme du W3C (*World Wide Web Consortium*, l'organisme qui écrit les règles du web, dont le langage HTML) qui définit ce que « accessible » veut
+dire pour le web) et de la *Web Accessibility Initiative, Accessible Rich Internet Applications*
+(WAI-ARIA : le vocabulaire d'attributs, `role`, `aria-label` et
 consorts, qui permet à un composant fait maison de se décrire aux logiciels
 d'assistance), chacune décidable à la seule lecture du texte HTML. Aucun navigateur
 ne s'ouvre, aucune page ne s'affiche, aucun JavaScript ne s'exécute : il n'y a donc
@@ -77,7 +78,7 @@ réel.
   page comme contexte, une sortie plafonnée à 150 caractères, des résultats mis en
   cache sur disque.
 - `sprezzature-accessibility-text-spacing` : le pendant « fabrication » de la règle
-  d'espacement des lettres. Il génère un bloc CSS optionnel « lecture confortable »
+  d'espacement des lettres. Il génère un bloc CSS (*Cascading Style Sheets*, les règles qui fixent les couleurs, les polices et les espacements d'une page) optionnel « lecture confortable »
   aux minima WCAG 1.4.12, pour les pages qui veulent proposer la correction comme
   un réglage visible par le lecteur.
 - Sortie texte et JSON, composable avec jq ou tout parseur de CI.
@@ -91,7 +92,8 @@ réel.
 ## Installation
 
 Une ligne, et c'est tout : le lint, le rédacteur de textes alternatifs, la
-détection de langue, l'API HTTP et le serveur MCP.
+détection de langue, l'API (*Application Programming Interface*, une porte pour d'autres
+programmes : un script envoie une page et reçoit les constats en retour) servie en HTTP (*HyperText Transfer Protocol*, l'échange de requêtes et de réponses par lequel un navigateur va chercher chaque page) et le serveur MCP (Model Context Protocol, le protocole par lequel les agents IA appellent des outils en français).
 
 ```bash
 pip install sprezzature-accessibility
@@ -331,4 +333,5 @@ mécanique, appliqué par `--fix`.
 
 ## Licence
 
-BSD-3-Clause. Copyright 2026 Warith HARCHAOUI.
+La licence à trois clauses de la Berkeley Software Distribution, BSD-3-Clause.
+Copyright 2026 Warith HARCHAOUI.

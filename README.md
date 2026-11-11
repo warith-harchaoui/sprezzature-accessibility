@@ -13,9 +13,10 @@ HTML source code for the mistakes that most often break that, and drafts the pie
 of content those mistakes most often leave out: an `<img>` with no `alt` text is as
 invisible to a screen reader as if the image were missing from the page.
 
-The audit half is a static linter: twenty rules from WCAG (Web Content Accessibility
-Guidelines, the W3C standard that defines what "accessible" means for the web) and
-WAI-ARIA (Web Accessibility Initiative, Accessible Rich Internet Applications: the
+The audit half is a static linter, reporting as text or JSON
+(JavaScript Object Notation, plain text in named fields that a script can read: one entry per finding, with its rule, line and message): twenty rules from WCAG (Web Content Accessibility
+Guidelines, the standard of the W3C (World Wide Web Consortium, the body that writes the web's rules, the HTML language among them) that defines what "accessible" means for the web) and
+the Web Accessibility Initiative's Accessible Rich Internet Applications (WAI-ARIA: the
 attribute vocabulary, `role`, `aria-label` and the like, that lets custom widgets
 describe themselves to assistive software), each one decidable by reading the HTML
 text alone. No browser opens, no page renders, no JavaScript runs, so there is no
@@ -65,7 +66,7 @@ second pass.
   complex, group), the page's own text as context, output capped at 150
   characters, results cached on disk.
 - `sprezzature-accessibility-text-spacing`: the make-side counterpart to the
-  letter-spacing rule. It emits an opt-in "comfortable reading" CSS block at the
+  letter-spacing rule. It emits an opt-in "comfortable reading" CSS (Cascading Style Sheets, the rules that set a page's colours, fonts and spacing) block at the
   WCAG 1.4.12 Text Spacing minimums, for pages that want to ship the fix as a
   reader-facing toggle.
 - Text and JSON output, composable with jq or any CI parser.
@@ -78,7 +79,10 @@ second pass.
 ## Install
 
 One line, and it is everything: the lint, the alt-text drafter, the language
-detector, the HTTP API and the MCP server.
+detector, the API (Application Programming Interface, a door for other programs: a
+script sends a page and gets the findings back)
+over HTTP (HyperText Transfer Protocol, the request-and-reply exchange a browser uses to fetch every page) and the MCP (Model Context Protocol, the protocol through which AI agents call tools in English)
+server.
 
 ```bash
 pip install sprezzature-accessibility
@@ -311,4 +315,5 @@ applied by `--fix`.
 
 ## License
 
-BSD-3-Clause. Copyright 2026 Warith HARCHAOUI.
+The three-clause licence of the Berkeley Software Distribution, BSD-3-Clause.
+Copyright 2026 Warith HARCHAOUI.
