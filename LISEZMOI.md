@@ -204,7 +204,7 @@ Le même moteur répond sur cinq surfaces.
 | Ligne de commande | `sprezzature-accessibility` (alias `make-a11y`) et une commande par outil |
 | API HTTP (FastAPI) | `uvicorn sprezzature_accessibility.api:app`, ou `docker compose up` |
 | Serveur MCP | `sprezzature-accessibility-mcp` |
-| Skill d'agent | `SKILL.md`, tenu dans le dépôt central [sprezzature](https://github.com/warith-harchaoui/sprezzature) |
+| Skill d'agent | `sprezzature_accessibility/skill/`, livré dans le paquet ; `sprezzature-accessibility-skill --install` le pose là où l'agent le lit |
 
 ### Bibliothèque
 
@@ -228,11 +228,13 @@ usage, si bien que `import sprezzature_accessibility` reste aussi léger que le 
 
 ### Ligne de commande
 
-Une porte d'entrée, construite sur click, avec deux orthographes et quatre outils :
+Une porte d'entrée, construite sur click, avec deux orthographes et quatre outils,
+plus `tools` et `skill` :
 
 ```bash
 sprezzature-accessibility --help          # les quatre outils, et ce que fait chacun
 sprezzature-accessibility tools           # quels outils peuvent tourner sur cette machine
+sprezzature-accessibility skill           # le skill d'agent installé est-il à jour ?
 sprezzature-accessibility lint public/    # identique à sprezzature-accessibility-lint public/
 make-a11y lint public/                    # l'orthographe historique de la même commande
 ```
@@ -243,6 +245,7 @@ make-a11y lint public/                    # l'orthographe historique de la même
 | Génère le CSS de lecture confortable WCAG 1.4.12 | `text-spacing` | `sprezzature-accessibility-text-spacing` |
 | Rédige le texte alternatif d'une image | `alt` | `sprezzature-accessibility-alt` (alias `make-alt`) |
 | Installe Ollama, le démarre, télécharge `qwen3-vl:8b` | `install-alt` | `sprezzature-accessibility-install-alt` |
+| Vérifie ou installe le skill d'agent (voir plus bas) | `skill` | `sprezzature-accessibility-skill` |
 
 Les deux orthographes de la porte d'entrée résolvent vers le même appelable, sur
 une table unique (`sprezzature_accessibility/_tools.py`), donc un outil ne peut pas
@@ -302,6 +305,28 @@ outils sont les cinq routes ci-dessus, nommés par leur `operation_id` : `healt
 viennent de `SPREZZATURE_ACCESSIBILITY_HOST` et `SPREZZATURE_ACCESSIBILITY_PORT`
 quand elles sont définies.
 
+### Skill d'agent
+
+Un skill est le dossier qu'un agent lit pour savoir quand prendre un outil et quelle
+commande lancer : un `SKILL.md` et les références qu'il ouvre une fois son choix
+fait. Claude Code lit les skills dans `~/.claude/skills/`, OpenCode dans
+`~/.opencode/skills/`. Celui-ci est livré dans le paquet, sous
+`sprezzature_accessibility/skill/`, si bien que `pip install` apporte les cinq
+surfaces.
+
+```bash
+sprezzature-accessibility-skill                         # rapport : la copie installée est-elle à jour ?
+sprezzature-accessibility-skill --install               # la copier dans ~/.claude/skills
+sprezzature-accessibility-skill --install --agent opencode   # dans ~/.opencode/skills
+sprezzature-accessibility-skill --path                  # où pip l'a posé
+```
+
+`sprezzature-accessibility skill` est la même commande sous la porte d'entrée. Par
+défaut elle fait un rapport et n'écrit rien ; `--install` met d'abord l'ancienne
+copie de côté, dans un dossier `skills-superseded/` à côté du dossier des skills,
+parce qu'un dossier laissé dans le dossier des skills est lui-même lu comme un
+skill. Depuis Python, `sprezzature_accessibility.skill_path()` renvoie le dossier.
+
 ## Les règles
 
 | Règle | Sévérité | Description |
@@ -333,5 +358,5 @@ mécanique, appliqué par `--fix`.
 
 ## Licence
 
-La licence à trois clauses de la Berkeley Software Distribution, BSD-3-Clause.
-Copyright 2026 Warith HARCHAOUI.
+La licence à trois clauses de la Berkeley Software Distribution (BSD) : la
+licence BSD 3-Clause. Copyright 2026 Warith HARCHAOUI.

@@ -188,7 +188,7 @@ The same engine answers on five surfaces.
 | Command line | `sprezzature-accessibility` (alias `make-a11y`) and one command per tool |
 | HTTP API (FastAPI) | `uvicorn sprezzature_accessibility.api:app`, or `docker compose up` |
 | MCP server | `sprezzature-accessibility-mcp` |
-| Agent skill | `SKILL.md`, maintained in the [sprezzature](https://github.com/warith-harchaoui/sprezzature) hub |
+| Agent skill | `sprezzature_accessibility/skill/`, shipped inside the package; `sprezzature-accessibility-skill --install` puts it where the agent reads |
 
 ### Library
 
@@ -212,11 +212,13 @@ of a complex image. The drafting names (`describe`, `describe_long`, `detect_lan
 
 ### Command line
 
-One front door, built on click, with two spellings and four tools:
+One front door, built on click, with two spellings and four tools, plus `tools`
+and `skill`:
 
 ```bash
 sprezzature-accessibility --help          # the four tools, with what each does
 sprezzature-accessibility tools           # which tools can run on this machine
+sprezzature-accessibility skill           # is the installed agent skill in step?
 sprezzature-accessibility lint public/    # same as sprezzature-accessibility-lint public/
 make-a11y lint public/                    # the historical spelling of the same command
 ```
@@ -227,6 +229,7 @@ make-a11y lint public/                    # the historical spelling of the same 
 | Emit the WCAG 1.4.12 comfortable-reading CSS | `text-spacing` | `sprezzature-accessibility-text-spacing` |
 | Draft alt text for one image | `alt` | `sprezzature-accessibility-alt` (alias `make-alt`) |
 | Install Ollama, start it, pull `qwen3-vl:8b` | `install-alt` | `sprezzature-accessibility-install-alt` |
+| Report or install the agent skill (see below) | `skill` | `sprezzature-accessibility-skill` |
 
 Both front-door spellings resolve to one callable over one table
 (`sprezzature_accessibility/_tools.py`), so a tool cannot be listed in one and
@@ -284,6 +287,27 @@ tools are the five routes above, named by their `operation_id`: `health`,
 `SPREZZATURE_ACCESSIBILITY_HOST` and `SPREZZATURE_ACCESSIBILITY_PORT` when they are
 set.
 
+### Agent skill
+
+A skill is the folder an agent reads to know when to reach for a tool and which
+command to run: a `SKILL.md` and the references it opens once it has chosen. Claude
+Code reads skills from `~/.claude/skills/`, OpenCode from `~/.opencode/skills/`.
+This one ships inside the package, at `sprezzature_accessibility/skill/`, so
+`pip install` carries all five surfaces.
+
+```bash
+sprezzature-accessibility-skill                         # report: is the installed copy in step?
+sprezzature-accessibility-skill --install               # copy it into ~/.claude/skills
+sprezzature-accessibility-skill --install --agent opencode   # into ~/.opencode/skills
+sprezzature-accessibility-skill --path                  # where pip put it
+```
+
+`sprezzature-accessibility skill` is the same command under the front door. It
+reports by default and writes nothing; `--install` moves any previous copy aside, to a
+`skills-superseded/` folder beside the skills directory, before copying, because a folder left inside the
+skills directory is itself read as a skill. From Python,
+`sprezzature_accessibility.skill_path()` returns the folder.
+
 ## Rules
 
 | Rule | Severity | Description |
@@ -315,5 +339,5 @@ applied by `--fix`.
 
 ## License
 
-The three-clause licence of the Berkeley Software Distribution, BSD-3-Clause.
-Copyright 2026 Warith HARCHAOUI.
+The three-clause licence of the Berkeley Software Distribution (BSD): the BSD
+3-Clause licence. Copyright 2026 Warith HARCHAOUI.

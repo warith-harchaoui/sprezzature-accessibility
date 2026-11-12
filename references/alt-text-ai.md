@@ -1,7 +1,8 @@
 # AI-assisted alt text
 
 The drafting half of this package writes `alt` text for an image, following the
-W3C / WAI (Web Accessibility Initiative) image decision tree
+W3C (World Wide Web Consortium, the body that writes the web's standards) / WAI
+(Web Accessibility Initiative) image decision tree
 (<https://www.w3.org/WAI/tutorials/images/decision-tree/>). It uses a **local
 vision model served by Ollama**: nothing leaves the machine.
 
@@ -55,7 +56,7 @@ It:
 
 Re-running it is harmless: it does nothing when Ollama and the model are present.
 With Docker, `docker compose --profile alt up -d` starts an Ollama container beside
-the API instead.
+the API (Application Programming Interface, the door other programs use) instead.
 
 ## Generate alt text
 
@@ -140,7 +141,8 @@ same arguments except `vocabulary`.
 URL it fetches, so keep the port on a trusted network (`docker-compose.yml` publishes it on `127.0.0.1` only). It answers 502 when the model
 cannot be reached, 503 when the model client is missing from the install, and 404
 when the image cannot be read, as a file or as a URL. A browser page cannot call Ollama directly
-(Ollama does not answer CORS requests from web pages), so this route is the proxy
+(Ollama does not answer CORS (Cross-Origin Resource Sharing, the permission a
+server gives a page from another site to call it) requests from web pages), so this route is the proxy
 to put in front of it.
 
 ## Rules the prompt enforces
@@ -178,11 +180,11 @@ Strip `data-alt-source="ai"` once a person has reviewed and approved it.
 
 Drafts are cached on disk so the same input never reaches the model twice.
 
-- **Store:** a `wallet-helper` SQLite ledger, `ledger.db`, under
+- **Store:** a `wallet-helper` ledger, one single-file database, `ledger.db`, under
   `~/.cache/sprezzature-skill/alt/` (override the parent directory with
   `SPREZZATURE_CACHE_DIR=<path>`). The Docker compose file points it at a named
   volume.
-- **Key:** SHA-256 of the image bytes actually sent (after resizing), `kind`, `lang`,
+- **Key:** SHA-256 (Secure Hash Algorithm, a 256-bit fingerprint of the content) of the image bytes actually sent (after resizing), `kind`, `lang`,
   `context` and the model tag, truncated to 32 hex characters.
 - **Single flight:** two processes drafting the same image at the same time share
   one model call; the second waits for the first.
@@ -203,7 +205,7 @@ Drafts are cached on disk so the same input never reaches the model twice.
 ## Related: meta tags
 
 `sprezzature-publish` drafts page-level `<title>`, `<meta name="description">`,
-Open Graph and JSON-LD tags with the same local-model setup. That is a separate
+Open Graph and JSON-LD (JavaScript Object Notation for Linked Data, the structured data search engines read) tags with the same local-model setup. That is a separate
 package.
 
 ## Checklist

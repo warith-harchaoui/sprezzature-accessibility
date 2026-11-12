@@ -24,7 +24,10 @@ Exit code: `1` (findings present).
 sprezzature-accessibility-lint public/
 ```
 
-## JSON output for machine consumption
+## Output for machine consumption
+
+JSON (JavaScript Object Notation) is plain text in named fields that a script can
+read.
 
 ```bash
 sprezzature-accessibility-lint --format json public/index.html | jq '.findings_total'
@@ -106,7 +109,11 @@ sprezzature-accessibility-alt --kind functional --context "Search" icons/magnifi
 
 Output: the alt text on stdout, nothing else. See `references/alt-text-ai.md`.
 
-## Make-side: emit a comfortable-reading CSS toggle
+## Make-side: emit a comfortable-reading toggle
+
+CSS (Cascading Style Sheets) is the language that sets a page's colours, fonts
+and spacing; WCAG (Web Content Accessibility Guidelines) is the standard that
+says what an accessible page is.
 
 The audit-side `body-text-tracking-tight` rule flags narrow letter-spacing on
 running text; `sprezzature-accessibility-text-spacing` emits the opposite, an
@@ -172,3 +179,30 @@ repos:
         pass_filenames: false
         args: ["public/"]
 ```
+
+## Install the agent skill
+
+The skill an agent reads ships inside the package, at
+`sprezzature_accessibility/skill/`. Ask whether the copy an agent reads is in step,
+then refresh it:
+
+```bash
+sprezzature-accessibility-skill
+sprezzature-accessibility-skill --install
+```
+
+Output on a machine that never had it: the report, then the install, which says
+the same thing before it copies.
+
+```
+sprezzature-accessibility: (not installed) (/Users/you/.claude/skills/sprezzature-accessibility)
+Pass --install to copy the shipped skill there.
+sprezzature-accessibility: (not installed) (/Users/you/.claude/skills/sprezzature-accessibility)
+sprezzature-accessibility: installed
+```
+
+Run again, it answers `sprezzature-accessibility: in step with …` and exits 0.
+When a previous copy is replaced, the last line names where it was moved.
+
+`--agent opencode` targets `~/.opencode/skills` instead, and `--path` prints the
+folder pip installed. `sprezzature-accessibility skill` is the same command.

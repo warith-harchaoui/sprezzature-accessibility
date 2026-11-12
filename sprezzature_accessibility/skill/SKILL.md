@@ -34,7 +34,10 @@ metadata:
 > click command, two names) over four tools: `lint`, `text-spacing`, `alt`,
 > `install-alt`. Each is also its own command
 > (`sprezzature-accessibility-lint` and so on), which is what a script should
-> call. This SKILL.md is the agent contract; the code lives in that package.
+> call. This SKILL.md is the agent contract, and it ships inside that package,
+> at `sprezzature_accessibility/skill/`:
+> `sprezzature-accessibility-skill --install` copies it into
+> `~/.claude/skills` (`--agent opencode` for `~/.opencode/skills`).
 
 # sprezzature-accessibility: static HTML a11y lint and alt-text drafting
 
@@ -146,7 +149,7 @@ command line exits 1 on any finding, warnings included.
 | Command line | `sprezzature-accessibility` / `make-a11y` and the per-tool commands above; `sprezzature-accessibility tools` says which tools can run here |
 | HTTP API (FastAPI) | `uvicorn sprezzature_accessibility.api:app`, or `docker compose up -d` (`--profile alt` adds an Ollama container) |
 | MCP (Model Context Protocol, the protocol through which AI agents call tools in English) server | `sprezzature-accessibility-mcp [--host H] [--port P]`, endpoint at `/mcp` |
-| Skill | this file |
+| Skill | this file, shipped in the package at `sprezzature_accessibility/skill/` (`sprezzature_accessibility.skill_path()`); `sprezzature-accessibility-skill` reports whether the installed copy is in step, `--install` refreshes it |
 
 The MCP tools are the HTTP routes, named by their `operation_id`:
 
@@ -155,7 +158,7 @@ The MCP tools are the HTTP routes, named by their `operation_id`:
 | `lint_html` | `POST /v1/lint` | Lint a string of HTML; findings with line, rule, severity, plus error and warning counts. |
 | `list_rules` | `GET /v1/rules` | Every rule id and its severity. Check ids here before passing `ignore`: an unknown id is silently ignored. |
 | `list_kinds` | `GET /v1/kinds` | The six image purposes, each with what it is for. |
-| `draft_alt_text` | `POST /v1/alt` | Draft alt text (and a long description with `long: true`) for one image; `src` is a path the server opens or a URL it fetches. 502 when the model is unreachable, 404 when the image cannot be read. |
+| `draft_alt_text` | `POST /v1/alt` | Draft alt text (and a long description with `long: true`) for one image; `src` is a path the server opens or a URL it fetches. 502 when the model is unreachable, 503 when the model client is missing from the install, 404 when the image cannot be read. |
 | `health` | `GET /health` | Liveness; use only to diagnose a connection. |
 
 `--fix`, `--fix-alt`, the text-spacing CSS and the model install are
@@ -217,16 +220,17 @@ everywhere with `SPREZZATURE_NO_CACHE=1`.
 
 Shipped by the standalone
 [`sprezzature-accessibility`](https://github.com/warith-harchaoui/sprezzature-accessibility)
-package, not by this monorepo:
+package, the same one that ships this skill:
 
 | Console entry point | Purpose |
 |---|---|
-| `sprezzature-accessibility` / `make-a11y` | Front door over the four tools, plus `tools`. |
+| `sprezzature-accessibility` / `make-a11y` | Front door over the four tools, plus `tools` and `skill`. |
 | `sprezzature-accessibility-lint` | Twenty-rule static lint, `--fix`, `--fix-alt`. Exit 1 on any finding. **Not** a substitute for a runtime audit. |
 | `sprezzature-accessibility-text-spacing` | The opt-in WCAG 1.4.12 Text Spacing CSS, the make-side counterpart to `body-text-tracking-tight`. |
 | `sprezzature-accessibility-alt` / `make-alt` | Alt text for one image. |
 | `sprezzature-accessibility-install-alt` | Installs Ollama, starts it, pulls `qwen3-vl:8b`. |
 | `sprezzature-accessibility-mcp` | The MCP server over the HTTP API. |
+| `sprezzature-accessibility-skill` | Says whether the installed copy of this skill is in step; `--install` copies it into `~/.claude/skills` (`--agent opencode`: `~/.opencode/skills`), `--path` prints where pip put it. |
 
 ## Companion skills
 

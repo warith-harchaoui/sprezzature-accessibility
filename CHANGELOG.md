@@ -4,6 +4,37 @@ All notable changes to sprezzature-accessibility are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- **The agent skill ships inside the package.** `SKILL.md`, its references and
+  its trigger catalogue lived only in the `sprezzature` hub, so
+  `pip install sprezzature-accessibility` gave four of the five surfaces and
+  nothing an agent could read. They are now in `sprezzature_accessibility/skill/`,
+  inside the wheel. `sprezzature-accessibility-skill` (and
+  `sprezzature-accessibility skill`) says whether the copy an agent reads is in
+  step; `--install` copies it into `~/.claude/skills`, `--agent opencode` into
+  `~/.opencode/skills`, and `--path` prints where pip put it.
+  `sprezzature_accessibility.skill_path()` returns the folder.
+
+### Docs
+
+- README, LISEZMOI, `TRIGGERS.md` and `EXAMPLES.md` describe the skill as the
+  fifth surface, shipped in the package, with its command. They said the skill
+  was maintained in the hub.
+- The skill's own `SKILL.md` said it was shipped "not by this monorepo" and that
+  the code lived elsewhere; it now says it ships with the code. Its table of
+  routes gives the 503 that `POST /v1/alt` answers when the model client is
+  missing.
+- The skill's rule catalogue (`references/lint-a11y.md`) gives the exemptions the
+  code applies: `aria-hidden-interactive` skips an element out of the tab order
+  (`tabindex="-1"`, `disabled`, `inert`, an `<a>` without `href`),
+  `body-text-tracking-tight` skips display type (`text-3xl` and up), a
+  `value="close"` button closes a dialog, and `color-only-state` reads emerald,
+  rose and crimson as well as red and green.
+- `CONTRIBUTING.md` said CI runs mypy; since 1.4.4 mypy runs in the pre-push
+  hook only, and CI runs ruff and the tests.
+- The licence is named "BSD 3-Clause licence" in README and LISEZMOI.
+
 ## [1.4.4] — 2026-11-08
 
 ### Fixed

@@ -3,7 +3,8 @@
 When to use sprezzature-accessibility, and what to call.
 
 This file is written for an agent: a Claude Code or OpenCode skill, an MCP (Model
-Context Protocol) host, anything choosing a tool on someone's behalf. Humans are
+Context Protocol, the protocol through which AI agents call tools in English) host,
+anything choosing a tool on someone's behalf. Humans are
 welcome, but the routing rules are the point.
 
 ---
@@ -26,8 +27,9 @@ answers when the request or the file in hand is about one of these objects:
   `autoplay`, `muted`.
 - **Standards it maps to**: WCAG (Web Content Accessibility Guidelines) success
   criteria 1.1.1, 1.2.1, 1.2.2, 1.2.4, 1.4.1, 1.4.2, 1.4.12, 2.1.1, 2.3.3, 2.4.6, 3.1.1;
-  WAI-ARIA (the attribute vocabulary for accessible widgets); the W3C alt-text
-  decision tree.
+  WAI-ARIA (the attribute vocabulary for accessible widgets); the alt-text
+  decision tree of the W3C (World Wide Web Consortium, the body that writes the
+  web's standards).
 - **Image purposes**, the closed set the drafter takes: `informative`,
   `decorative`, `functional`, `text`, `complex`, `group`. Plus the long
   description a complex image needs.
@@ -48,7 +50,7 @@ tool.
   pass here and still be unreadable.
 - **Captions written from recorded speech**: `sprezzature-audio`. This package
   checks that a caption track is declared; that one writes the WebVTT.
-- **How an interface feels** (laws of UX): `sprezzature-ux-laws`.
+- **How an interface feels** (the laws of UX (user experience, how using a product feels)): `sprezzature-ux-laws`.
 - **Building the page** in the first place: `sprezzature-ui`.
 
 ---
@@ -63,7 +65,7 @@ tool.
 | `list_rules` | "What do you check?" Every rule id and its severity. Ask before using `ignore`: an unknown id is silently ignored. |
 | `list_kinds` | "Which image purpose is this?" The six purposes, each with what it is for. |
 | `draft_alt_text` (alt) | "Describe this image as alt text." One image, one declared purpose, optional long description. |
-| text-spacing | "Give readers a comfortable-reading toggle." Emits the WCAG 1.4.12 CSS into the project. |
+| text-spacing | "Give readers a comfortable-reading toggle." Emits the WCAG 1.4.12 CSS (Cascading Style Sheets, the rules that set a page's colours, fonts and spacing) into the project. |
 | install-alt | "The drafter cannot reach a model." Installs Ollama, starts it, pulls `qwen3-vl:8b`. |
 | `health` | "Is the server up?" Use only to diagnose a connection. |
 
@@ -76,7 +78,10 @@ the model cannot make: choose it (call `list_kinds` if unsure) before drafting.
 
 ## What to call, on every surface
 
-The MCP tool name is the route's `operation_id`.
+CLI (command-line interface, the commands typed in a terminal) is the first column; HTTP
+(HyperText Transfer Protocol, the request-and-reply exchange a browser uses to
+fetch every page) is the API (Application Programming Interface, a door for other
+programs) the MCP server sits on. The MCP tool name is the route's `operation_id`.
 
 | Job | CLI | MCP tool | HTTP route |
 |---|---|---|---|
@@ -90,12 +95,17 @@ The MCP tool name is the route's `operation_id`.
 | Install the model | `sprezzature-accessibility-install-alt` | *(not an MCP tool)* | *(none)* |
 | Liveness | *(none)* | `health` | `GET /health` |
 | Which tools run here | `sprezzature-accessibility tools` | *(not an MCP tool)* | *(none)* |
+| Install or refresh this skill | `sprezzature-accessibility-skill --install` | *(not an MCP tool)* | *(none)* |
 
 Every CLI tool is also a sub-command of the front door: `sprezzature-accessibility
 lint`, `text-spacing`, `alt`, `install-alt` (alias `make-a11y`; `make-alt` is an
 alias of `sprezzature-accessibility-alt`). The MCP server is
 `sprezzature-accessibility-mcp`, which mounts the endpoint at `/mcp` on the same
-FastAPI app.
+FastAPI app. The skill an agent reads ships inside the package, at
+`sprezzature_accessibility/skill/`; `sprezzature-accessibility-skill` (or
+`sprezzature-accessibility skill`) says whether the installed copy is in step,
+`--install` copies it into `~/.claude/skills` and `--agent opencode` into
+`~/.opencode/skills`.
 
 The jobs that write files (`--fix`, `--fix-alt`, the text-spacing CSS, the model
 install) are command-line only. They change a project or a machine, and a tool that
