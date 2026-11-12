@@ -28,7 +28,6 @@ import sys
 import click
 
 from sprezzature_accessibility._skill import skill_command
-
 from sprezzature_accessibility._tools import TOOLS, broken_install_message
 
 #: Shown under the command list. Completion is click's, and worth saying out
