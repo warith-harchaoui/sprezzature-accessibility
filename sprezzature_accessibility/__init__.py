@@ -88,7 +88,10 @@ def __getattr__(name: str) -> Any:
     return getattr(engine, name)
 
 
+from sprezzature_accessibility._skill import skill_path  # noqa: E402
+
 __all__ = [
+    "skill_path",
     # audit
     "Finding",
     "fix_file",

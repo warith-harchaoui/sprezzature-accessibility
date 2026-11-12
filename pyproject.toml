@@ -96,6 +96,7 @@ dependencies = [
 dev = ["pytest>=8.0", "ruff"]
 
 [project.scripts]
+sprezzature-accessibility-skill = "sprezzature_accessibility._skill:main"
 # One front door with two spellings, `make-a11y` and
 # `sprezzature-accessibility`, over the four tools in one table
 # (sprezzature_accessibility/_tools.py). It is click, the only parser of the
@@ -124,6 +125,10 @@ Repository = "https://github.com/warith-harchaoui/sprezzature-accessibility"
 packages = ["sprezzature_accessibility", "sprezzature_accessibility_scripts"]
 
 [tool.setuptools.package-data]
+# The skill an agent reads ships inside the package, so `pip install`
+# carries all five surfaces; `sprezzature-accessibility-skill --install` puts it
+# where Claude Code or OpenCode looks.
+"sprezzature_accessibility" = ["skill/**/*"]
 "sprezzature_accessibility_scripts" = ["prompts/*.yaml", "requirements-alt-text.txt"]
 
 [tool.setuptools.package-dir]
