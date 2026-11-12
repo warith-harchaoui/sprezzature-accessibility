@@ -4,6 +4,8 @@ All notable changes to sprezzature-accessibility are documented here.
 
 ## [Unreleased]
 
+## [1.5.0] — 2026-11-12
+
 ### Added
 
 - **The agent skill ships inside the package.** `SKILL.md`, its references and
