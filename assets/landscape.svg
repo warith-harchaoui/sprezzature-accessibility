@@ -13,7 +13,7 @@ Signal precision: 3
 Free or open source: 5
 Local and offline: 5
 Maturity and ecosystem: 1
-Commercial support: 1"><circle cx="912.0" cy="259.0" r="7.36" fill="#FF3B30" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: sprezzature-accessibility
+Commercial support: 1"><circle cx="912.0" cy="259.0" r="7.36" fill="#FF383C" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: sprezzature-accessibility
 Runs without a browser: 5
 Speed in continuous integration: 5
 Fit for a pre-commit hook: 5
@@ -313,7 +313,7 @@ Signal precision: 4
 Free or open source: 5
 Local and offline: 5
 Maturity and ecosystem: 4
-Commercial support: 2"><circle cx="790.7" cy="259.0" r="7.36" fill="#AF52DE" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Biome
+Commercial support: 2"><circle cx="790.7" cy="259.0" r="7.36" fill="#CB30E0" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Biome
 Runs without a browser: 5
 Speed in continuous integration: 5
 Fit for a pre-commit hook: 5
@@ -463,7 +463,7 @@ Signal precision: 4
 Free or open source: 1
 Local and offline: 1
 Maturity and ecosystem: 5
-Commercial support: 5"><circle cx="459.6" cy="654.8" r="7.36" fill="#A52A2A" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Siteimprove
+Commercial support: 5"><circle cx="459.6" cy="654.8" r="7.36" fill="#AC7F5E" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: Siteimprove
 Runs without a browser: 1
 Speed in continuous integration: 1
 Fit for a pre-commit hook: 1
@@ -583,7 +583,7 @@ Signal precision: 3
 Free or open source: 2
 Local and offline: 1
 Maturity and ecosystem: 3
-Commercial support: 3"><circle cx="912.0" cy="594.8" r="7.36" fill="#007AFF" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: AltText.ai
+Commercial support: 3"><circle cx="912.0" cy="594.8" r="7.36" fill="#0088FF" stroke="white" stroke-width="1" opacity="0.95"/><title>Tools: AltText.ai
 Runs without a browser: 5
 Speed in continuous integration: 2
 Fit for a pre-commit hook: 1

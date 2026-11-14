@@ -71,7 +71,7 @@ approaches:
     axis_1: 3.3196
     axis_2: 3.4642
   role: best
-  color: '#FF3B30'
+  color: '#FF383C'
   attributes:
     Runs without a browser: 5.0
     Speed in continuous integration: 5.0
@@ -301,7 +301,7 @@ approaches:
     axis_1: 1.9771
     axis_2: 3.4642
   role: top
-  color: '#AF52DE'
+  color: '#CB30E0'
   attributes:
     Runs without a browser: 5.0
     Speed in continuous integration: 5.0
@@ -416,7 +416,7 @@ approaches:
     axis_1: -1.6864
     axis_2: -2.6296
   role: worst
-  color: '#A52A2A'
+  color: '#AC7F5E'
   attributes:
     Runs without a browser: 1.0
     Speed in continuous integration: 1.0
@@ -508,7 +508,7 @@ approaches:
     axis_1: 3.3196
     axis_2: -1.7065
   role: right
-  color: '#007AFF'
+  color: '#0088FF'
   attributes:
     Runs without a browser: 5.0
     Speed in continuous integration: 2.0
