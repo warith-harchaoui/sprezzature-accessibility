@@ -48,13 +48,13 @@ MANIFEST = ROOT / "pyproject.toml"
 #: release this manifest accepts admit it. Measured against the simple index
 #: on 2026-11-02; re-measure when a floor or a dependency moves.
 #:
-#: ``wallet-helper`` is the one that stops short, and it is why this package's
-#: own promise now ends at 3.14: every published release declares ``<3.14``,
-#: and ``>=1.3.2,<2`` admits exactly one of them.
+#: ``wallet-helper`` was the one that stopped short until 2026-11-16, when
+#: 1.4.1 (inside ``>=1.3.2,<2``) dropped its ``<3.14``; re-measured that day,
+#: and this package's own promise lost its ceiling with it.
 MEASURED: dict[str, tuple[str, ...]] = {
     "click": ("3.10", "3.11", "3.12", "3.13", "3.14", "3.15"),
     "best-engine-ai-helper": ("3.10", "3.11", "3.12", "3.13", "3.14", "3.15"),
-    "wallet-helper": ("3.10", "3.11", "3.12", "3.13"),
+    "wallet-helper": ("3.10", "3.11", "3.12", "3.13", "3.14", "3.15"),
     "fastapi": ("3.10", "3.11", "3.12", "3.13", "3.14", "3.15"),
     "uvicorn": ("3.10", "3.11", "3.12", "3.13", "3.14", "3.15"),
     "langdetect": ("3.10", "3.11", "3.12", "3.13", "3.14", "3.15"),
@@ -102,13 +102,18 @@ def test_the_promise_is_not_wider_than_the_graph(version: str) -> None:
 
 def test_the_check_would_notice_an_overreaching_promise() -> None:
     """Sabotage, inline: the assertion above must fail on the state this file
-    was written for — ``>=3.10`` over a ``wallet-helper`` that stops at 3.13."""
+    was written for — ``>=3.10`` over a ``wallet-helper`` that stops at 3.13.
+
+    The state is rebuilt from a copy of the table rather than read from it:
+    the first version of this test asserted the world itself (wallet-helper
+    never reaches 3.14), so the day the dependency moved it failed for being
+    right, and the guard looked broken when it was the world that changed.
+    """
     assert admits(">=3.10", "3.14"), "the specifier reader is wrong"
     assert not admits("<3.14,>=3.10", "3.14"), "the specifier reader is wrong"
-    assert "3.14" not in MEASURED["wallet-helper"], (
-        "wallet-helper is recorded as reaching 3.14; re-measure before trusting this"
-    )
-    assert admits(promise(MANIFEST), "3.13")
-    assert not admits(promise(MANIFEST), "3.14"), (
-        "this manifest still claims 3.14 while wallet-helper never reaches it"
-    )
+    stuck = dict(MEASURED, **{"wallet-helper": ("3.10", "3.11", "3.12", "3.13")})
+    assert overreach(MANIFEST, stuck, "3.13") == []
+    if admits(promise(MANIFEST), "3.14"):
+        assert overreach(MANIFEST, stuck, "3.14"), (
+            "a wallet-helper stopping at 3.13 under a promise of 3.14 went unnoticed"
+        )

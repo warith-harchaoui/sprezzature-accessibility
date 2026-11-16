@@ -85,7 +85,7 @@ réel.
 - Code de sortie 1 sur tout constat, 0 si la page est propre, 2 sur une erreur
   d'usage (un chemin qui n'existe pas en est une) : utilisable comme porte de
   pré-commit.
-- Python 3.10 à 3.13. Le chemin du lint n'importe que la bibliothèque standard,
+- Python 3.10 ou plus récent. Le chemin du lint n'importe que la bibliothèque standard,
   plus `langdetect` s'il est installé (le correcteur de `html-missing-lang` s'en
   sert pour deviner la langue de la page).
 

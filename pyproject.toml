@@ -19,7 +19,7 @@ readme = "README.md"
 # brick where the inheritance actually bites was the one with no guard —
 # measured on 2026-11-02 by reading the simple index for every base
 # dependency's floor version.
-requires-python = ">=3.10,<3.14"
+requires-python = ">=3.10"
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 authors = [{name = "Warith HARCHAOUI", email = "warithmetics@deraison.ai"}]

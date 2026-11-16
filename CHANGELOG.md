@@ -4,6 +4,12 @@ All notable changes to sprezzature-accessibility are documented here.
 
 ## [Unreleased]
 
+### Changed
+
+- **No upper bound on Python any more.** `requires-python` was capped at
+  `>=3.10,<3.14` with no recorded reason, which refused every newer Python at install
+  time; it is now `>=3.10`. Badges and prerequisites say "Python 3.10 or later".
+
 ## [1.5.0] — 2026-11-12
 
 ### Added
@@ -303,7 +309,6 @@ The hub's `test_no_document_promises_an_extra_that_does_not_exist` found the
 cross-repository ones — a document in one brick naming another brick's extra —
 which no per-repository pass would have caught.
 
-
 ### Added — the pre-commit install, measured instead of promised
 
 This package's argument for itself is that the lint "runs in milliseconds in a
@@ -358,7 +363,6 @@ dependencies. Both install sections carried four `pip install` lines, three of
 which became identical when the extras went, under prose still claiming
 "everything heavier is an extra". And `missing_extra_message`'s no-extra branch
 — the only live one now — gives the reader something to run.
-
 
 ### Fixed — the draft cache could kill the run it was there to speed up
 

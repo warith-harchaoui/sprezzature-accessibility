@@ -72,7 +72,7 @@ second pass.
 - Text and JSON output, composable with jq or any CI parser.
 - Exit code 1 on any finding, 0 on a clean run, 2 on a usage error (a path that
   does not exist is one): usable as a pre-commit gate.
-- Python 3.10 to 3.13. The lint path imports the standard library only, plus
+- Python 3.10 or later. The lint path imports the standard library only, plus
   `langdetect` when it is installed (the `html-missing-lang` fixer uses it to
   guess the page language).
 
