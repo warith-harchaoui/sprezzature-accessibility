@@ -89,7 +89,7 @@ else:
         app,
         name="sprezzature-accessibility",
         description=(
-            "Sprezzature Accessibility MCP tools: lint HTML against a WCAG-oriented "
+            "sprezzature Accessibility MCP tools: lint HTML against a WCAG-oriented "
             "rule set covering images, controls, headings, motion and captions, "
             "and draft the alt text an image is missing with a local vision model."
         ),

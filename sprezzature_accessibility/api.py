@@ -97,7 +97,7 @@ _SEVERITY: dict[str, str] = {
 }
 
 app = FastAPI(
-    title="Sprezzature Accessibility API",
+    title="sprezzature Accessibility API",
     description=(
         "HTTP surface for sprezzature-accessibility: a WCAG-oriented HTML "
         "linter covering images, controls, headings, motion and time-based media."
