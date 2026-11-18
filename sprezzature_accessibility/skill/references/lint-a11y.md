@@ -107,7 +107,7 @@ out from the linter, in the companion `sprezzature-colors` package's
 
 It reinforces the two existing sprezzature-figures steps rather than replacing them:
 
-- **make** (the Ralph Eyeball Loop): after the render step, run
+- **make**: after the render step, run
   `sprezzature-colors-cvd render.png` to get a contact
   sheet (grayscale + protanopia + deuteranopia + tritanopia) and *look*. The
   loop becomes **render → simulate → look**.
