@@ -13,6 +13,8 @@ HTML source code for the mistakes that most often break that, and drafts the pie
 of content those mistakes most often leave out: an `<img>` with no `alt` text is as
 invisible to a screen reader as if the image were missing from the page.
 
+Drop a [⭐️](https://github.com/warith-harchaoui/sprezzature-accessibility) on GitHub if my help deserves it.
+
 The audit half is a static linter, reporting as text or JSON
 (JavaScript Object Notation, plain text in named fields that a script can read: one entry per finding, with its rule, line and message): twenty rules from WCAG (Web Content Accessibility
 Guidelines, the standard of the W3C (World Wide Web Consortium, the body that writes the web's rules, the HTML language among them) that defines what "accessible" means for the web) and

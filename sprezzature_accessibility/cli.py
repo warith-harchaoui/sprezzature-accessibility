@@ -43,6 +43,8 @@ Shell completion:
 Run `sprezzature-accessibility tools` to see which tools can run on this
 machine. Every tool is in the base install, so one marked unavailable means a
 broken install, not a missing extra.
+
+⭐️ on GitHub: https://github.com/warith-harchaoui/sprezzature-accessibility
 """
 
 

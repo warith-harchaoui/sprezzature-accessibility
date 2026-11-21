@@ -15,6 +15,8 @@ contenu que ces erreurs laissent le plus souvent de côté : une balise `<img>`
 texte alternatif est aussi invisible pour un lecteur d'écran que si l'image n'existait
 pas sur la page.
 
+Laissez une [⭐️](https://github.com/warith-harchaoui/sprezzature-accessibility) sur GitHub si mon aide le mérite.
+
 La moitié audit est un linter statique, qui rend ses constats en texte ou en JSON
 (*JavaScript Object Notation*, du texte en champs nommés qu'un script sait lire : une entrée par constat, avec sa règle, sa ligne et son message) : vingt règles issues des WCAG (*Web Content
 Accessibility Guidelines*, la norme du W3C (*World Wide Web Consortium*, l'organisme qui écrit les règles du web, dont le langage HTML) qui définit ce que « accessible » veut

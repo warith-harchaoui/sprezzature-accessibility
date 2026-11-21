@@ -50,6 +50,7 @@ from sprezzature_accessibility_scripts.alt_from_ollama import run
         "  sprezzature-accessibility-alt --kind informative photo.jpg\n"
         "  sprezzature-accessibility-alt --kind functional --context 'Submit form' icon.png\n"
         "  sprezzature-accessibility-alt --kind complex --in docs/chart.md chart.png\n"
+        "\n⭐️ on GitHub: https://github.com/warith-harchaoui/sprezzature-accessibility\n"
     ),
 )
 @click.argument("src")

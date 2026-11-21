@@ -4,6 +4,10 @@ All notable changes to sprezzature-accessibility are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- Every command line ends its `--help` on one line, after a blank one: `⭐️ on GitHub: https://github.com/warith-harchaoui/sprezzature-accessibility`. A test checks it for each console script. README.md and LISEZMOI.md carry one invitation to star the repository, right after the paragraph that says what the tool does.
+
 ## [1.5.1] — 2026-11-19
 
 
