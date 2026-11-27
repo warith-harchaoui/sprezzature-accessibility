@@ -9,7 +9,7 @@
 #   docker compose run --rm api sprezzature-accessibility-lint /work/public
 #   docker compose --profile alt up -d          # + the model the drafter needs
 #
-# The model server is a separate profile. The twenty static rules and the
+# The model server is a separate profile. The twenty-seven static rules and the
 # text-spacing preset need nothing but this image; only the alt-text drafter
 # asks a local model, and someone who only wants the lint should not be made
 # to run one.

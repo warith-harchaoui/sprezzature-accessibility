@@ -22,6 +22,10 @@ ENTRY_POINTS = [
         "sprezzature-accessibility-text-spacing",
         "sprezzature_accessibility_scripts.text_spacing_preset:main",
     ),
+    (
+        "sprezzature-accessibility-reading",
+        "sprezzature_accessibility_scripts.text_spacing_preset:main",
+    ),
     ("make-alt", "sprezzature_accessibility.alt_cli:main"),
     ("sprezzature-accessibility-alt", "sprezzature_accessibility.alt_cli:main"),
     (

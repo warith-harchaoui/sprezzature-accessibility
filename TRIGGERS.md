@@ -26,18 +26,26 @@ answers when the request or the file in hand is about one of these objects:
   order, `<video>`, `<audio>`, `<track>` (`kind`, `srclang`), `controls`,
   `autoplay`, `muted`.
 - **Standards it maps to**: WCAG (Web Content Accessibility Guidelines) success
-  criteria 1.1.1, 1.2.1, 1.2.2, 1.2.4, 1.4.1, 1.4.2, 1.4.12, 2.1.1, 2.3.3, 2.4.6, 3.1.1;
+  criteria 1.1.1, 1.2.1, 1.2.2, 1.2.4, 1.4.1, 1.4.2, 1.4.8, 1.4.12, 2.1.1, 2.3.3, 2.4.6, 3.1.1;
   WAI-ARIA (the attribute vocabulary for accessible widgets); the alt-text
   decision tree of the W3C (World Wide Web Consortium, the body that writes the
   web's standards).
 - **Image purposes**, the closed set the drafter takes: `informative`,
   `decorative`, `functional`, `text`, `complex`, `group`. Plus the long
   description a complex image needs.
-- **Reading comfort**: Tailwind `tracking-tight` / `tracking-tighter` on running
-  text, `motion-reduce:` guards, `animate-*`, and the WCAG 1.4.12 text-spacing
-  values (line height 1.5, letter spacing 0.12em, word spacing 0.16em, paragraph
-  spacing 2em).
-- **Any of the twenty rule ids**, listed in `README.md` and
+- **Reading comfort and dyslexia**: dyslexia, dyslexie, "readability for dyslexic
+  readers", reading difficulties, « lisibilité pour les dyslexiques »; Tailwind
+  `tracking-tight` / `tracking-tighter`, `text-justify`, `text-center` on a long
+  paragraph, `italic` and `uppercase` over a passage, `leading-none` /
+  `leading-tight` / `leading-snug`, `text-sm` without a `leading-*`, `max-w-*`
+  wider than about 80 characters, `underline` on text that is not a link, `<u>`;
+  the same properties in CSS (`text-align`, `font-style`, `text-transform`,
+  `line-height`, `max-width`, `text-decoration`); WCAG 1.4.8 Visual Presentation
+  and 1.4.12 Text Spacing values (line height 1.5, letter spacing 0.12em, word
+  spacing 0.16em, paragraph spacing 2em, at most 80 characters a line, not
+  justified); the British Dyslexia Association style guide. Plus
+  `motion-reduce:` guards and `animate-*`.
+- **Any of the twenty-seven rule ids**, listed in `README.md` and
   `references/lint-rules.md`.
 
 The request then takes one of four shapes: check the markup, say what is checked,
@@ -65,7 +73,7 @@ tool.
 | `list_rules` | "What do you check?" Every rule id and its severity. Ask before using `ignore`: an unknown id is silently ignored. |
 | `list_kinds` | "Which image purpose is this?" The six purposes, each with what it is for. |
 | `draft_alt_text` (alt) | "Describe this image as alt text." One image, one declared purpose, optional long description. |
-| text-spacing | "Give readers a comfortable-reading toggle." Emits the WCAG 1.4.12 CSS (Cascading Style Sheets, the rules that set a page's colours, fonts and spacing) into the project. |
+| reading (alias text-spacing) | "Give readers a comfortable-reading toggle", "make this page easier for dyslexic readers". Emits the reading preset in CSS (Cascading Style Sheets, the rules that set a page's colours, fonts and spacing) into the project: WCAG 1.4.12 spacing, lines of 70 characters, start-aligned, upright, in their own case. |
 | install-alt | "The drafter cannot reach a model." Installs Ollama, starts it, pulls `qwen3-vl:8b`. |
 | `health` | "Is the server up?" Use only to diagnose a connection. |
 
@@ -91,14 +99,14 @@ programs) the MCP server sits on. The MCP tool name is the route's `operation_id
 | List the rules | *(no flag; see `references/lint-rules.md`)* | `list_rules` | `GET /v1/rules` |
 | List the image purposes | `sprezzature-accessibility-alt --help` (the `--kind` choices) | `list_kinds` | `GET /v1/kinds` |
 | Draft alt text for one image | `sprezzature-accessibility-alt --kind <purpose> <image>` | `draft_alt_text` | `POST /v1/alt` |
-| Text-spacing CSS | `sprezzature-accessibility-text-spacing` | *(not an MCP tool)* | *(none)* |
+| Reading CSS preset | `sprezzature-accessibility-reading` (or `sprezzature-accessibility-text-spacing`) | *(not an MCP tool)* | *(none)* |
 | Install the model | `sprezzature-accessibility-install-alt` | *(not an MCP tool)* | *(none)* |
 | Liveness | *(none)* | `health` | `GET /health` |
 | Which tools run here | `sprezzature-accessibility tools` | *(not an MCP tool)* | *(none)* |
 | Install or refresh this skill | `sprezzature-accessibility-skill --install` | *(not an MCP tool)* | *(none)* |
 
 Every CLI tool is also a sub-command of the front door: `sprezzature-accessibility
-lint`, `text-spacing`, `alt`, `install-alt` (alias `make-a11y`; `make-alt` is an
+lint`, `reading` (alias `text-spacing`), `alt`, `install-alt` (alias `make-a11y`; `make-alt` is an
 alias of `sprezzature-accessibility-alt`). The MCP server is
 `sprezzature-accessibility-mcp`, which mounts the endpoint at `/mcp` on the same
 FastAPI app. The skill an agent reads ships inside the package, at
@@ -107,7 +115,7 @@ FastAPI app. The skill an agent reads ships inside the package, at
 `--install` copies it into `~/.claude/skills` and `--agent opencode` into
 `~/.opencode/skills`.
 
-The jobs that write files (`--fix`, `--fix-alt`, the text-spacing CSS, the model
+The jobs that write files (`--fix`, `--fix-alt`, the reading CSS, the model
 install) are command-line only. They change a project or a machine, and a tool that
 returned the result for an agent to paste would be the worse half of that.
 
@@ -123,6 +131,9 @@ pre-commit hook and is also its boundary:
 - It cannot compute **colour contrast**: that is `sprezzature-colors`.
 - It cannot follow **focus order** or test a real keyboard traversal.
 - It reports that a caption track is **declared**, never that its text is right.
+- It reads reading comfort from Tailwind classes, `style` and `<style>`, **not
+  from a linked stylesheet**, and with Tailwind's default theme; WCAG 1.4.8 is
+  level AAA, so say "reads better", never "required".
 
 So a clean result means "none of the listed rules fired", never "this page is
 accessible". Report it that way. It is a gate before a real audit (axe-core, Pa11y,

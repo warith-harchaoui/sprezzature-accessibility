@@ -3,7 +3,7 @@
 `sprezzature-accessibility` est la brique d'accessibilité de la suite
 [sprezzature](https://sprezzature.ai/), dix paquets Python pour fabriquer du
 contenu web de qualité publication. Elle fait deux choses que le reste du
-domaine tient séparées : elle audite le source HTML sur vingt défauts WCAG
+domaine tient séparées : elle audite le source HTML sur vingt-sept défauts WCAG
 (Web Content Accessibility Guidelines, la norme du W3C qui définit ce que veut
 dire « accessible » sur le web) et WAI-ARIA (Web Accessibility Initiative,
 Accessible Rich Internet Applications, le vocabulaire d'attributs qui permet à
@@ -15,7 +15,7 @@ comme manquant.
 
 ```
 suite sprezzature
-├── sprezzature-accessibility  ← ce paquet (20 règles statiques, 6 avec correctif)
+├── sprezzature-accessibility  ← ce paquet (27 règles statiques, 6 avec correctif)
 ├── sprezzature-colors         (contraste, simulation des daltonismes)
 ├── sprezzature-ux-laws        (30 lois d'UX, 8 décidables depuis le source)
 ├── sprezzature-ui             (les écrans que celle-ci audite ensuite)
@@ -50,7 +50,7 @@ les sous-titres sont lisibles.
   Code de sortie 1 dès qu'il y a un signalement, 0 si c'est propre, JSON pour
   tout ce qui doit relire le résultat. Aucune chaîne Node n'est nécessaire, ce
   qui compte dans un dépôt qui n'en a pas par ailleurs.
-- **Une page avec de la vidéo ou de l'audio.** Cinq des vingt règles relèvent
+- **Une page avec de la vidéo ou de l'audio.** Cinq des vingt-sept règles relèvent
   de WCAG 1.2 et de ses voisines : piste de sous-titres présente, transcription
   ou nom accessible sur `<audio>`, `srclang` sur chaque `<track>`, commandes
   qu'un clavier peut actionner, et `autoplay` non muet. C'est la partie de la
@@ -69,7 +69,7 @@ les sous-titres sont lisibles.
 ## Quand prendre autre chose
 
 - **axe-core**, quand vous voulez le moteur sur lequel l'industrie s'est déjà
-  entendue. Quatre-vingt-quatorze règles actives contre les vingt de ce paquet,
+  entendue. Quatre-vingt-quatorze règles actives contre les vingt-sept de ce paquet,
   une conception documentée sans faux positifs, un compartiment `incomplete`
   pour tout ce qu'il ne peut pas trancher, et des adaptateurs pour Playwright,
   Cypress, Jest, WebdriverIO et Puppeteer. C'est aussi le seul ici à avoir un
@@ -114,7 +114,7 @@ assertion de CI sépare `reportLevels` (ce qui apparaît dans la sortie) de
 `failLevels` (ce qui fait échouer l'assertion), et ajoute un fichier de
 référence pour qu'une page existante puisse être adoptée sans faire rougir la
 porte dès le premier jour. Ici, la table des sévérités existe déjà : `_SEVERITY`
-dans `sprezzature_accessibility/api.py` marque cinq des vingt règles comme des
+dans `sprezzature_accessibility/api.py` marque douze des vingt-sept règles comme des
 avertissements, et la ligne de commande ne la voit pas. `lint_a11y.py` sort en 1
 au moindre signalement, donc un avertissement `color-only-state` fait échouer
 une construction exactement aussi durement qu'un `<img>` sans alt du tout. Le

@@ -75,12 +75,39 @@ Rules with a fixer: `html-missing-lang`, `img-redundant-aria`,
 `tabindex-positive`, `aria-hidden-interactive`, `motion-no-reduce-guard`,
 `body-text-tracking-tight`.
 
-The other fourteen need a content decision and are reported, not fixed:
+The other twenty-one need a content decision and are reported, not fixed:
 `img-missing-alt` (see `--fix-alt` below), `a-missing-href`, `a-empty`,
 `button-empty`, `div-onclick`, `input-missing-label`, `dialog-missing-close`,
-`heading-skip`, `color-only-state`, and the five media rules
+`heading-skip`, `color-only-state`, the five media rules
 (`video-missing-captions`, `audio-missing-transcript`, `track-missing-srclang`,
-`media-missing-controls`, `media-autoplay-sound`).
+`media-missing-controls`, `media-autoplay-sound`), and the seven reading rules
+(`body-text-justified`, `body-text-centered-long`, `body-text-italic-long`,
+`body-text-all-caps-long`, `body-text-leading-tight`, `body-text-line-too-long`,
+`text-underline-not-link`): realigning or re-measuring a page is a design
+decision, and the reading preset below is their make-side answer.
+
+## Reading for dyslexic readers
+
+```html
+<!-- page.html -->
+<html lang="en"><body>
+  <div class="mx-auto max-w-4xl px-5">
+    <p class="text-justify text-sm">Running text of twenty words or so, the kind
+    a reader takes in line by line, set justified and small on a wide column.</p>
+    <p>Read <span class="underline">this part</span> twice.</p>
+  </div>
+</body></html>
+```
+
+```bash
+sprezzature-accessibility-lint page.html
+```
+
+Reports `body-text-justified` (rivers of space, WCAG 1.4.8 failure F88),
+`body-text-leading-tight` (`text-sm` brings a 20px line on 14px type, 1.43),
+`body-text-line-too-long` (`max-w-4xl` less padding is about 120 characters of
+14px text) and `text-underline-not-link`. The fix is `text-left` (or nothing),
+`leading-relaxed`, `max-w-prose`, and bold instead of the underline.
 
 ## Preview fix without writing
 
@@ -115,12 +142,16 @@ CSS (Cascading Style Sheets) is the language that sets a page's colours, fonts
 and spacing; WCAG (Web Content Accessibility Guidelines) is the standard that
 says what an accessible page is.
 
-The audit-side `body-text-tracking-tight` rule flags narrow letter-spacing on
-running text; `sprezzature-accessibility-text-spacing` emits the opposite, an
-opt-in CSS block a page can ship, at the WCAG 1.4.12 Text Spacing minimums:
+The audit-side reading rules flag what makes running text hard to read;
+`sprezzature-accessibility-reading` emits the opposite, an opt-in CSS preset a
+page can ship: the WCAG 1.4.12 Text Spacing minimums, then lines of 70
+characters, start-aligned, upright, in their own case (WCAG 1.4.8 and the
+British Dyslexia Association style guide). Its first name,
+`sprezzature-accessibility-text-spacing`, is still installed and runs the same
+command.
 
 ```bash
-sprezzature-accessibility-text-spacing
+sprezzature-accessibility-reading
 ```
 
 Output:
@@ -144,7 +175,25 @@ Output:
 [data-text-spacing="comfortable"] p {
   margin-bottom: 2.0em;
 }
+/* Reading: WCAG 1.4.8 Visual Presentation and the British Dyslexia
+   Association style guide. Bounded lines, start-aligned (never
+   justified or centred), upright, in their own case. Pairs with the
+   body-text-* reading rules of sprezzature-accessibility's lint. */
+[data-text-spacing="comfortable"] blockquote,
+[data-text-spacing="comfortable"] dd,
+[data-text-spacing="comfortable"] figcaption,
+[data-text-spacing="comfortable"] li,
+[data-text-spacing="comfortable"] p {
+  max-width: 70ch;
+  text-align: start;
+  font-style: normal;
+  text-transform: none;
+}
 ```
+
+`--spacing-only` prints the first block alone, as 1.5 did; `--measure 65` sets
+another line length, `--measure 0` leaves the width alone. No font is set: the
+studies of "dyslexia fonts" (OpenDyslexic, Dyslexie) found no reading gain.
 
 A page ships the toggle by setting `data-text-spacing="comfortable"` on
 `<html>` (via a button/checkbox the reader controls, persisted however the
@@ -153,7 +202,7 @@ page already persists a dark-mode choice) once this CSS block is included.
 Custom attribute, values, and output file:
 
 ```bash
-sprezzature-accessibility-text-spacing \
+sprezzature-accessibility-reading \
   --attr data-reading-mode --value on \
   --letter-spacing 0.16 --word-spacing 0.32 \
   --out reading-mode.css

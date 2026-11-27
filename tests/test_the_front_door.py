@@ -179,6 +179,7 @@ def test_the_per_tool_commands_are_still_there() -> None:
     for name in (
         "sprezzature-accessibility-lint",
         "sprezzature-accessibility-text-spacing",
+        "sprezzature-accessibility-reading",
         "sprezzature-accessibility-alt",
         "make-alt",
     ):

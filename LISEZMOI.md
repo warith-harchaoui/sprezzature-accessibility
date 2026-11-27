@@ -18,7 +18,7 @@ pas sur la page.
 Laissez une [⭐️](https://github.com/warith-harchaoui/sprezzature-accessibility) sur GitHub si mon aide le mérite.
 
 La moitié audit est un linter statique, qui rend ses constats en texte ou en JSON
-(*JavaScript Object Notation*, du texte en champs nommés qu'un script sait lire : une entrée par constat, avec sa règle, sa ligne et son message) : vingt règles issues des WCAG (*Web Content
+(*JavaScript Object Notation*, du texte en champs nommés qu'un script sait lire : une entrée par constat, avec sa règle, sa ligne et son message) : vingt-sept règles issues des WCAG (*Web Content
 Accessibility Guidelines*, la norme du W3C (*World Wide Web Consortium*, l'organisme qui écrit les règles du web, dont le langage HTML) qui définit ce que « accessible » veut
 dire pour le web) et de la *Web Accessibility Initiative, Accessible Rich Internet Applications*
 (WAI-ARIA : le vocabulaire d'attributs, `role`, `aria-label` et
@@ -37,11 +37,14 @@ atteindre, les fenêtres de dialogue sans moyen de les fermer au clavier, l'attr
 `lang` absent (ce qui casse la prononciation du lecteur d'écran), les niveaux de
 titre qui sautent au lieu de s'emboîter dans l'ordre, l'état montré par la seule
 couleur (un rouge et un vert qu'une personne daltonienne ne distingue pas), les
-animations sans garde de mouvement réduit, l'espacement des lettres resserré sur du
-texte de lecture (ce qui ralentit la lecture des personnes dyslexiques), et cinq
-contrôles sur les médias temporels : sous-titres, transcriptions, lecture
-automatique non muette, commandes au clavier et langue de la piste de sous-titres.
-Six de ces vingt règles disposent en plus d'une correction automatique mécanique
+animations sans garde de mouvement réduit, cinq contrôles sur les médias
+temporels (sous-titres, transcriptions, lecture automatique non muette, commandes
+au clavier et langue de la piste de sous-titres), et huit contrôles sur la façon
+dont un lecteur dyslexique lit le texte courant : l'espacement des lettres
+resserré, le texte justifié, les longs paragraphes centrés, les longs passages en
+italique ou en capitales, un interligne sous 1,5, les lignes de plus de
+80 caractères, et le texte souligné qui n'est pas un lien.
+Six de ces vingt-sept règles disposent en plus d'une correction automatique mécanique
 (`--fix`), pour que la porte répare elle-même ce qu'elle peut réparer sans risque,
 au lieu de se contenter de le signaler.
 
@@ -61,15 +64,15 @@ réel.
 
 ## Comment ça marche
 
-![Schéma de flux. En haut, le HTML que vous tenez alimente deux voies. La voie de gauche fabrique : elle lit la page autour d'une image, interroge un modèle de vision local, et réécrit l'attribut alt dans la page. La voie de droite contrôle : elle lit la source sans navigateur, tranche vingt règles, et rend ses constats en texte ou en JSON, avec le code de sortie 1 dès qu'il y en a un. Les deux voies se rejoignent en un seul résultat, une page qu'un lecteur d'écran lit et qu'un clavier atteint.](https://raw.githubusercontent.com/warith-harchaoui/sprezzature-accessibility/main/assets/comment-ca-marche.svg)
+![Schéma de flux. En haut, le HTML que vous tenez alimente deux voies. La voie de gauche fabrique : elle lit la page autour d'une image, interroge un modèle de vision local, et réécrit l'attribut alt dans la page. La voie de droite contrôle : elle lit la source sans navigateur, tranche vingt-sept règles, et rend ses constats en texte ou en JSON, avec le code de sortie 1 dès qu'il y en a un. Les deux voies se rejoignent en un seul résultat, une page qu'un lecteur d'écran lit et qu'un clavier atteint.](https://raw.githubusercontent.com/warith-harchaoui/sprezzature-accessibility/main/assets/comment-ca-marche.svg)
 
 ## Fonctionnalités
 
-- 20 règles couvrant img, a, button, div/span, input, dialog, html, tabindex, aria,
-  l'ordre des titres, l'état par couleur seule, les gardes motion-reduce,
-  l'espacement des lettres sur le texte de lecture, et les médias temporels :
-  sous-titres vidéo, transcription audio, lecture automatique non muette,
-  commandes au clavier et langue de la piste de sous-titres.
+- 27 règles couvrant img, a, button, div/span, input, dialog, html, tabindex, aria,
+  l'ordre des titres, l'état par couleur seule, les gardes motion-reduce, les
+  médias temporels (sous-titres vidéo, transcription audio, lecture automatique
+  non muette, commandes au clavier, langue de la piste de sous-titres), et la
+  lecture pour les lecteurs dyslexiques (voir plus bas).
 - Correction automatique pour 6 règles (`--fix`) : détection et insertion du
   `lang`, suppression d'aria redondant, rétrogradation du tabindex, suppression
   d'aria-hidden, ajout de la garde motion-reduce, suppression du resserrement de
@@ -79,10 +82,15 @@ réel.
   (informative, décorative, fonctionnelle, texte, complexe, groupe), le texte de la
   page comme contexte, une sortie plafonnée à 150 caractères, des résultats mis en
   cache sur disque.
-- `sprezzature-accessibility-text-spacing` : le pendant « fabrication » de la règle
-  d'espacement des lettres. Il génère un bloc CSS (*Cascading Style Sheets*, les règles qui fixent les couleurs, les polices et les espacements d'une page) optionnel « lecture confortable »
-  aux minima WCAG 1.4.12, pour les pages qui veulent proposer la correction comme
-  un réglage visible par le lecteur.
+- `sprezzature-accessibility-reading` (installée aussi sous son premier nom,
+  `sprezzature-accessibility-text-spacing`) : le pendant « fabrication » des
+  règles de lecture. Elle génère un préréglage CSS (*Cascading Style Sheets*, les
+  règles qui fixent les couleurs, les polices et les espacements d'une page)
+  optionnel « lecture confortable » : les minima WCAG 1.4.12 (interligne 1,5,
+  espacement des lettres et des mots, espacement des paragraphes), puis des lignes
+  bornées à 70 caractères, un texte aligné sur le bord de départ, droit et dans sa
+  propre casse. `--spacing-only` n'imprime que le bloc d'espacement, comme en 1.5 ;
+  `--measure` règle la longueur de ligne.
 - Sortie texte et JSON, composable avec jq ou tout parseur de CI.
 - Code de sortie 1 sur tout constat, 0 si la page est propre, 2 sur une erreur
   d'usage (un chemin qui n'existe pas en est une) : utilisable comme porte de
@@ -230,11 +238,11 @@ usage, si bien que `import sprezzature_accessibility` reste aussi léger que le 
 
 ### Ligne de commande
 
-Une porte d'entrée, construite sur click, avec deux orthographes et quatre outils,
+Une porte d'entrée, construite sur click, avec deux orthographes et cinq outils,
 plus `tools` et `skill` :
 
 ```bash
-sprezzature-accessibility --help          # les quatre outils, et ce que fait chacun
+sprezzature-accessibility --help          # les outils, et ce que fait chacun
 sprezzature-accessibility tools           # quels outils peuvent tourner sur cette machine
 sprezzature-accessibility skill           # le skill d'agent installé est-il à jour ?
 sprezzature-accessibility lint public/    # identique à sprezzature-accessibility-lint public/
@@ -244,7 +252,7 @@ make-a11y lint public/                    # l'orthographe historique de la même
 | Ce qu'elle fait | Sous-commande | Commande propre |
 |---|---|---|
 | Lint du HTML ; `--fix`, `--fix-alt`, `--dry-run`, `--format`, `--ignore`, `--alt-lang` | `lint` | `sprezzature-accessibility-lint` |
-| Génère le CSS de lecture confortable WCAG 1.4.12 | `text-spacing` | `sprezzature-accessibility-text-spacing` |
+| Génère le préréglage CSS de lecture confortable (espacement WCAG 1.4.12, longueur de ligne et alignement 1.4.8) | `reading` (ou `text-spacing`) | `sprezzature-accessibility-reading` (ou `sprezzature-accessibility-text-spacing`) |
 | Rédige le texte alternatif d'une image | `alt` | `sprezzature-accessibility-alt` (alias `make-alt`) |
 | Installe Ollama, le démarre, télécharge `qwen3-vl:8b` | `install-alt` | `sprezzature-accessibility-install-alt` |
 | Vérifie ou installe le skill d'agent (voir plus bas) | `skill` | `sprezzature-accessibility-skill` |
@@ -353,10 +361,40 @@ skill. Depuis Python, `sprezzature_accessibility.skill_path()` renvoie le dossie
 | `track-missing-srclang` | avertissement | `<track>` sans `srclang` : langue des sous-titres inconnue |
 | `media-missing-controls` | erreur | `<video>`/`<audio>` sans rien à actionner au clavier (WCAG 2.1.1) |
 | `media-autoplay-sound` | erreur | `autoplay` non muet, qui couvre un lecteur d'écran (WCAG 1.4.2) |
+| `body-text-justified` | avertissement | texte de lecture justifié : des rivières d'espaces (WCAG 1.4.8, F88 ; BDA) |
+| `body-text-centered-long` | avertissement | paragraphe centré de 30 mots ou plus : un bord gauche en dents de scie (BDA) |
+| `body-text-italic-long` | avertissement | 15 mots ou plus en italique (BDA ; RELLO et BAEZA-YATES 2013) |
+| `body-text-all-caps-long` | avertissement | 15 mots ou plus en capitales, par transformation ou tapés tels quels (BDA) |
+| `body-text-leading-tight` | avertissement | interligne sous 1,5 sur du texte de lecture (WCAG 1.4.8 ; BDA) |
+| `body-text-line-too-long` | avertissement | lignes de plus de 80 caractères (WCAG 1.4.8 ; la BDA demande 60 à 70) |
+| `text-underline-not-link` | avertissement | texte souligné qui n'est pas un lien (BDA) |
 
 La sévérité est celle que rapporte l'API HTTP. La ligne de commande sort en 1 sur
 tout constat, avertissements compris. Six de ces règles portent aussi un correcteur
 mécanique, appliqué par `--fix`.
+
+### La lecture pour les lecteurs dyslexiques
+
+Huit des règles posent une seule question : le texte courant est-il composé comme
+les travaux disent qu'un lecteur dyslexique lit le mieux ? Environ un lecteur sur
+dix est dyslexique à un degré ou à un autre, et les mêmes réglages aident les
+lecteurs malvoyants, ceux qui ont des troubles de l'attention, ou qui lisent dans
+une seconde langue. Les sources sont le critère de succès WCAG 1.4.8 *Visual
+Presentation* (niveau AAA : pas de justification, 80 caractères par ligne au plus,
+un interligne d'au moins 1,5), le *Dyslexia Style Guide* de la *British Dyslexia
+Association* (BDA : alignement à gauche, ni soulignement ni italique, pas de
+capitales en bloc, interligne de 1,5, lignes de 60 à 70 caractères), RELLO et
+BAEZA-YATES (2013) sur l'italique, et ZORZI et al. (2012) sur l'espacement des
+lettres. Chaque règle, son seuil et ses limites connues sont dans
+[`references/lint-rules.md`](https://github.com/warith-harchaoui/sprezzature-accessibility/blob/main/references/lint-rules.md).
+
+Les règles lisent les classes Tailwind (avec leurs préfixes de point de rupture),
+les attributs `style` et les blocs `<style>` de la page, en suivant la cascade : un
+`text-justify` posé sur un conteneur atteint le paragraphe qu'il contient. Elles ne
+lisent pas une feuille de style liée. Aucune règle ne réclame une « police pour
+dyslexiques » : les études sur OpenDyslexic et Dyslexie (WERY et DILIBERTO 2017,
+KUSTER et al. 2018) n'ont trouvé aucun gain de vitesse ni de justesse de lecture,
+et un linter qui en exigerait une imposerait un mythe.
 
 ## Licence
 

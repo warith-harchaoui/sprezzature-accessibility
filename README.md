@@ -16,7 +16,7 @@ invisible to a screen reader as if the image were missing from the page.
 Drop a [⭐️](https://github.com/warith-harchaoui/sprezzature-accessibility) on GitHub if my help deserves it.
 
 The audit half is a static linter, reporting as text or JSON
-(JavaScript Object Notation, plain text in named fields that a script can read: one entry per finding, with its rule, line and message): twenty rules from WCAG (Web Content Accessibility
+(JavaScript Object Notation, plain text in named fields that a script can read: one entry per finding, with its rule, line and message): twenty-seven rules from WCAG (Web Content Accessibility
 Guidelines, the standard of the W3C (World Wide Web Consortium, the body that writes the web's rules, the HTML language among them) that defines what "accessible" means for the web) and
 the Web Accessibility Initiative's Accessible Rich Internet Applications (WAI-ARIA: the
 attribute vocabulary, `role`, `aria-label` and the like, that lets custom widgets
@@ -32,9 +32,11 @@ The rules cover missing alt text, unlabelled inputs, empty buttons, clickable
 missing `lang` attribute (which breaks screen-reader pronunciation), heading levels
 that jump instead of nesting in order, status shown by colour alone (a red/green
 pair a colour-blind reader cannot tell apart), animations with no reduced-motion
-guard, negative letter-spacing on running text (which slows reading for dyslexic
-readers), and five checks on time-based media: captions, transcripts, unmuted
-autoplay, keyboard controls and caption-track language. Six of the twenty rules
+guard, five checks on time-based media (captions, transcripts, unmuted autoplay,
+keyboard controls and caption-track language), and eight checks on how running
+text reads for a dyslexic reader: tight letter-spacing, justified text, long
+centred paragraphs, long passages in italic or in capitals, line height under 1.5,
+lines over 80 characters, and underlined text that is not a link. Six of the twenty-seven rules
 also ship a mechanical auto-fix (`--fix`), so the gate can repair what it safely
 can instead of only reporting it.
 
@@ -52,14 +54,14 @@ second pass.
 
 ## How it works
 
-![Flow diagram. At the top, the HTML you are holding feeds two lanes. The left lane makes: it reads the page around an image, asks a local vision model, and writes the alt attribute back into the page. The right lane audits: it scans the source text with no browser, decides twenty rules, and returns findings as text or JSON with exit code 1 on any finding. Both lanes meet in one outcome, a page a screen reader can read and a keyboard can reach.](https://raw.githubusercontent.com/warith-harchaoui/sprezzature-accessibility/main/assets/how-it-works.svg)
+![Flow diagram. At the top, the HTML you are holding feeds two lanes. The left lane makes: it reads the page around an image, asks a local vision model, and writes the alt attribute back into the page. The right lane audits: it scans the source text with no browser, decides twenty-seven rules, and returns findings as text or JSON with exit code 1 on any finding. Both lanes meet in one outcome, a page a screen reader can read and a keyboard can reach.](https://raw.githubusercontent.com/warith-harchaoui/sprezzature-accessibility/main/assets/how-it-works.svg)
 
 ## Features
 
-- 20 rules covering img, a, button, div/span, input, dialog, html, tabindex, aria,
-  heading order, colour-only state, motion-reduce guards, body-text letter-spacing,
-  and time-based media: video captions, audio transcripts, unmuted autoplay,
-  keyboard controls, and caption-track language.
+- 27 rules covering img, a, button, div/span, input, dialog, html, tabindex, aria,
+  heading order, colour-only state, motion-reduce guards, time-based media (video
+  captions, audio transcripts, unmuted autoplay, keyboard controls, caption-track
+  language), and reading for dyslexic readers (see below).
 - Auto-fix for 6 rules (`--fix`): `lang` detection and insertion, redundant aria
   removal, tabindex demotion, aria-hidden strip, motion-reduce guard append,
   tight-tracking strip. Idempotent: a second run applies nothing.
@@ -67,10 +69,14 @@ second pass.
   for one image): six image purposes (informative, decorative, functional, text,
   complex, group), the page's own text as context, output capped at 150
   characters, results cached on disk.
-- `sprezzature-accessibility-text-spacing`: the make-side counterpart to the
-  letter-spacing rule. It emits an opt-in "comfortable reading" CSS (Cascading Style Sheets, the rules that set a page's colours, fonts and spacing) block at the
-  WCAG 1.4.12 Text Spacing minimums, for pages that want to ship the fix as a
-  reader-facing toggle.
+- `sprezzature-accessibility-reading` (also installed under its first name,
+  `sprezzature-accessibility-text-spacing`): the make-side counterpart to the
+  reading rules. It emits an opt-in "comfortable reading" CSS (Cascading Style
+  Sheets, the rules that set a page's colours, fonts and spacing) preset: the
+  WCAG 1.4.12 Text Spacing minimums (line height 1.5, letter and word spacing,
+  paragraph spacing), then lines bounded to 70 characters, text aligned to the
+  start edge, upright and in its own case. `--spacing-only` prints the spacing
+  block alone, as 1.5 did; `--measure` sets the line length.
 - Text and JSON output, composable with jq or any CI parser.
 - Exit code 1 on any finding, 0 on a clean run, 2 on a usage error (a path that
   does not exist is one): usable as a pre-commit gate.
@@ -214,11 +220,11 @@ of a complex image. The drafting names (`describe`, `describe_long`, `detect_lan
 
 ### Command line
 
-One front door, built on click, with two spellings and four tools, plus `tools`
+One front door, built on click, with two spellings and five tools, plus `tools`
 and `skill`:
 
 ```bash
-sprezzature-accessibility --help          # the four tools, with what each does
+sprezzature-accessibility --help          # the tools, with what each does
 sprezzature-accessibility tools           # which tools can run on this machine
 sprezzature-accessibility skill           # is the installed agent skill in step?
 sprezzature-accessibility lint public/    # same as sprezzature-accessibility-lint public/
@@ -228,7 +234,7 @@ make-a11y lint public/                    # the historical spelling of the same 
 | What it does | Sub-command | Own command |
 |---|---|---|
 | Lint HTML; `--fix`, `--fix-alt`, `--dry-run`, `--format`, `--ignore`, `--alt-lang` | `lint` | `sprezzature-accessibility-lint` |
-| Emit the WCAG 1.4.12 comfortable-reading CSS | `text-spacing` | `sprezzature-accessibility-text-spacing` |
+| Emit the comfortable-reading CSS preset (WCAG 1.4.12 spacing, 1.4.8 measure and alignment) | `reading` (or `text-spacing`) | `sprezzature-accessibility-reading` (or `sprezzature-accessibility-text-spacing`) |
 | Draft alt text for one image | `alt` | `sprezzature-accessibility-alt` (alias `make-alt`) |
 | Install Ollama, start it, pull `qwen3-vl:8b` | `install-alt` | `sprezzature-accessibility-install-alt` |
 | Report or install the agent skill (see below) | `skill` | `sprezzature-accessibility-skill` |
@@ -334,10 +340,38 @@ skills directory is itself read as a skill. From Python,
 | `track-missing-srclang` | warning | `<track>` without `srclang`: caption language unknown |
 | `media-missing-controls` | error | `<video>`/`<audio>` with nothing to operate from the keyboard (WCAG 2.1.1) |
 | `media-autoplay-sound` | error | unmuted `autoplay` masks a screen reader (WCAG 1.4.2) |
+| `body-text-justified` | warning | justified running text: rivers of space (WCAG 1.4.8, F88; BDA) |
+| `body-text-centered-long` | warning | centred paragraph of 30 words or more: a ragged left edge (BDA) |
+| `body-text-italic-long` | warning | 15 words or more in italic (BDA; Rello & Baeza-Yates 2013) |
+| `body-text-all-caps-long` | warning | 15 words or more in capitals, by transform or typed (BDA) |
+| `body-text-leading-tight` | warning | line height under 1.5 on running text (WCAG 1.4.8; BDA) |
+| `body-text-line-too-long` | warning | lines over 80 characters (WCAG 1.4.8; BDA asks 60 to 70) |
+| `text-underline-not-link` | warning | underlined text that is not a link (BDA) |
 
 The severity is the one the HTTP API reports. The command line exits 1 on any
 finding, warnings included. Six of these rules also carry a mechanical fixer,
 applied by `--fix`.
+
+### Reading for dyslexic readers
+
+Eight of the rules ask one question: is the running text set the way the evidence
+says a dyslexic reader reads best? About one reader in ten has dyslexia to some
+degree, and the same settings help readers with low vision, with attention
+difficulties, or reading in a second language. The sources are WCAG success
+criterion 1.4.8 Visual Presentation (level AAA: not justified, at most 80
+characters a line, line spacing of at least 1.5), the British Dyslexia
+Association's Dyslexia Style Guide (left aligned, no underlining or italics, no
+block capitals, line spacing 1.5, lines of 60 to 70 characters), Rello and
+Baeza-Yates (2013) on italic type, and Zorzi et al. (2012) on letter-spacing. Each
+rule, its threshold and its known limits are in
+[`references/lint-rules.md`](https://github.com/warith-harchaoui/sprezzature-accessibility/blob/main/references/lint-rules.md).
+
+The rules read Tailwind classes (with their breakpoint prefixes), `style`
+attributes and the page's own `<style>` blocks, through the cascade: a
+`text-justify` on a wrapper reaches the paragraph inside it. They do not read a
+linked stylesheet. No rule asks for a "dyslexia font": studies of OpenDyslexic
+and Dyslexie (Wery and Diliberto 2017, Kuster et al. 2018) found no gain in
+reading rate or accuracy, and a linter that required one would enforce a myth.
 
 ## License
 

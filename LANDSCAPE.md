@@ -3,7 +3,7 @@
 `sprezzature-accessibility` is the accessibility brick of the
 [sprezzature](https://sprezzature.ai/) suite, ten Python packages for building
 publication-quality web content. It does two things the rest of the field keeps
-apart: it audits HTML source for twenty WCAG (Web Content Accessibility
+apart: it audits HTML source for twenty-seven WCAG (Web Content Accessibility
 Guidelines, the W3C standard that defines what "accessible" means for the web)
 and WAI-ARIA (Web Accessibility Initiative, Accessible Rich Internet
 Applications, the attribute vocabulary that lets custom widgets describe
@@ -47,7 +47,7 @@ the captions are readable.
   on any finding, 0 on clean, JSON for whatever has to parse the result. No Node
   toolchain is required, which matters in a repository that does not otherwise
   have one.
-- **A page with video or audio on it.** Five of the twenty rules are WCAG 1.2
+- **A page with video or audio on it.** Five of the twenty-seven rules are WCAG 1.2
   and its neighbours: a caption track present, a transcript or accessible name
   on `<audio>`, `srclang` on every `<track>`, controls a keyboard can operate,
   and unmuted `autoplay`. This is the part of the standard the rest of the field
@@ -64,7 +64,7 @@ the captions are readable.
 ## When to pick something else
 
 - **axe-core**, when you want the engine the industry has already agreed on.
-  Ninety-four active rules against this package's twenty, a documented
+  Ninety-four active rules against this package's twenty-seven, a documented
   zero-false-positive design, an `incomplete` bucket for everything it cannot
   settle, and adapters for Playwright, Cypress, Jest, WebdriverIO and Puppeteer.
   It is also the only one here with an official Model Context Protocol (MCP)
@@ -105,7 +105,7 @@ what prints and what fails are two different questions.** Its CI assertion
 splits `reportLevels` (what appears in the output) from `failLevels` (what makes
 the assertion fail), and adds a baseline file so an existing page can be adopted
 without the gate going red on day one. Here the severity table already exists:
-`_SEVERITY` in `sprezzature_accessibility/api.py` marks five of the twenty rules
+`_SEVERITY` in `sprezzature_accessibility/api.py` marks twelve of the twenty-seven rules
 as warnings, and the command line cannot see it. `lint_a11y.py` exits 1 on any
 finding, so a `color-only-state` warning fails a build exactly as hard as an
 `<img>` with no alt at all. The work is to move `_SEVERITY` next to

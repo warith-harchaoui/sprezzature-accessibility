@@ -94,6 +94,15 @@ _SEVERITY: dict[str, str] = {
     "motion-no-reduce-guard": "warning",
     "body-text-tracking-tight": "warning",
     "track-missing-srclang": "warning",
+    # Reading comfort (WCAG 1.4.8 is level AAA, the BDA guide is advice):
+    # reported, never treated as a blocking defect by the API.
+    "body-text-justified": "warning",
+    "body-text-centered-long": "warning",
+    "body-text-italic-long": "warning",
+    "body-text-all-caps-long": "warning",
+    "body-text-leading-tight": "warning",
+    "body-text-line-too-long": "warning",
+    "text-underline-not-link": "warning",
 }
 
 app = FastAPI(

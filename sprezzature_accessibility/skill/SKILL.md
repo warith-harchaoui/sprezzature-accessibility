@@ -2,12 +2,12 @@
 name: sprezzature-accessibility
 description: >-
   Static HTML accessibility lint **and** the alt text it tells you is
-  missing. Twenty rules decidable from source without a browser: missing
-  alt, unlabelled inputs, button-without-text, clickable div, missing
-  dialog close, lang attribute, bad heading order, colour-only state,
-  motion-reduce guards, video and audio captions; JSON / exit codes for
-  CI. Then `--fix-alt` drafts the alt with a local vision
-  model, using the image and the surrounding text of that same page. Use
+  missing. Twenty-seven rules read from source, no browser: missing
+  alt, unlabelled inputs, empty buttons, clickable div, dialog close,
+  lang, heading order, colour-only state, motion guards, captions, and
+  text a dyslexic reader struggles with (justified, italic, capitals,
+  tight or overlong lines); JSON / exit codes for CI. `--fix-alt` drafts
+  the alt with a local vision model from the image and its page. Use
   it whenever you are holding HTML, above all HTML you just wrote. Trigger
   phrases: "a11y lint", "check this HTML for accessibility", "WCAG
   compliance", "missing alt", "write alt text", "describe this image",
@@ -31,8 +31,8 @@ metadata:
 > [`sprezzature-accessibility`](https://github.com/warith-harchaoui/sprezzature-accessibility)
 > (`pip install sprezzature-accessibility`, everything in one install),
 > invoked as `sprezzature-accessibility <tool>` or `make-a11y <tool>` (one
-> click command, two names) over four tools: `lint`, `text-spacing`, `alt`,
-> `install-alt`. Each is also its own command
+> click command, two names) over five tools: `lint`, `reading` (alias
+> `text-spacing`), `alt`, `install-alt`. Each is also its own command
 > (`sprezzature-accessibility-lint` and so on), which is what a script should
 > call. This SKILL.md is the agent contract, and it ships inside that package,
 > at `sprezzature_accessibility/skill/`:
@@ -68,10 +68,10 @@ order, announcement of live regions).
 | **Make**: repair the mechanically fixable rules | `sprezzature-accessibility-lint --fix` | Six fixers: adds `lang` to `<html>` (the language is detected from the page text; left unfixed when it cannot be), strips redundant `role="presentation"` / `aria-hidden="true"` from decorative `<img alt="">`, demotes `tabindex="N>0"` to `tabindex="0"`, strips `aria-hidden` from focusable interactive elements, appends `motion-reduce:transform-none` to animated elements, strips `tracking-tight`/`tracking-tighter` from body text. Idempotent. `--dry-run` previews and always exits 0. |
 | **Make**: draft the alt the audit says is missing | `sprezzature-accessibility-lint --fix-alt` | For every `<img>` with no `alt`, drafts one with the local vision model, from the image **and the text around it in that same page**, plus the proper nouns the page uses. Language: `--alt-lang`, else the page's `<html lang>`, else detection on the page text, else the environment locale. Remote or missing images are left alone and reported. Separate from `--fix` on purpose: that one is mechanical, offline and idempotent; this calls a model and writes prose a person should read. |
 | **Make**: draft alt for one image | `sprezzature-accessibility-alt` (alias `make-alt`) | Same engine, one image at a time, with `--kind` (the six purposes of an image defined by the W3C (World Wide Web Consortium, the body that writes the web's standards)), `--context`, `--lang`, `--longdesc`, `--in DOC`, `--vocab`, `--vocab-from`, `--auto-project`, `--resize`, `--no-cache`. Alt text on stdout, capped at 150 characters. |
-| **Make**: opt-in comfortable-reading CSS (Cascading Style Sheets, the language that sets a web page's colours, fonts and layout) | `sprezzature-accessibility-text-spacing` | Emits a CSS block at the WCAG (Web Content Accessibility Guidelines, the international rules a web page must follow to be usable by people with disabilities) 1.4.12 Text Spacing minimums (line height 1.5, letter spacing 0.12em, word spacing 0.16em, paragraph spacing 2em) for the body-text tags the linter checks. `--attr`, `--value`, `--out` and one flag per value. |
-| **Audit**: gate before ship | `sprezzature-accessibility-lint` | Twenty static rules over HTML, listed below. Exit 1 on any finding, 0 on a clean run, 2 on a usage error such as a path that does not exist; `--format json` for CI; `--ignore` takes rule ids. |
+| **Make**: opt-in comfortable-reading CSS (Cascading Style Sheets, the language that sets a web page's colours, fonts and layout) for dyslexic readers and everyone else | `sprezzature-accessibility-reading` (first name, still installed: `sprezzature-accessibility-text-spacing`) | Emits the reading preset: the WCAG (Web Content Accessibility Guidelines, the international rules a web page must follow to be usable by people with disabilities) 1.4.12 Text Spacing minimums (line height 1.5, letter spacing 0.12em, word spacing 0.16em, paragraph spacing 2em) for the body-text tags the linter checks, then lines bounded to 70 characters, start-aligned, upright and in their own case (WCAG 1.4.8, British Dyslexia Association style guide). `--measure` sets the line length (0 leaves it), `--spacing-only` prints the 1.4.12 block alone; `--attr`, `--value`, `--out` and one flag per value. No font is set: "dyslexia fonts" have no reading benefit in the studies. |
+| **Audit**: gate before ship | `sprezzature-accessibility-lint` | Twenty-seven static rules over HTML, listed below. Exit 1 on any finding, 0 on a clean run, 2 on a usage error such as a path that does not exist; `--format json` for CI; `--ignore` takes rule ids. |
 
-The fourteen rules without a fixer are *passed through* by `--fix`: they need
+The twenty-one rules without a fixer are *passed through* by `--fix`: they need
 a content decision nothing here can make for the user. `img-missing-alt` is
 the one of them that `--fix-alt` repairs, because the drafting half can look
 at the image and at the page around it. `sprezzature-ui` covers semantic HTML
@@ -82,7 +82,7 @@ static-decidable rules before the diff lands.
 
 ## What the lint catches
 
-Twenty rules decidable from the HTML source, no JavaScript execution
+Twenty-seven rules decidable from the HTML source, no JavaScript execution
 required (the ids used by `--ignore` and the JSON (JavaScript Object Notation, a text format in which programs store data as named fields, such as {"name": "Paris"}) output in parentheses):
 
 1. `<img>` without `alt` attribute (`img-missing-alt`).
@@ -120,6 +120,30 @@ required (the ids used by `--ignore` and the JSON (JavaScript Object Notation, a
     WCAG 2.1.1).
 20. `autoplay` without `muted` (`media-autoplay-sound`, WCAG 1.4.2).
 
+Seven more on reading, for dyslexic readers and other reading difficulties
+(WCAG 1.4.8 Visual Presentation, level AAA, and the British Dyslexia
+Association style guide; all warnings). They follow the cascade: Tailwind
+classes on the element or an ancestor, with breakpoint prefixes, `style`
+attributes and the page's own `<style>` blocks, never a linked stylesheet.
+Running text is a `p`, `li`, `dd`, `blockquote`, `td` or `figcaption` of 15
+words or more, display type (30px and up) exempt.
+
+21. Justified running text (`body-text-justified`; WCAG failure F88).
+22. A centred paragraph of 30 words or more (`body-text-centered-long`).
+23. 15 words or more in italic (`body-text-italic-long`); emphasis of a few
+    words passes.
+24. 15 words or more in capitals, by `uppercase` or typed so
+    (`body-text-all-caps-long`); an eyebrow label passes.
+25. Line height under 1.5 on running text (`body-text-leading-tight`),
+    including the line height Tailwind's `text-xs` / `text-sm` / `text-xl`
+    bring with them.
+26. Lines over 80 characters (`body-text-line-too-long`), worked out from
+    `max-w-*`, padding and grid columns; `max-w-prose` passes.
+27. Underlined text that is not a link (`text-underline-not-link`).
+
+No rule asks for a "dyslexia font": OpenDyslexic and Dyslexie showed no
+reading gain in controlled studies.
+
 A video that is `muted` and has no `controls` counts as decorative and is
 exempt from 16 and 19. The severities are the ones the HTTP (HyperText Transfer Protocol, the language a browser and a server speak each time a page loads) API (application programming interface, the requests one program can send another, such as render this chart) reports; the
 command line exits 1 on any finding, warnings included.
@@ -136,7 +160,8 @@ command line exits 1 on any finding, warnings included.
 | "fix accessibility" | `sprezzature-accessibility-lint --fix <file-or-dir>`, then lint again; report what remains. |
 | "missing alt" on a page / "img has no alt" | `sprezzature-accessibility-lint --fix-alt <file-or-dir>`; tell the user the alt texts are drafts to review. |
 | "alt text" / "describe this image" for one image | `sprezzature-accessibility-alt [--kind informative\|decorative\|functional\|text\|complex\|group] [--lang fr] [--in DOC] [--vocab-from DIR] <src>`. |
-| "text spacing" / "letter-spacing" / "comfortable reading CSS" | `sprezzature-accessibility-text-spacing [--out reading.css]`. |
+| "text spacing" / "letter-spacing" / "comfortable reading CSS" | `sprezzature-accessibility-reading [--out reading.css]` (or its first name, `sprezzature-accessibility-text-spacing`). |
+| "dyslexia" / "dyslexie" / "readability for dyslexic readers" / "is this readable" / "justified text" / "line length" / "line height" | `sprezzature-accessibility-lint <file-or-dir>` for the seven reading rules (plus `body-text-tracking-tight`), then `sprezzature-accessibility-reading` for the opt-in preset. Report that WCAG 1.4.8 is level AAA, and that the rules see Tailwind and inline CSS, not linked stylesheets. |
 | The drafter cannot reach a model | `sprezzature-accessibility-install-alt` (installs Ollama, starts it, pulls `qwen3-vl:8b`). |
 | "contrast audit" / "WCAG ratio" / "colorblind preview" | Not this skill: `sprezzature-colors` (`sprezzature-colors-contrast`, `sprezzature-colors-cvd`). |
 | "captions" / "transcribe video" / "subtitle file" | Not this skill: `sprezzature-audio` (`sprezzature-audio-install`, then `sprezzature-audio-captions`). |
@@ -161,7 +186,7 @@ The MCP tools are the HTTP routes, named by their `operation_id`:
 | `draft_alt_text` | `POST /v1/alt` | Draft alt text (and a long description with `long: true`) for one image; `src` is a path the server opens or a URL it fetches. 502 when the model is unreachable, 503 when the model client is missing from the install, 404 when the image cannot be read. |
 | `health` | `GET /health` | Liveness; use only to diagnose a connection. |
 
-`--fix`, `--fix-alt`, the text-spacing CSS and the model install are
+`--fix`, `--fix-alt`, the reading CSS and the model install are
 command-line only: they write to a project or a machine.
 
 ## W3C image-purpose mapping
@@ -224,9 +249,9 @@ package, the same one that ships this skill:
 
 | Console entry point | Purpose |
 |---|---|
-| `sprezzature-accessibility` / `make-a11y` | Front door over the four tools, plus `tools` and `skill`. |
-| `sprezzature-accessibility-lint` | Twenty-rule static lint, `--fix`, `--fix-alt`. Exit 1 on any finding. **Not** a substitute for a runtime audit. |
-| `sprezzature-accessibility-text-spacing` | The opt-in WCAG 1.4.12 Text Spacing CSS, the make-side counterpart to `body-text-tracking-tight`. |
+| `sprezzature-accessibility` / `make-a11y` | Front door over the five tools, plus `tools` and `skill`. |
+| `sprezzature-accessibility-lint` | Twenty-seven-rule static lint, `--fix`, `--fix-alt`. Exit 1 on any finding. **Not** a substitute for a runtime audit. |
+| `sprezzature-accessibility-reading` / `sprezzature-accessibility-text-spacing` | The opt-in reading CSS preset (WCAG 1.4.12 spacing, then measure, alignment, upright type and own case), the make-side counterpart to the reading rules. |
 | `sprezzature-accessibility-alt` / `make-alt` | Alt text for one image. |
 | `sprezzature-accessibility-install-alt` | Installs Ollama, starts it, pulls `qwen3-vl:8b`. |
 | `sprezzature-accessibility-mcp` | The MCP server over the HTTP API. |

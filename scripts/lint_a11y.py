@@ -6,7 +6,8 @@ lint_a11y
 Accessibility linter for HTML emitted by (or for) the ``sprezzature``
 skill. "Accessible" here means concretely: can someone using a screen
 reader, a keyboard alone (no mouse), or a browser's reduced-motion
-setting still use the page? The twenty rules below each check for
+setting still use the page, and can someone with dyslexia read it
+without losing their line? The twenty-seven rules below each check for
 one source-level defect that breaks that experience, for example an
 ``<img>`` with no ``alt`` text, which is as invisible to a screen
 reader as if the image were missing from the page entirely.
@@ -17,7 +18,7 @@ which is what a screen reader actually reads from), never runs
 JavaScript. It only reads the HTML text, so it drops straight into a
 code-emit pipeline or a pre-commit hook with no Chromium to install.
 
-The twenty rules cover the violations that account for the bulk of
+The twenty-seven rules cover the violations that account for the bulk of
 real-world WCAG (Web Content Accessibility Guidelines, the W3C
 standard that defines what "accessible" means for the web) and
 WAI-ARIA (Web Accessibility Initiative, Accessible Rich Internet
@@ -74,6 +75,14 @@ Rule catalogue
 ``media-missing-controls``  ``<video>`` / ``<audio>`` without ``controls``
                             (WCAG 2.1.1). Decorative video exempt.
 ``media-autoplay-sound``    ``autoplay`` without ``muted`` (WCAG 1.4.2).
+``body-text-justified``     Justified running text (WCAG 1.4.8, F88; BDA).
+``body-text-centered-long`` A centred paragraph of 30 words or more (BDA).
+``body-text-italic-long``   15 words or more in italic (BDA; Rello &
+                            Baeza-Yates 2013).
+``body-text-all-caps-long`` 15 words or more in capitals, transformed or typed.
+``body-text-leading-tight`` Line height under 1.5 on running text (WCAG 1.4.8).
+``body-text-line-too-long`` Lines over 80 characters (WCAG 1.4.8).
+``text-underline-not-link`` Underlined text that is not a link (BDA).
 ========================  =====================================================
 
 Output
@@ -737,6 +746,1045 @@ def check_body_text_tracking(root: Element) -> list[Finding]:
     return findings
 
 
+# ── Reading comfort: dyslexia and other reading difficulties ───────────────
+#
+# Seven rules, all warnings, all about one question: does the page set its
+# running text the way the evidence says a dyslexic reader reads best?
+#
+# Sources, cited once here and per rule below:
+#
+# * WCAG 2.2 success criterion 1.4.8 Visual Presentation (level AAA): blocks of
+#   text are not justified, are no wider than 80 characters, and have a line
+#   spacing of at least space-and-a-half within paragraphs. Failure technique
+#   F88 is "using text that is justified".
+# * British Dyslexia Association, Dyslexia Style Guide (2023 edition; the
+#   layout and emphasis rules are unchanged from earlier editions): left
+#   aligned with a ragged right edge; avoid underlining and italics, which make
+#   the text "appear to run together", and use bold instead; avoid text in
+#   block capitals; line spacing of 1.5; lines of 60 to 70 characters.
+# * Rello & Baeza-Yates (2013), "Good fonts for dyslexia", ASSETS '13: italic
+#   type significantly impaired reading performance for readers with dyslexia
+#   (eye-tracking, 48 participants).
+#
+# What is NOT here, on purpose: a rule asking for a "dyslexia font". Wery &
+# Diliberto (2017, Annals of Dyslexia) found no gain in reading rate or
+# accuracy with OpenDyslexic, and Kuster et al. (2018, Annals of Dyslexia) none
+# with Dyslexie. A linter that demanded one would enforce a myth.
+#
+# The cascade is read the way a browser would read it, within what a static
+# linter can see: Tailwind utilities on the element and its ancestors (with
+# their breakpoint prefixes), ``style=""`` attributes, legacy ``align=``, the
+# default italic of ``<em>``/``<i>``/``<cite>``, and simple selectors in the
+# page's own ``<style>`` blocks. A linked stylesheet is not read.
+
+#: A passage at least this many words long is "running text" for the italic,
+#: capitals, justification and line-height rules. Fifteen words is more than
+#: one line on a phone and roughly one line at a comfortable desktop measure,
+#: which is where the evidence starts to apply: one glance at a short label is
+#: not continuous reading.
+LONG_PASSAGE_WORDS: int = 15
+
+#: A centred paragraph is flagged from this many words. Higher than
+#: :data:`LONG_PASSAGE_WORDS` on purpose: a centred lead of one or two lines
+#: under a hero heading is a settled convention, and the cost the BDA names
+#: (a ragged left edge, so each new line starts somewhere else) grows with the
+#: number of lines. Thirty words is about three lines at 70 characters.
+CENTERED_LONG_WORDS: int = 30
+
+#: WCAG 1.4.8: "width is no more than 80 characters or glyphs".
+MAX_LINE_CHARS: int = 80
+
+#: WCAG 1.4.8 and the BDA: line spacing of at least 1.5 within paragraphs.
+MIN_LINE_HEIGHT: float = 1.5
+
+#: Average advance of one character of running text, in ``em``. Measured
+#: Latin text in common sans faces sits between 0.45 and 0.5 em per character
+#: including the space; the upper end is taken, so a width converted to
+#: characters is never overestimated and the line-length rule errs quiet.
+AVG_CHAR_EM: float = 0.5
+
+#: Tailwind breakpoints, mobile first, and the widest viewport each one covers.
+#: ``None`` is "no upper bound" (2xl and wider).
+_BREAKPOINTS: tuple[str, ...] = ("", "sm", "md", "lg", "xl", "2xl")
+_BP_INDEX: dict[str, int] = {name: i for i, name in enumerate(_BREAKPOINTS)}
+_BP_VIEWPORT_MAX_PX: tuple[float | None, ...] = (640.0, 768.0, 1024.0, 1280.0, 1536.0, None)
+_BP_MIN_PX: tuple[float, ...] = (0.0, 640.0, 768.0, 1024.0, 1280.0, 1536.0)
+
+#: Variants that do not change typography or layout, read as if absent.
+_NEUTRAL_VARIANTS: frozenset[str] = frozenset({"dark"})
+
+#: Tailwind v3 default font sizes, in px, with the line height each one sets
+#: on the same element (also px). ``text-sm`` is 14px on a 20px line: 1.43,
+#: under 1.5 — a fact of Tailwind's defaults that the leading rule reports.
+_FONT_SIZES: dict[str, tuple[float, float | None]] = {
+    "xs": (12.0, 16.0), "sm": (14.0, 20.0), "base": (16.0, 24.0),
+    "lg": (18.0, 28.0), "xl": (20.0, 28.0), "2xl": (24.0, 32.0),
+    "3xl": (30.0, 36.0), "4xl": (36.0, 40.0), "5xl": (48.0, None),
+    "6xl": (60.0, None), "7xl": (72.0, None), "8xl": (96.0, None), "9xl": (128.0, None),
+}
+_LEADING_RATIOS: dict[str, float] = {
+    "none": 1.0, "tight": 1.25, "snug": 1.375, "normal": 1.5, "relaxed": 1.625, "loose": 2.0,
+}
+_MAX_W_REM: dict[str, float] = {
+    "xs": 20, "sm": 24, "md": 28, "lg": 32, "xl": 36, "2xl": 42, "3xl": 48,
+    "4xl": 56, "5xl": 64, "6xl": 72, "7xl": 80,
+}
+_SCREEN_PX: dict[str, float] = {"sm": 640, "md": 768, "lg": 1024, "xl": 1280, "2xl": 1536}
+_FRACTION_RE: re.Pattern[str] = re.compile(r"^(?:w|basis)-(\d+)/(\d+)$")
+_LENGTH_RE: re.Pattern[str] = re.compile(r"^(-?\d*\.?\d+)(px|rem|em|ch|%)?$")
+
+#: Elements a browser sets in italic, underlined or centred by default.
+_ITALIC_TAGS: frozenset[str] = frozenset({"em", "i", "cite", "dfn", "var", "address"})
+_UNDERLINE_TAGS: frozenset[str] = frozenset({"u"})
+#: Subtrees whose text a sighted reader does not read as page prose.
+_NON_PROSE_TAGS: frozenset[str] = frozenset({
+    "script", "style", "template", "noscript", "svg", "math", "code", "pre", "kbd", "samp",
+})
+#: Block containers that end a running-text unit: the text inside them is
+#: counted for the inner element, not again for the outer one.
+_BLOCK_TAGS: frozenset[str] = frozenset({
+    "div", "section", "article", "aside", "header", "footer", "main", "nav",
+    "ul", "ol", "dl", "table", "figure", "form", "details", "fieldset",
+    "h1", "h2", "h3", "h4", "h5", "h6",
+}) | BODY_TEXT_TAGS
+
+
+Value = Any  # a typed CSS value: str, float, or ("ratio"|"px", float)
+
+
+@dataclass
+class _CssRule:
+    """One rule from a ``<style>`` block, reduced to what the reading rules read."""
+
+    selector: list[tuple[str, str, frozenset[str], str]]  # (combinator, tag, classes, id)
+    specificity: tuple[int, int, int]
+    order: int
+    decls: dict[str, Value]
+
+
+def _split_variants(token: str) -> tuple[list[str], str]:
+    """Split ``md:dark:text-justify`` into variants and the base utility.
+
+    A colon inside an arbitrary value (``text-[color:red]``) is not a variant
+    separator, hence the lookahead.
+    """
+    parts = re.split(r":(?![^\[]*\])", token)
+    return parts[:-1], parts[-1].lstrip("!")
+
+
+def _utilities(elem: Element) -> list[tuple[int, str]]:
+    """Every class of ``elem`` that applies at some breakpoint, with its index.
+
+    A state variant (``hover:``, ``focus:``, ``group-hover:``) is dropped: the
+    reading rules judge the text at rest, which is how it is read.
+    """
+    out: list[tuple[int, str]] = []
+    for token in elem.attrs.get("class", "").split():
+        variants, base = _split_variants(token)
+        bp = 0
+        keep = True
+        for variant in variants:
+            if variant in _BP_INDEX:
+                bp = max(bp, _BP_INDEX[variant])
+            elif variant not in _NEUTRAL_VARIANTS:
+                keep = False
+        if keep:
+            out.append((bp, base))
+    return out
+
+
+def _length_px(value: str, font_px: float) -> float | None:
+    """A CSS length in px, or ``None`` when it is relative to something unseen."""
+    match = _LENGTH_RE.match(value.strip())
+    if match is None:
+        return None
+    number, unit = float(match.group(1)), (match.group(2) or "")
+    if unit == "px":
+        return number
+    if unit == "rem":
+        return number * 16.0
+    if unit == "em":
+        return number * font_px
+    if unit == "ch":
+        # One ``ch`` is read as one character of text: the unit's purpose,
+        # and how every "65ch" measure is meant.
+        return number * AVG_CHAR_EM * font_px
+    return None
+
+
+def _tw_value(base: str) -> tuple[str, Value] | None:
+    """The reading-relevant property a Tailwind utility sets, or ``None``."""
+    align = {
+        "text-left": "left", "text-start": "left", "text-right": "right",
+        "text-end": "right", "text-center": "center", "text-justify": "justify",
+    }
+    if base in align:
+        return "text-align", align[base]
+    if base == "italic":
+        return "font-style", "italic"
+    if base == "not-italic":
+        return "font-style", "normal"
+    if base == "uppercase":
+        return "text-transform", "uppercase"
+    if base in ("lowercase", "capitalize", "normal-case"):
+        return "text-transform", "none"
+    if base == "underline":
+        return "text-decoration", "underline"
+    if base in ("no-underline", "line-through", "overline"):
+        return "text-decoration", "none"
+    if base.startswith("leading-"):
+        key = base[len("leading-"):]
+        if key in _LEADING_RATIOS:
+            return "line-height", ("ratio", _LEADING_RATIOS[key])
+        if key.isdigit():
+            return "line-height", ("px", int(key) * 4.0)
+        if key.startswith("[") and key.endswith("]"):
+            parsed = _css_decls(f"line-height:{key[1:-1]}").get("line-height")
+            return ("line-height", parsed) if parsed is not None else None
+    return None
+
+
+def _tw_font(base: str) -> tuple[float, Value | None] | None:
+    """Font size in px set by a ``text-*`` utility, and the line height it brings.
+
+    ``text-sm/6`` (size and line height in one utility) is read too.
+    """
+    match = re.fullmatch(r"text-([a-z0-9]+|\[[^\]]+\])(?:/(\d+|\[[^\]]+\]))?", base)
+    if match is None:
+        return None
+    size_key, lead_key = match.group(1), match.group(2)
+    if size_key in _FONT_SIZES:
+        size, default_lead = _FONT_SIZES[size_key]
+        lead: Value | None = ("px", default_lead) if default_lead is not None else ("ratio", 1.0)
+    elif size_key.startswith("["):
+        px = _length_px(size_key[1:-1], 16.0)
+        if px is None:
+            return None  # text-[color] and friends
+        size, lead = px, None
+    else:
+        return None
+    if lead_key:
+        if lead_key.isdigit():
+            lead = ("px", int(lead_key) * 4.0)
+        else:
+            lead = _css_decls(f"line-height:{lead_key[1:-1]}").get("line-height", lead)
+    return size, lead
+
+
+def _css_decls(text: str) -> dict[str, Value]:
+    """Parse ``prop: value; …`` into the typed values the reading rules read."""
+    out: dict[str, Value] = {}
+    for decl in text.split(";"):
+        if ":" not in decl:
+            continue
+        prop, _, raw = decl.partition(":")
+        prop = prop.strip().lower()
+        value = raw.replace("!important", "").strip().lower()
+        if prop == "text-align":
+            out[prop] = {"start": "left", "end": "right"}.get(value, value)
+        elif prop == "font-style":
+            out[prop] = "italic" if value in ("italic", "oblique") or value.startswith("oblique") else "normal"
+        elif prop == "text-transform":
+            out[prop] = "uppercase" if value == "uppercase" else "none"
+        elif prop in ("text-decoration", "text-decoration-line"):
+            out["text-decoration"] = "underline" if "underline" in value.split() else "none"
+        elif prop == "line-height":
+            if value == "normal":
+                out[prop] = ("ratio", 1.2)  # what browsers resolve "normal" to, roughly
+            else:
+                try:
+                    out[prop] = ("ratio", float(value))
+                except ValueError:
+                    if value.endswith("%"):
+                        try:
+                            out[prop] = ("ratio", float(value[:-1]) / 100.0)
+                        except ValueError:
+                            pass
+                    elif value.endswith("em") and not value.endswith("rem"):
+                        try:
+                            out[prop] = ("ratio", float(value[:-2]))
+                        except ValueError:
+                            pass
+                    elif _length_px(value, 16.0) is not None:
+                        out[prop] = ("px", _length_px(value, 16.0))
+        elif prop == "font-size":
+            px = _length_px(value, 16.0)
+            if px is not None:
+                out[prop] = px
+        elif prop in ("max-width", "width"):
+            out[prop] = value
+    return out
+
+
+_COMPOUND_RE: re.Pattern[str] = re.compile(r"^([a-z][a-z0-9-]*|\*)?((?:[.#][\w-]+)*)$")
+
+
+def _parse_selector(selector: str) -> list[tuple[str, str, frozenset[str], str]] | None:
+    """A selector as compounds, or ``None`` when it is beyond this reader.
+
+    Pseudo-classes, attribute selectors and sibling combinators make a rule
+    conditional on something a static read cannot settle (a hover, a toggle
+    such as the reading preset's own ``[data-text-spacing]``), so such a rule
+    is left out rather than guessed at.
+    """
+    if any(ch in selector for ch in ":[+~"):
+        return None
+    tokens = selector.replace(">", " > ").split()
+    compounds: list[tuple[str, str, frozenset[str], str]] = []
+    combinator = " "
+    for token in tokens:
+        if token == ">":
+            combinator = ">"
+            continue
+        match = _COMPOUND_RE.match(token.lower())
+        if match is None:
+            return None
+        tag = match.group(1) or "*"
+        rest = match.group(2) or ""
+        classes = frozenset(re.findall(r"\.([\w-]+)", rest))
+        ids = re.findall(r"#([\w-]+)", rest)
+        compounds.append((combinator, tag, classes, ids[0] if ids else ""))
+        combinator = " "
+    return compounds or None
+
+
+def _compound_matches(elem: Element, compound: tuple[str, str, frozenset[str], str]) -> bool:
+    """Whether one compound selector matches ``elem`` on its own."""
+    _, tag, classes, ident = compound
+    if tag != "*" and elem.tag != tag:
+        return False
+    if classes and not classes <= set(elem.attrs.get("class", "").split()):
+        return False
+    return not ident or elem.attrs.get("id", "") == ident
+
+
+def _selector_matches(elem: Element, compounds: list[tuple[str, str, frozenset[str], str]]) -> bool:
+    """Right-to-left match of a descendant / child selector chain."""
+    if not _compound_matches(elem, compounds[-1]):
+        return False
+    current: Element | None = elem
+    for index in range(len(compounds) - 2, -1, -1):
+        combinator = compounds[index + 1][0]
+        assert current is not None
+        current = current.parent
+        if combinator == ">":
+            if current is None or not _compound_matches(current, compounds[index]):
+                return False
+            continue
+        while current is not None and not _compound_matches(current, compounds[index]):
+            current = current.parent
+        if current is None:
+            return False
+    return True
+
+
+def _style_rules(root: Element) -> tuple[list[_CssRule], bool]:
+    """Every rule of the page's ``<style>`` blocks, and whether all were read.
+
+    The second value is ``False`` when a rule that sets a width could not be
+    parsed, or when a stylesheet is linked: then the page's widths are not
+    all visible, and "no width limit" cannot be proven.
+    """
+    rules: list[_CssRule] = []
+    complete = True
+    order = 0
+    for elem in walk(root):
+        if elem.tag == "link" and "stylesheet" in elem.attrs.get("rel", "").lower().split():
+            complete = False
+        if elem.tag != "style":
+            continue
+        css = re.sub(r"/\*.*?\*/", "", elem.text, flags=re.S)
+        if "@import" in css:
+            complete = False
+        # Drop print-only and keyframe blocks; unwrap every other at-rule, so
+        # a rule inside @media (min-width: …) counts as applying somewhere.
+        css = re.sub(r"@(?:media\s+print|keyframes|-webkit-keyframes|font-face)[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}", "", css)
+        css = re.sub(r"@[^{;]*\{", "", css)
+        for selector_text, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css):
+            decls = _css_decls(body)
+            if not decls:
+                continue
+            for selector in selector_text.split(","):
+                compounds = _parse_selector(selector.strip())
+                if compounds is None:
+                    if "max-width" in decls or "width" in decls:
+                        complete = False
+                    continue
+                spec = (
+                    sum(1 for c in compounds if c[3]),
+                    sum(len(c[2]) for c in compounds),
+                    sum(1 for c in compounds if c[1] != "*"),
+                )
+                rules.append(_CssRule(compounds, spec, order, decls))
+                order += 1
+    return rules, complete
+
+
+class _Cascade:
+    """The values a browser would compute for one page, as far as source shows.
+
+    Built once per page and memoised per (element, property, breakpoint): the
+    rules ask the same ancestors the same questions many times over.
+    """
+
+    def __init__(self, root: Element) -> None:
+        """Read the page's ``<style>`` rules and remember the root."""
+        self.root = root
+        self.rules, self.widths_visible = _style_rules(root)
+        self._own: dict[tuple[int, str, int], Value | None] = {}
+
+    def own(self, elem: Element, prop: str, bp: int) -> Value | None:
+        """The value ``elem`` sets itself for ``prop`` at breakpoint ``bp``."""
+        key = (id(elem), prop, bp)
+        if key not in self._own:
+            self._own[key] = self._compute_own(elem, prop, bp)
+        return self._own[key]
+
+    def _compute_own(self, elem: Element, prop: str, bp: int) -> Value | None:
+        # 1. Inline style wins over everything this reader can see.
+        inline = _css_decls(elem.attrs.get("style", ""))
+        if prop in inline:
+            return inline[prop]
+        # 2. Tailwind utilities: the widest breakpoint at or below ``bp`` wins.
+        best: tuple[int, Value] | None = None
+        for at, base in _utilities(elem):
+            if at > bp:
+                continue
+            value: Value | None = None
+            if prop in ("font-size", "line-height"):
+                font = _tw_font(base)
+                if font is not None:
+                    if prop == "font-size":
+                        value = font[0]
+                    elif font[1] is not None:
+                        value = font[1]
+            if value is None:
+                hit = _tw_value(base)
+                if hit is not None and hit[0] == prop:
+                    value = hit[1]
+            # A ``leading-*`` beats the line height a ``text-*`` brings, at any
+            # breakpoint at or below: Tailwind emits the leading utilities later.
+            if value is not None and (best is None or at >= best[0]):
+                if prop == "line-height" and best is not None and at == best[0] and base.startswith("text-"):
+                    continue
+                best = (at, value)
+        tw_value = best[1] if best else None
+        # 3. The page's own <style> rules, by specificity then order. A rule
+        #    with more than a class's specificity beats a utility.
+        css_best: _CssRule | None = None
+        for rule in self.rules:
+            if prop in rule.decls and _selector_matches(elem, rule.selector):
+                if css_best is None or (rule.specificity, rule.order) >= (css_best.specificity, css_best.order):
+                    css_best = rule
+        if css_best is not None and (tw_value is None or css_best.specificity > (0, 1, 0)):
+            return css_best.decls[prop]
+        if tw_value is not None:
+            return tw_value
+        # 4. Legacy attributes and the browser's own defaults.
+        if prop == "text-align":
+            align = elem.attrs.get("align", "").lower()
+            if align in ("justify", "center", "left", "right"):
+                return align
+            if elem.tag == "center":
+                return "center"
+        if prop == "font-style" and elem.tag in _ITALIC_TAGS:
+            return "italic"
+        if prop == "text-decoration" and elem.tag in _UNDERLINE_TAGS:
+            return "underline"
+        return None
+
+    def computed(self, elem: Element, prop: str, bp: int) -> Value | None:
+        """The inherited value: the nearest element, self first, that sets it."""
+        current: Element | None = elem
+        while current is not None and current.tag != "root":
+            value = self.own(current, prop, bp)
+            if value is not None:
+                return value
+            current = current.parent
+        return None
+
+    def font_px(self, elem: Element, bp: int) -> float:
+        """The font size in px, 16 when nothing sets it."""
+        value = self.computed(elem, "font-size", bp)
+        return float(value) if isinstance(value, (int, float)) else 16.0
+
+    def line_height_ratio(self, elem: Element, bp: int) -> tuple[float, Element | None] | None:
+        """Line height over font size, and the element that set it.
+
+        Line height inherits as declared for a ratio but as computed for a
+        length, so a ``leading-6`` on a wrapper is 24px for every child; the
+        ratio is that length over the child's own font size.
+        """
+        current: Element | None = elem
+        while current is not None and current.tag != "root":
+            value = self.own(current, "line-height", bp)
+            if value is not None:
+                kind, number = value
+                if kind == "ratio":
+                    return float(number), current
+                return float(number) / self.font_px(elem, bp), current
+            current = current.parent
+        return None
+
+
+def _visible(elem: Element) -> bool:
+    """Whether ``elem``'s text is painted for a sighted reader."""
+    if elem.tag in _NON_PROSE_TAGS or "hidden" in elem.attrs:
+        return False
+    return "sr-only" not in elem.attrs.get("class", "").split()
+
+
+def _shown(elem: Element) -> bool:
+    """Whether ``elem`` and every ancestor are painted."""
+    return _visible(elem) and all(_visible(a) for a in _ancestors(elem))
+
+
+def _words(elem: Element, stop: Callable[[Element], bool]) -> list[str]:
+    """Visible words of ``elem``'s subtree, not descending into ``stop`` subtrees."""
+    if not _visible(elem):
+        return []
+    words = elem.text.split()
+    for child in elem.children:
+        if stop(child) or not _visible(child):
+            continue
+        words.extend(_words(child, stop))
+    return words
+
+
+def _unit_words(elem: Element) -> list[str]:
+    """The words of one running-text unit, without the blocks nested inside it."""
+    return _words(elem, lambda child: child.tag in _BLOCK_TAGS)
+
+
+def _running_units(root: Element, cascade: _Cascade, min_words: int) -> Iterator[tuple[Element, list[str]]]:
+    """Running-text elements of at least ``min_words`` words, display type excluded.
+
+    A unit is one of :data:`BODY_TEXT_TAGS`. Display type (30px and up, the
+    same line the tracking rule draws) is a figure in a tile, not a passage.
+    """
+    for elem in walk(root):
+        if elem.tag not in BODY_TEXT_TAGS or not _shown(elem):
+            continue
+        words = _unit_words(elem)
+        if len(words) < min_words:
+            continue
+        if cascade.font_px(elem, len(_BREAKPOINTS) - 1) >= 30.0:
+            continue
+        yield elem, words
+
+
+def _first_bp(predicate: Callable[[int], bool]) -> int | None:
+    """The narrowest breakpoint at which ``predicate`` holds, or ``None``."""
+    for bp in range(len(_BREAKPOINTS)):
+        if predicate(bp):
+            return bp
+    return None
+
+
+def _at(bp: int) -> str:
+    """How a finding names the screen width it is about."""
+    return "" if bp == 0 else f" on screens {_BP_MIN_PX[bp]:.0f}px wide and up"
+
+
+def _excerpt(words: list[str], n: int = 8) -> str:
+    """The first few words, so a finding says which passage it means."""
+    text = " ".join(words[:n]).strip("“”«»\"' \u00a0")
+    return f"“{text}{'…' if len(words) > n else ''}”"
+
+
+def check_reading_alignment(root: Element) -> list[Finding]:
+    """Rules ``body-text-justified`` and ``body-text-centered-long``.
+
+    Justified text stretches the spaces between words to square both edges,
+    and on a screen, with no hyphenation to absorb the slack, those gaps line
+    up into "rivers" running down the paragraph. WCAG 1.4.8 (AAA) asks that a
+    block of text not be justified, and failure technique F88 names exactly
+    this. The BDA style guide asks for "left-justified with ragged right edge".
+
+    Centred text has the opposite fault: a ragged *left* edge, so each new
+    line begins at a different place and the eye has to search for it. The
+    BDA guide's left alignment covers it too; it is reported from
+    :data:`CENTERED_LONG_WORDS`, because a one or two line centred lead under a
+    hero heading is a settled convention and costs one search, not ten.
+
+    **Known limit**: alignment set in a linked stylesheet is not seen; a page
+    whose ``<style>`` uses a selector this reader skips (pseudo-classes,
+    attributes) is not seen through it either.
+    """
+    cascade = _cascade_for(root)
+    findings: list[Finding] = []
+    for elem, words in _running_units(root, cascade, LONG_PASSAGE_WORDS):
+        justified = _first_bp(lambda bp: cascade.computed(elem, "text-align", bp) == "justify")
+        if justified is not None:
+            findings.append(Finding(
+                rule="body-text-justified",
+                line=elem.line,
+                message=(
+                    f"<{elem.tag}> {_excerpt(words)} is justified{_at(justified)}: the stretched "
+                    "word spaces form rivers that dyslexic readers lose their line in. "
+                    "Align it left (WCAG 1.4.8, BDA style guide)."
+                ),
+            ))
+            continue
+        if len(words) < CENTERED_LONG_WORDS:
+            continue
+        centred = _first_bp(lambda bp: cascade.computed(elem, "text-align", bp) == "center")
+        if centred is not None:
+            findings.append(Finding(
+                rule="body-text-centered-long",
+                line=elem.line,
+                message=(
+                    f"<{elem.tag}> {_excerpt(words)} is centred over {len(words)} words{_at(centred)}: "
+                    "every line starts somewhere else. Align running text left (BDA style guide)."
+                ),
+            ))
+    return findings
+
+
+def _starts_here(cascade: _Cascade, elem: Element, prop: str, value: str, bp: int) -> bool:
+    """``elem`` turns ``prop`` to ``value`` at ``bp`` while its parent does not."""
+    if cascade.computed(elem, prop, bp) != value:
+        return False
+    parent = elem.parent
+    return parent is None or parent.tag == "root" or cascade.computed(parent, prop, bp) != value
+
+
+def _styled_runs(root: Element, prop: str, value: str) -> Iterator[tuple[Element, int, list[str]]]:
+    """Each outermost element where ``prop`` becomes ``value``, with its words.
+
+    The words counted are the ones the style actually reaches: a descendant
+    that turns it off again (``not-italic``, ``normal-case``) is not counted.
+    """
+    cascade = _cascade_for(root)
+    for elem in walk(root):
+        if not _shown(elem):
+            continue
+        for bp in range(len(_BREAKPOINTS)):
+            if not _starts_here(cascade, elem, prop, value, bp):
+                continue
+            at = bp
+
+            def turned_off(child: Element) -> bool:
+                """A descendant that sets the property back to something else."""
+                return cascade.own(child, prop, at) not in (None, value)
+
+            yield elem, bp, _words(elem, turned_off)
+            break
+
+
+def check_reading_italic(root: Element) -> list[Finding]:
+    """Rule ``body-text-italic-long``: no long passage set in italic.
+
+    Italic slants and narrows the letterforms, and the BDA style guide says it
+    makes "the text appear to run together"; Rello & Baeza-Yates (2013)
+    measured slower reading in italic for readers with dyslexia. Emphasis of a
+    word or a title is fine — the rule counts the words the italic reaches and
+    reports a passage from :data:`LONG_PASSAGE_WORDS`. Use bold, or a box, for
+    a passage that must stand out.
+    """
+    findings: list[Finding] = []
+    for elem, bp, words in _styled_runs(root, "font-style", "italic"):
+        if len(words) >= LONG_PASSAGE_WORDS:
+            findings.append(Finding(
+                rule="body-text-italic-long",
+                line=elem.line,
+                message=(
+                    f"<{elem.tag}> sets {len(words)} words in italic{_at(bp)}, {_excerpt(words)}: "
+                    "slanted type runs together for dyslexic readers. Keep italic to a few "
+                    "words; use bold for emphasis (BDA style guide)."
+                ),
+            ))
+    return findings
+
+
+def _mostly_capitals(words: list[str]) -> bool:
+    """Whether the text itself is typed in capitals, not just transformed."""
+    lettered = [w for w in words if sum(ch.isalpha() for ch in w) >= 2]
+    capitals = [w for w in lettered if w.isupper()]
+    return len(capitals) >= LONG_PASSAGE_WORDS and len(capitals) >= 0.8 * len(lettered)
+
+
+def check_reading_capitals(root: Element) -> list[Finding]:
+    """Rule ``body-text-all-caps-long``: no long passage in capitals.
+
+    Text in capitals loses the ascenders and descenders that give each word
+    its outline, and every word becomes a rectangle of the same height. The
+    BDA style guide: "avoid text in block capitals: this is much harder to
+    read". Two shapes are caught: a Tailwind ``uppercase`` (or
+    ``text-transform: uppercase``) reaching :data:`LONG_PASSAGE_WORDS` words,
+    and running text typed in capitals in the source. A short eyebrow label
+    in capitals is not reported.
+    """
+    findings: list[Finding] = []
+    reported: set[int] = set()
+    for elem, bp, words in _styled_runs(root, "text-transform", "uppercase"):
+        if len(words) >= LONG_PASSAGE_WORDS:
+            reported.add(id(elem))
+            findings.append(Finding(
+                rule="body-text-all-caps-long",
+                line=elem.line,
+                message=(
+                    f"<{elem.tag}> sets {len(words)} words in capitals{_at(bp)}, {_excerpt(words)}: "
+                    "capitals take away the word shapes dyslexic readers lean on (BDA style guide)."
+                ),
+            ))
+    cascade = _cascade_for(root)
+    for elem, words in _running_units(root, cascade, LONG_PASSAGE_WORDS):
+        if id(elem) in reported or not _mostly_capitals(words):
+            continue
+        if any(id(a) in reported for a in _ancestors(elem)):
+            continue
+        findings.append(Finding(
+            rule="body-text-all-caps-long",
+            line=elem.line,
+            message=(
+                f"<{elem.tag}> {_excerpt(words)} is typed in capitals: they take away the "
+                "word shapes dyslexic readers lean on. Write it in sentence case (BDA style guide)."
+            ),
+        ))
+    return findings
+
+
+def _ancestors(elem: Element) -> Iterator[Element]:
+    """Every ancestor of ``elem``, nearest first, the synthetic root excluded."""
+    current = elem.parent
+    while current is not None and current.tag != "root":
+        yield current
+        current = current.parent
+
+
+def check_reading_leading(root: Element) -> list[Finding]:
+    """Rule ``body-text-leading-tight``: line height under 1.5 on running text.
+
+    WCAG 1.4.8 (AAA) asks for line spacing of at least space-and-a-half within
+    paragraphs, and the BDA style guide for 1.5: lines set closer crowd one
+    another, and a reader who struggles to hold their place jumps lines.
+
+    Read from ``leading-*`` utilities (on the element or inherited), ``style``
+    and ``<style>`` line heights, and the line height a Tailwind ``text-*``
+    size brings with it — ``text-sm`` is 14px on a 20px line, which is 1.43,
+    and ``text-xs`` and ``text-xl`` are under 1.5 too. That last case is a
+    property of Tailwind's default theme: a project that redefines its font
+    sizes in ``tailwind.config.js`` is judged on the defaults, because the
+    config is not read. Display type is exempt, as for the tracking rule.
+    """
+    cascade = _cascade_for(root)
+    findings: list[Finding] = []
+    for elem, words in _running_units(root, cascade, LONG_PASSAGE_WORDS):
+        for bp in range(len(_BREAKPOINTS)):
+            resolved = cascade.line_height_ratio(elem, bp)
+            if resolved is None:
+                continue  # nothing set: the browser default for body text applies
+            ratio, setter = resolved
+            if ratio < MIN_LINE_HEIGHT - 1e-6:
+                where = "" if setter is elem or setter is None else f" (set on <{setter.tag}> line {setter.line})"
+                findings.append(Finding(
+                    rule="body-text-leading-tight",
+                    line=elem.line,
+                    message=(
+                        f"<{elem.tag}> {_excerpt(words)} has a line height of {ratio:.2f}{where}"
+                        f"{_at(bp)}: under 1.5, lines crowd each other and a reader jumps lines "
+                        "(WCAG 1.4.8, BDA style guide). Add leading-normal or leading-relaxed; "
+                        "note that Tailwind's text-xs, text-sm and text-xl bring a line height "
+                        "under 1.5 with them."
+                    ),
+                ))
+                break
+    return findings
+
+
+def _own_width_px(cascade: _Cascade, elem: Element, bp: int) -> tuple[str, float] | None:
+    """A width limit ``elem`` sets itself: ("max", px), ("fraction", f), or ("none", 0).
+
+    ``("none", 0)`` is an explicit "no limit" (``max-w-none``, ``max-w-full``
+    with nothing narrower), returned so the caller keeps climbing.
+    """
+    font = cascade.font_px(elem, bp)
+    for source in ("inline", "tailwind", "css"):
+        best: tuple[int, tuple[str, float]] | None = None
+        if source == "inline":
+            decls = _css_decls(elem.attrs.get("style", ""))
+            for prop in ("max-width", "width"):
+                if prop in decls:
+                    px = _length_px(str(decls[prop]), font)
+                    if px is not None:
+                        return "max", px
+                    if str(decls[prop]).endswith("%"):
+                        try:
+                            return "fraction", float(str(decls[prop])[:-1]) / 100.0
+                        except ValueError:
+                            pass
+            continue
+        if source == "tailwind":
+            for at, base in _utilities(elem):
+                if at > bp:
+                    continue
+                hit = _tw_width(base, font, bp)
+                if hit is not None and (best is None or at >= best[0]):
+                    best = (at, hit)
+            if best is not None:
+                return best[1]
+            continue
+        for rule in cascade.rules:
+            for prop in ("max-width", "width"):
+                if prop in rule.decls and _selector_matches(elem, rule.selector):
+                    px = _length_px(str(rule.decls[prop]), font)
+                    if px is not None:
+                        return "max", px
+    return None
+
+
+def _tw_width(base: str, font: float, bp: int) -> tuple[str, float] | None:
+    """The width limit one Tailwind utility sets, in the shape of :func:`_own_width_px`."""
+    if base == "container":
+        return ("max", _BP_MIN_PX[bp]) if bp > 0 else ("none", 0.0)
+    if base.startswith("max-w-"):
+        key = base[len("max-w-"):]
+        if key in _MAX_W_REM:
+            return "max", _MAX_W_REM[key] * 16.0
+        if key == "prose":
+            return "max", 65 * AVG_CHAR_EM * font
+        if key.startswith("screen-") and key[len("screen-"):] in _SCREEN_PX:
+            return "max", _SCREEN_PX[key[len("screen-"):]]
+        if key in ("none", "full", "screen"):
+            return "none", 0.0
+        if key.startswith("[") and key.endswith("]"):
+            px = _length_px(key[1:-1], font)
+            return ("max", px) if px is not None else None
+        return None
+    match = _FRACTION_RE.match(base)
+    if match is not None and int(match.group(2)):
+        return "fraction", int(match.group(1)) / int(match.group(2))
+    if base.startswith("w-"):
+        key = base[2:]
+        if key.isdigit():
+            return "max", int(key) * 4.0
+        if key.startswith("[") and key.endswith("]"):
+            px = _length_px(key[1:-1], font)
+            return ("max", px) if px is not None else None
+    return None
+
+
+def _padding_px(elem: Element, bp: int) -> float:
+    """Horizontal padding a Tailwind ``p-*`` / ``px-*`` takes out of the width."""
+    total = 0.0
+    best_at = -1
+    for at, base in _utilities(elem):
+        match = re.fullmatch(r"p[xlr]?-(\d+(?:\.\d+)?)", base)
+        if match is None or at > bp or at < best_at:
+            continue
+        side = 1 if base[1] in "lr" else 2
+        best_at = at
+        total = float(match.group(1)) * 4.0 * side
+    return total
+
+
+def _grid_columns(elem: Element, bp: int) -> int | None:
+    """Columns of a ``grid-cols-N`` / ``columns-N`` at ``bp``; 1 when it is one column."""
+    best: tuple[int, int] | None = None
+    for at, base in _utilities(elem):
+        match = re.fullmatch(r"(?:grid-cols|columns)-(\d+)", base)
+        if match is None or at > bp:
+            continue
+        if best is None or at >= best[0]:
+            best = (at, int(match.group(1)))
+    return best[1] if best else None
+
+
+def _span(elem: Element, columns: int, bp: int) -> int:
+    """How many grid columns ``elem`` spans at ``bp``."""
+    best: tuple[int, int] | None = None
+    for at, base in _utilities(elem):
+        if at > bp:
+            continue
+        if base == "col-span-full":
+            value = columns
+        else:
+            match = re.fullmatch(r"col-span-(\d+)", base)
+            if match is None:
+                continue
+            value = int(match.group(1))
+        if best is None or at >= best[0]:
+            best = (at, value)
+    return min(best[1], columns) if best else 1
+
+
+def _flex_row(elem: Element, bp: int) -> bool:
+    """Whether ``elem`` lays several children side by side in a flex row at ``bp``."""
+    display: tuple[int, str] | None = None
+    direction: tuple[int, str] | None = None
+    for at, base in _utilities(elem):
+        if at > bp:
+            continue
+        if base in ("flex", "inline-flex", "block", "grid", "hidden", "inline-block"):
+            if display is None or at >= display[0]:
+                display = (at, base)
+        if base in ("flex-row", "flex-col", "flex-row-reverse", "flex-col-reverse"):
+            if direction is None or at >= direction[0]:
+                direction = (at, base)
+    if display is None or display[1] not in ("flex", "inline-flex"):
+        return False
+    if direction is not None and direction[1].startswith("flex-col"):
+        return False
+    return sum(1 for c in elem.children if c.tag not in _NON_PROSE_TAGS) >= 2
+
+
+def _line_chars(cascade: _Cascade, elem: Element, bp: int) -> float | None:
+    """The longest line ``elem`` can set at ``bp``, in characters.
+
+    ``None`` when the width cannot be decided from source (a flex row shares
+    it out by content). ``inf`` when nothing on the page bounds it at 2xl and
+    the page's widths are all visible.
+    """
+    font = cascade.font_px(elem, bp)
+    factor = 1.0
+    padding = 0.0
+    child: Element | None = None
+    current: Element | None = elem
+    viewport = _BP_VIEWPORT_MAX_PX[bp]
+    while current is not None and current.tag != "root":
+        if child is not None:
+            columns = _grid_columns(current, bp)
+            if columns and columns > 1:
+                factor *= _span(child, columns, bp) / columns
+            elif _flex_row(current, bp):
+                return None
+        padding += _padding_px(current, bp)
+        width = _own_width_px(cascade, current, bp)
+        if width is not None:
+            kind, value = width
+            if kind == "fraction":
+                factor *= value
+            elif kind == "max":
+                limit = value if viewport is None else min(value, viewport)
+                px = max(limit - padding, 0.0) * factor
+                return px / (AVG_CHAR_EM * font)
+        child = current
+        current = current.parent
+    if not cascade.widths_visible:
+        return None  # a linked stylesheet may bound it; not provable from here
+    if viewport is None:
+        return float("inf")
+    return max(viewport - padding, 0.0) * factor / (AVG_CHAR_EM * font)
+
+
+def check_reading_line_length(root: Element) -> list[Finding]:
+    """Rule ``body-text-line-too-long``: lines over 80 characters.
+
+    WCAG 1.4.8 (AAA): "width is no more than 80 characters or glyphs". The BDA
+    style guide asks for 60 to 70. A long line makes the return sweep to the
+    start of the next one long too, and that sweep is where a reader who
+    struggles to track lines loses their place.
+
+    The width is worked out from source at each Tailwind breakpoint: the
+    nearest ``max-w-*`` / ``w-*`` / ``container`` (or ``max-width`` in a
+    ``style``), the screen width the breakpoint allows, padding taken off,
+    divided by the ``grid-cols-N`` / ``columns-N`` crossed on the way, then
+    turned into characters at :data:`AVG_CHAR_EM` per character of the
+    element's font size. A ``max-w-prose`` (65ch) passes; ``max-w-3xl`` of
+    16px text (96 characters) does not.
+
+    **Known limits**: a flex row shares its width by content, so text inside
+    one is not judged; a page that links a stylesheet may bound its text
+    there, so "no limit at all" is only reported on a page whose styles are
+    all in its own markup; gaps between grid columns are not subtracted, and
+    an average character width is an estimate, chosen at the wide end so the
+    rule errs quiet.
+    """
+    cascade = _cascade_for(root)
+    findings: list[Finding] = []
+    for elem, words in _running_units(root, cascade, 1):
+        if len(" ".join(words)) <= MAX_LINE_CHARS:
+            continue  # a passage shorter than a line cannot set a long one
+        widths = [_line_chars(cascade, elem, bp) for bp in range(len(_BREAKPOINTS))]
+        over = [bp for bp, chars in enumerate(widths) if chars is not None and chars > MAX_LINE_CHARS + 0.5]
+        if not over:
+            continue
+        worst = max(widths[bp] or 0.0 for bp in over)
+        measure = (
+            "no width limit" if worst == float("inf")
+            else f"lines of up to about {worst:.0f} characters"
+        )
+        findings.append(Finding(
+            rule="body-text-line-too-long",
+            line=elem.line,
+            message=(
+                f"<{elem.tag}> {_excerpt(words)} has {measure}{_at(over[0])}: past 80 the eye "
+                "loses the next line on the way back (WCAG 1.4.8; the BDA asks 60 to 70). "
+                "Bound the text with max-w-prose or max-w-[70ch]."
+            ),
+        ))
+    return findings
+
+
+def _is_link_like(elem: Element) -> bool:
+    """A link, or a control a reader expects to look clickable."""
+    return (
+        elem.tag in ("a", "button", "summary")
+        or elem.attrs.get("role", "") in ("link", "button", "tab", "menuitem")
+        or "onclick" in elem.attrs
+    )
+
+
+def check_reading_underline(root: Element) -> list[Finding]:
+    """Rule ``text-underline-not-link``: underlined text that is not a link.
+
+    On the web an underline promises a link, so underlined plain text is a
+    false promise to every reader. For a dyslexic reader it also costs
+    reading: the BDA style guide asks to "avoid underlining and italics: these
+    tend to make the text appear to run together", since the rule cuts through
+    the descenders. Reported for a Tailwind ``underline`` at rest (not
+    ``hover:underline``), a ``text-decoration: underline`` and a ``<u>``, when
+    neither the element nor an ancestor is a link or a control and it holds
+    no link. ``<abbr>`` keeps its dotted underline: that one is the browser's,
+    and it means "there is an expansion here".
+    """
+    cascade = _cascade_for(root)
+    findings: list[Finding] = []
+    for elem in walk(root):
+        if elem.tag == "abbr" or _is_link_like(elem) or not _shown(elem):
+            continue
+        if not any(
+            cascade.own(elem, "text-decoration", bp) == "underline"
+            for bp in range(len(_BREAKPOINTS))
+        ):
+            continue
+        if any(_is_link_like(a) for a in _ancestors(elem)):
+            continue
+        if any(_is_link_like(d) for d in walk(elem)):
+            continue
+        words = _words(elem, lambda child: False)
+        if not words:
+            continue
+        findings.append(Finding(
+            rule="text-underline-not-link",
+            line=elem.line,
+            message=(
+                f"<{elem.tag}> {_excerpt(words)} is underlined but is not a link: readers "
+                "will try to click it, and the line runs through the letters. Use bold "
+                "for emphasis (BDA style guide)."
+            ),
+        ))
+    return findings
+
+
+#: One cascade per parsed page, shared by the seven reading rules. Keyed by
+#: the root's identity and holding the root itself, so an id is never reused
+#: for another page while its entry is alive.
+_CASCADES: dict[int, tuple[Element, _Cascade]] = {}
+
+
+def _cascade_for(root: Element) -> _Cascade:
+    """The cascade of this page, built on first use."""
+    entry = _CASCADES.get(id(root))
+    if entry is None or entry[0] is not root:
+        if len(_CASCADES) > 8:
+            _CASCADES.clear()
+        entry = (root, _Cascade(root))
+        _CASCADES[id(root)] = entry
+    return entry[1]
+
+
 # Registered rules — declaring them in a list makes ``--ignore`` cheap.
 
 def check_media_alternatives(root: Element) -> list[Finding]:
@@ -866,6 +1914,15 @@ ALL_RULES: dict[str, Callable[..., Any]] = {
     "track-missing-srclang": check_media_alternatives,
     "media-missing-controls": check_media_alternatives,
     "media-autoplay-sound": check_media_autoplay,
+    # Reading comfort for dyslexic readers and other reading difficulties:
+    # WCAG 1.4.8 (AAA) and the British Dyslexia Association style guide.
+    "body-text-justified": check_reading_alignment,
+    "body-text-centered-long": check_reading_alignment,
+    "body-text-italic-long": check_reading_italic,
+    "body-text-all-caps-long": check_reading_capitals,
+    "body-text-leading-tight": check_reading_leading,
+    "body-text-line-too-long": check_reading_line_length,
+    "text-underline-not-link": check_reading_underline,
 }
 
 
@@ -1276,7 +2333,7 @@ def _build_cli() -> Any:
     @sprezzature_command(
         name="sprezzature-accessibility-lint",
         help="W3C/WAI accessibility linter for HTML emitted by the sprezzature skill. "
-        "20 rules, exit 1 on any finding. Pre-commit gate — pair with axe-core "
+        "27 rules, exit 1 on any finding. Pre-commit gate — pair with axe-core "
         "or Pa11y for runtime DOM audits.",
         # ``\b`` keeps the examples one per line: click rewraps an epilog into a
         # single paragraph otherwise.

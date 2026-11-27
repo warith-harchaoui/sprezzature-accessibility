@@ -4,12 +4,35 @@ text_spacing_preset
 ====================
 
 Emit a ready-to-include CSS block for an opt-in "comfortable reading"
-text-spacing toggle: line-height, letter-spacing, word-spacing, and
-paragraph spacing widened to the WCAG (Web Content Accessibility
-Guidelines) 1.4.12 Text Spacing minimums, applied to exactly the
-elements ``lint_a11y.py``'s ``body-text-tracking-tight`` rule audits
-(:data:`lint_a11y.BODY_TEXT_TAGS`: ``p``, ``li``, ``dd``,
-``blockquote``, ``td``, ``figcaption``).
+toggle, the reading preset. Two blocks:
+
+1. **Text spacing** (the preset's first form, unchanged since 1.0):
+   line-height, letter-spacing, word-spacing, and paragraph spacing
+   widened to the WCAG (Web Content Accessibility Guidelines) 1.4.12
+   Text Spacing minimums, applied to exactly the elements
+   ``lint_a11y.py``'s ``body-text-tracking-tight`` rule audits
+   (:data:`lint_a11y.BODY_TEXT_TAGS`: ``p``, ``li``, ``dd``,
+   ``blockquote``, ``td``, ``figcaption``).
+2. **Reading** (since 1.6.0): the make-side answer to the seven reading
+   rules of the linter. Lines bounded to a measure of 70 characters
+   (``max-width: 70ch``; WCAG 1.4.8 allows 80, the British Dyslexia
+   Association style guide asks 60 to 70), text aligned to the start
+   edge (no justification, no centring), and running text set upright
+   and in its own case (``font-style: normal``, ``text-transform:
+   none``) — an ``<em>`` inside keeps its italic, since the browser
+   gives it its own.
+
+The command answers to two names: ``sprezzature-accessibility-reading``
+and, as it always has, ``sprezzature-accessibility-text-spacing``. Both
+default to the same toggle attribute as before, so a page that shipped
+the first preset keeps working; ``--spacing-only`` prints the first
+block alone, byte for byte what 1.5 printed.
+
+No font is set. A "dyslexia font" is not part of the preset because the
+evidence does not support one: Wery & Diliberto (2017, *Annals of
+Dyslexia*) found no gain in reading rate or accuracy with
+OpenDyslexic, and Kuster et al. (2018, *Annals of Dyslexia*) none with
+Dyslexie.
 
 This is the **make-side** counterpart to that audit rule, in the same
 spirit as ``sprezzature-colors/scripts/palette_to_tailwind.py`` being
@@ -78,6 +101,15 @@ from lint_a11y import BODY_TEXT_TAGS  # noqa: E402
 #: "spacing following paragraphs", not every text-bearing tag.
 PARAGRAPH_TAGS: frozenset[str] = frozenset({"p", "blockquote", "dd"})
 
+#: Elements the reading block bounds and realigns. ``td`` is left out: a
+#: table cell's width belongs to its table, and a 70ch cap on every cell
+#: would break tables that are fine.
+READING_TAGS: frozenset[str] = BODY_TEXT_TAGS - {"td"}
+
+#: The measure the reading block sets, in characters. The BDA style guide
+#: asks for 60 to 70; WCAG 1.4.8 allows up to 80.
+DEFAULT_MEASURE_CH: int = 70
+
 
 def build_css(
     *,
@@ -129,19 +161,105 @@ def build_css(
     )
 
 
+def build_reading_css(
+    *,
+    attr: str = "data-text-spacing",
+    value: str = "comfortable",
+    measure_ch: int = DEFAULT_MEASURE_CH,
+) -> str:
+    """
+    Build the reading block: measure, alignment, upright type, own case.
+
+    Parameters
+    ----------
+    attr : str, default "data-text-spacing"
+        Attribute name toggled on an ancestor to activate the preset. The
+        default is the text-spacing block's, so one toggle drives both.
+    value : str, default "comfortable"
+        Attribute value that activates the preset.
+    measure_ch : int, default 70
+        Longest line, in ``ch``. ``0`` leaves the width alone.
+
+    Returns
+    -------
+    str
+        A deterministic CSS block ending in a newline.
+    """
+    selector = ",\n".join(f'[{attr}="{value}"] {tag}' for tag in sorted(READING_TAGS))
+    measure = f"  max-width: {measure_ch}ch;\n" if measure_ch > 0 else ""
+    return (
+        f"/* Reading: WCAG 1.4.8 Visual Presentation and the British Dyslexia\n"
+        f"   Association style guide. Bounded lines, start-aligned (never\n"
+        f"   justified or centred), upright, in their own case. Pairs with the\n"
+        f"   body-text-* reading rules of sprezzature-accessibility's lint. */\n"
+        f"{selector} {{\n"
+        f"{measure}"
+        f"  text-align: start;\n"
+        f"  font-style: normal;\n"
+        f"  text-transform: none;\n"
+        f"}}\n"
+    )
+
+
+def build_preset(
+    *,
+    attr: str = "data-text-spacing",
+    value: str = "comfortable",
+    line_height: float = 1.5,
+    letter_spacing_em: float = 0.12,
+    word_spacing_em: float = 0.16,
+    paragraph_spacing_em: float = 2.0,
+    measure_ch: int = DEFAULT_MEASURE_CH,
+    spacing_only: bool = False,
+) -> str:
+    """
+    The whole reading preset: the text-spacing block, then the reading block.
+
+    Parameters
+    ----------
+    attr, value, line_height, letter_spacing_em, word_spacing_em, paragraph_spacing_em
+        As in :func:`build_css`.
+    measure_ch : int, default 70
+        As in :func:`build_reading_css`.
+    spacing_only : bool, default False
+        Print only the text-spacing block, as 1.5 and earlier did.
+
+    Returns
+    -------
+    str
+        The CSS, ending in a newline.
+    """
+    css = build_css(
+        attr=attr,
+        value=value,
+        line_height=line_height,
+        letter_spacing_em=letter_spacing_em,
+        word_spacing_em=word_spacing_em,
+        paragraph_spacing_em=paragraph_spacing_em,
+    )
+    if spacing_only:
+        return css
+    return css + build_reading_css(attr=attr, value=value, measure_ch=measure_ch)
+
+
 @sprezzature_command(
-    name="sprezzature-accessibility-text-spacing",
+    name="sprezzature-accessibility-reading",
     help=(
-        "Emit an opt-in 'comfortable reading' CSS block (WCAG 1.4.12 Text "
-        "Spacing minimums) for the elements lint_a11y.py's "
-        "body-text-tracking-tight rule audits. Make-side counterpart to "
-        "that audit rule."
+        "Emit an opt-in 'comfortable reading' CSS preset for dyslexic readers "
+        "and everyone else: WCAG 1.4.12 text spacing (line height 1.5, letter "
+        "and word spacing, paragraph spacing), then lines bounded to 70 "
+        "characters, start-aligned, upright and in their own case (WCAG 1.4.8, "
+        "British Dyslexia Association style guide). Make-side counterpart to "
+        "the lint's reading rules. Also installed as "
+        "sprezzature-accessibility-text-spacing."
     ),
     # ``\b`` keeps the examples one per line: click rewraps an epilog into a
     # single paragraph otherwise.
     epilog=(
         "\b\nExamples:\n"
-        "  sprezzature-accessibility-text-spacing\n"
+        "  sprezzature-accessibility-reading\n"
+        "  sprezzature-accessibility-reading --measure 65 --out reading.css\n"
+        "  sprezzature-accessibility-text-spacing --spacing-only\n"
         "  sprezzature-accessibility-text-spacing --letter-spacing 0.16 "
         "--word-spacing 0.32 --out reading-mode.css\n"
     ),
@@ -185,6 +303,20 @@ def build_css(
     help="In em. Default: 2.0 (WCAG 1.4.12 minimum).",
 )
 @click.option(
+    "--measure",
+    type=click.IntRange(min=0),
+    default=DEFAULT_MEASURE_CH,
+    show_default=True,
+    help="Longest line, in characters (ch). 0 leaves the width alone.",
+)
+@click.option(
+    "--spacing-only",
+    "spacing_only",
+    is_flag=True,
+    default=False,
+    help="Only the WCAG 1.4.12 text-spacing block, as before 1.6.",
+)
+@click.option(
     "--out",
     type=click.Path(path_type=Path),
     default=None,
@@ -197,16 +329,20 @@ def _cli(
     letter_spacing: float,
     word_spacing: float,
     paragraph_spacing: float,
+    measure: int,
+    spacing_only: bool,
     out: Path | None,
 ) -> int:
     """Write the preset to *out*, or to stdout."""
-    css = build_css(
+    css = build_preset(
         attr=attr,
         value=value,
         line_height=line_height,
         letter_spacing_em=letter_spacing,
         word_spacing_em=word_spacing,
         paragraph_spacing_em=paragraph_spacing,
+        measure_ch=measure,
+        spacing_only=spacing_only,
     )
     if out:
         out.write_text(css, encoding="utf-8")

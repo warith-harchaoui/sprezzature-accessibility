@@ -1,6 +1,6 @@
 # A11y linter: `sprezzature-accessibility-lint`
 
-Static lint with no DOM (Document Object Model, the tree of elements a browser builds from a page), for CI (continuous integration, the checks a server runs on every change pushed to a repository) and pre-commit hooks. No browser, no JavaScript execution; it runs over HTML source. Catches **20 source-decidable failures** of WCAG (Web Content Accessibility Guidelines, the W3C's (World Wide Web Consortium, the body that writes the web's standards) rules for an accessible page) and WAI-ARIA (the Web Accessibility Initiative's Accessible Rich Internet Applications, the `role` and `aria-*` attributes that tell a screen reader what a custom widget is). Each WCAG rule is a numbered SC (success criterion, one testable requirement such as 1.1.1).
+Static lint with no DOM (Document Object Model, the tree of elements a browser builds from a page), for CI (continuous integration, the checks a server runs on every change pushed to a repository) and pre-commit hooks. No browser, no JavaScript execution; it runs over HTML source. Catches **27 source-decidable failures** of WCAG (Web Content Accessibility Guidelines, the W3C's (World Wide Web Consortium, the body that writes the web's standards) rules for an accessible page) and WAI-ARIA (the Web Accessibility Initiative's Accessible Rich Internet Applications, the `role` and `aria-*` attributes that tell a screen reader what a custom widget is). Each WCAG rule is a numbered SC (success criterion, one testable requirement such as 1.1.1).
 
 **Not a replacement for axe-core, Pa11y, or Lighthouse.** Those run a real browser and catch the dynamic / runtime failures that no static parser can see: colour-only state after JavaScript runs, focus order after a route change, name/role/value after a WAI-ARIA attribute changes, contrast after a runtime theme switch, live-region announcement order. Use `sprezzature-accessibility-lint` in pre-commit; use axe-core (or Pa11y, or Lighthouse) in your end-to-end suite. Run both.
 
@@ -30,7 +30,7 @@ sprezzature-accessibility-lint --format json public/index.html
 # Skip a couple of rules
 sprezzature-accessibility-lint --ignore heading-skip,motion-no-reduce-guard public/
 
-# Auto-fix the mechanically-fixable rules (6 of the 20)
+# Auto-fix the mechanically-fixable rules (6 of the 27)
 sprezzature-accessibility-lint --fix --dry-run public/
 ```
 
@@ -56,12 +56,19 @@ Each rule has a stable identifier so the `--ignore` flag and JSON (JavaScript Ob
 | `heading-skip` | Heading levels jump downward (e.g. `<h2>` followed by `<h4>`). | WCAG SC 1.3.1. |
 | `color-only-state` | Tailwind `text-` / `bg-` / `border-` / `ring-` token in red, green, emerald, rose or crimson on an element with no text and no inline icon. State must not rely on color alone. | WCAG SC 1.4.1. |
 | `motion-no-reduce-guard` | `animate-{spin,ping,pulse,bounce}`, `transition-transform`, or `transition-all` without a `motion-reduce:` peer. | WCAG SC 2.3.3 / `prefers-reduced-motion`. |
-| `body-text-tracking-tight` | Tailwind `tracking-tight`/`tracking-tighter` (negative letter-spacing) on running body text (`p`, `li`, `dd`, `blockquote`, `td`, `figcaption`); headings, buttons, and nav labels are excluded, and so is display type (`text-3xl` or larger, or an arbitrary size of 30px / 1.875rem and up). A static proxy for the intent of the SC, not a conformance test: it cannot verify a rendered page survives a user *widening* spacing without clipping. The make-side counterpart, `sprezzature-accessibility-text-spacing`, emits an opt-in CSS (Cascading Style Sheets, the rules that set a page's colours, fonts and spacing) block at the WCAG 1.4.12 minimums for the same tag set. | WCAG SC 1.4.12 (proxy). |
+| `body-text-tracking-tight` | Tailwind `tracking-tight`/`tracking-tighter` (negative letter-spacing) on running body text (`p`, `li`, `dd`, `blockquote`, `td`, `figcaption`); headings, buttons, and nav labels are excluded, and so is display type (`text-3xl` or larger, or an arbitrary size of 30px / 1.875rem and up). A static proxy for the intent of the SC, not a conformance test: it cannot verify a rendered page survives a user *widening* spacing without clipping. The make-side counterpart, `sprezzature-accessibility-text-spacing`, emits an opt-in CSS (Cascading Style Sheets, the rules that set a page's colours, fonts and spacing) block at the WCAG 1.4.12 minimums for the same tag set (since 1.6.0, the full reading preset; `--spacing-only` for that block alone). | WCAG SC 1.4.12 (proxy). |
 | `video-missing-captions` | `<video>` with no `<track kind="captions">` or `kind="subtitles"` (a `<track>` with no `kind` counts as subtitles). A decorative video, `muted` with no `controls`, is exempt. | WCAG SC 1.2.2. |
 | `audio-missing-transcript` | `<audio>` with neither a caption track nor an accessible name pointing at a transcript. | WCAG SC 1.2.1. |
 | `track-missing-srclang` | `<track>` with no `srclang`, so assistive technology cannot tell the captions' language. | Authoring practice (WCAG 1.2.4). |
 | `media-missing-controls` | `<video>` / `<audio>` with no `controls`: nothing to operate from the keyboard. Decorative video exempt. | WCAG SC 2.1.1. |
 | `media-autoplay-sound` | `autoplay` without `muted`: sound that starts by itself masks the screen reader. | WCAG SC 1.4.2. |
+| `body-text-justified` | Running text (`p`, `li`, `dd`, `blockquote`, `td`, `figcaption` of 15 words or more) whose computed alignment is justify at any breakpoint: `text-justify` on it or an ancestor, `text-align: justify` in `style` or `<style>`, `align="justify"`. | WCAG SC 1.4.8 (AAA), failure F88; BDA style guide. |
+| `body-text-centered-long` | A centred running-text unit of 30 words or more; a one or two line centred lead passes. | BDA style guide (left aligned). |
+| `body-text-italic-long` | 15 words or more reached by italic (`italic`, `font-style: italic`, `<em>`, `<i>`…), counted from where the italic starts; a `not-italic` descendant is not counted. | BDA style guide; Rello & Baeza-Yates 2013. |
+| `body-text-all-caps-long` | 15 words or more in capitals: `uppercase` / `text-transform: uppercase`, or running text typed in capitals (80 % of its words). | BDA style guide. |
+| `body-text-leading-tight` | Computed line height under 1.5 on running text: `leading-none` / `-tight` / `-snug`, a fixed `leading-N` over the font size, `line-height` in CSS, and the line height Tailwind's `text-xs` (1.33), `text-sm` (1.43) and `text-xl` (1.4) bring. Display type exempt. | WCAG SC 1.4.8 (AAA); BDA style guide. |
+| `body-text-line-too-long` | Longest possible line over 80 characters at some breakpoint, from the nearest `max-w-*` / `w-*` / `container` / `max-width`, the breakpoint's widest screen, padding and `grid-cols-N`, at 0.5 em per character. Silent inside a flex row, and for "no limit at all" when the page links a stylesheet. | WCAG SC 1.4.8 (AAA); BDA asks 60 to 70. |
+| `text-underline-not-link` | An underline at rest (`underline`, `text-decoration: underline`, `<u>`) on text that is not a link, not in one, not a control, holding no link. `<abbr>` exempt. | BDA style guide; web convention. |
 
 The media rules see that a caption track is **declared**, never that its text
 is right or in sync; `sprezzature-audio` drafts the WebVTT the declaration

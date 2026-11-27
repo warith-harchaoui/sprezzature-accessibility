@@ -1,4 +1,4 @@
-# The twenty rules — standards mapping and known limits
+# The twenty-seven rules — standards mapping and known limits
 
 Each rule below maps to a specific Web Content Accessibility Guidelines
 (WCAG, the W3C standard that defines what "accessible" means for the
@@ -53,7 +53,95 @@ which drafts the WebVTT the declaration points at.
 | `media-missing-controls` | 2.1.1 Keyboard, level A | A media element with no `controls` attribute: nothing to operate from the keyboard. `controls` is not itself a criterion, but its absence with no scripted alternative is a keyboard failure. Skipped for a decorative video (`muted`, no `controls`). |
 | `track-missing-srclang` | 1.2.4 / authoring practice | `<track>` with no `srclang`, so assistive technology cannot tell which language the captions are in. |
 
-## What these twenty rules do not cover
+## Rules for reading: dyslexia and other reading difficulties (WCAG 1.4.8, BDA)
+
+About one reader in ten has dyslexia to some degree. What helps them is well
+documented, and the same settings help readers with low vision, attention
+difficulties, or reading in a second language. These seven rules, with
+`body-text-tracking-tight` above, check the part of that advice a static linter
+can decide. All are **warnings**: WCAG 1.4.8 is level AAA, and a style guide is
+advice, so the API never reports them as errors (the command line still exits 1
+on any finding, as for every warning).
+
+**Sources.**
+
+- **WCAG 2.2 success criterion 1.4.8 Visual Presentation (AAA)**: for blocks of
+  text, "width is no more than 80 characters or glyphs", "text is not justified
+  (aligned to both the left and the right margins)", "line spacing (leading) is
+  at least space-and-a-half within paragraphs". Failure technique **F88** is
+  "using text that is justified".
+- **British Dyslexia Association, *Dyslexia Style Guide*** (2023 edition; the
+  layout and emphasis rules it states are the same as in earlier editions):
+  "Use left-justified with ragged right edge"; "Avoid underlining and italics:
+  these tend to make the text appear to run together. Use bold instead";
+  "Avoid text in block capitals: this is much harder to read"; "Line spacing of
+  1.5 is preferable"; "Lines should not be too long: 60 to 70 characters".
+- **Rello & Baeza-Yates (2013)**, "Good fonts for dyslexia", *ASSETS '13*: with
+  eye-tracking on 48 readers with dyslexia, italic type significantly impaired
+  reading performance.
+- **Zorzi et al. (2012)**, *PNAS* 109(28): wider letter-spacing raised reading
+  speed and accuracy for dyslexic children (already behind
+  `body-text-tracking-tight`).
+
+**What is deliberately not a rule.** A "dyslexia font". Wery & Diliberto (2017,
+*Annals of Dyslexia* 67) found no gain in reading rate or accuracy with
+OpenDyslexic, and Kuster et al. (2018, *Annals of Dyslexia* 68) none with
+Dyslexie; neither the linter nor the reading preset asks for one. Nor is a
+minimum font size a rule: the BDA's "12 to 14 point" is a print value, and a
+screen's rendered size depends on zoom and distance, which source cannot see.
+
+**How the rules read a page.** Through the cascade, as far as source shows it:
+Tailwind utilities on the element and its ancestors, with their breakpoint
+prefixes (`md:text-justify` counts from 768 px up; a state variant such as
+`hover:` is ignored, the text is judged at rest), `style` attributes, the
+legacy `align` attribute, the browser's default italic for `<em>`, `<i>`,
+`<cite>` and the like, the default underline of `<u>`, and simple selectors
+(tags, classes, ids, descendant and child combinators) in the page's own
+`<style>` blocks. A rule behind a pseudo-class or an attribute selector is
+conditional and is skipped, which is also why the reading preset's own
+`[data-text-spacing]` block is never mistaken for the page's default. Hidden
+text (`hidden`, `sr-only`) and `code`, `pre`, `svg` are not read as prose.
+
+**What counts as running text.** One of `p`, `li`, `dd`, `blockquote`, `td`,
+`figcaption`, counting its own words and not those of blocks nested in it, of
+at least **15 words** (more than a line on a phone; one glance at a short label
+is not continuous reading, and the evidence is about continuous reading). Type
+of 30 px and up is display type and is exempt, the line `body-text-tracking-tight`
+draws.
+
+| Rule | Source | What it catches | Threshold |
+|---|---|---|---|
+| `body-text-justified` | WCAG 1.4.8, F88; BDA | Running text whose computed `text-align` is `justify` at any breakpoint: Tailwind `text-justify` on it or an ancestor, `style="text-align: justify"`, `align="justify"`, a `<style>` rule. With no hyphenation to absorb the slack, the stretched spaces line up into rivers that a dyslexic reader follows down instead of across. | 15 words |
+| `body-text-centered-long` | BDA (left aligned) | A centred running-text unit of 30 words or more. Every line starts somewhere else, so the eye has to search for each one. | 30 words: about three lines at 70 characters. A centred lead of one or two lines under a hero heading is a settled convention and is not reported. |
+| `body-text-italic-long` | BDA; Rello & Baeza-Yates 2013 | The outermost element where italic starts (class `italic`, `font-style: italic`, `<em>`, `<i>`…), counting only the words the italic reaches (a `not-italic` descendant is not counted). Emphasis of a few words is what italic is for. | 15 words |
+| `body-text-all-caps-long` | BDA | Two shapes: an `uppercase` (or `text-transform: uppercase`) reaching 15 words, and running text typed in capitals (at least 15 capitalised words, 80 % of its words). A short eyebrow label and a few acronyms in prose pass. | 15 words |
+| `body-text-leading-tight` | WCAG 1.4.8; BDA | Running text whose computed line height is under 1.5 at any breakpoint: `leading-none` (1), `leading-tight` (1.25), `leading-snug` (1.375), a fixed `leading-N` over the font size, `leading-[1.3]`, `line-height` in a `style` or `<style>`, and the line height a Tailwind `text-*` size brings with it. Tailwind's defaults put `text-xs` at 1.33, `text-sm` at 1.43 and `text-xl` at 1.4, so a `<p class="text-sm">` is reported until it carries a `leading-normal` (or `text-sm/6`). | 1.5, 15 words |
+| `body-text-line-too-long` | WCAG 1.4.8; BDA asks 60 to 70 | Running text longer than one line whose longest possible line exceeds 80 characters at some breakpoint. The width is worked out from source: the nearest `max-w-*`, `w-*`, `container`, or `max-width` in a `style`/`<style>`, capped by the widest screen the breakpoint allows, minus `p-*`/`px-*` padding, divided by any `grid-cols-N` / `columns-N` crossed on the way (with `col-span-N`), then turned into characters at 0.5 em per character of the element's font size (one `ch` is one character). `max-w-prose` (65ch) passes; `max-w-4xl` of `text-lg` (about 95 characters) does not. | 80 characters |
+| `text-underline-not-link` | BDA; web convention | An underline at rest (`underline`, `text-decoration: underline`, `<u>`) on text that is not a link and not inside one, not a `<button>`, `<summary>` or element with a link or button role, and holding no link. An underline promises a link, and the rule cuts through the descenders. `<abbr>` is exempt. | any visible text |
+
+**Known limits.** A linked stylesheet is not read: alignment, italics or line
+height set there are invisible, and "no width limit at all" is only reported on
+a page whose styles are all in its own markup (with a linked stylesheet the
+text may be bounded there, so the rule stays silent rather than guess). The
+Tailwind theme is the default one: a project that redefines its font sizes or
+`maxWidth` scale in `tailwind.config.js` is judged on the defaults. A flex row
+shares its width by content, so text inside one is not judged for line length,
+and gaps between grid columns are not subtracted. The average character width
+is an estimate, taken at the wide end (0.5 em) so the line-length rule errs
+quiet. None of the seven has a `--fix`: realigning, re-leading or re-measuring
+a page is a design decision, and the reading preset below is the make-side
+answer.
+
+**The make side.** `sprezzature-accessibility-reading` (also installed as
+`sprezzature-accessibility-text-spacing`, its first name) emits an opt-in CSS
+preset toggled by `[data-text-spacing="comfortable"]` on an ancestor: the
+WCAG 1.4.12 spacing block (line height 1.5, letter spacing 0.12em, word
+spacing 0.16em, 2em after paragraphs), then `max-width: 70ch`,
+`text-align: start`, `font-style: normal` and `text-transform: none` on running
+text (`td` is left out of the measure: a cell's width belongs to its table).
+`--spacing-only` prints the first block alone, as 1.5 did.
+
+## What these twenty-seven rules do not cover
 
 The linter is static by design (see `README.md` / `LISEZMOI.md` for why), so it cannot see:
 

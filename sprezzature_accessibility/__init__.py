@@ -4,13 +4,15 @@ sprezzature-accessibility — static HTML accessibility linter.
 Two halves of one job — **audit** what a page gets wrong about
 accessibility, and **make** the content it is missing.
 
-The audit half: twenty rules from WCAG (Web Content Accessibility Guidelines) and
+The audit half: twenty-seven rules from WCAG (Web Content Accessibility Guidelines) and
 WAI-ARIA (the W3C's accessible-widget attribute vocabulary), each
 decidable by reading the HTML source alone, with no browser involved:
 missing alt text, unlabelled inputs, empty buttons, onclick divs,
 missing dialog close, lang attribute, heading order, color-only state,
-motion-reduce guards, and five checks on time-based media (captions,
-track language, media controls). Six of the twenty also ship a
+motion-reduce guards, five checks on time-based media (captions,
+track language, media controls), and eight on how running text reads
+for a dyslexic reader (letter-spacing, justification, centring, italic,
+capitals, line height, line length, underline). Six of the twenty-seven also ship a
 mechanical fixer. The lint imports the standard library only (plus
 langdetect when it is installed). Pairs with axe-core /
 Pa11y, which check the page after a browser has rendered it (the
@@ -24,7 +26,7 @@ halves of one job, and splitting them across two packages meant the
 audit could only ever say what was wrong.
 """
 
-__version__ = "1.5.1"
+__version__ = "1.6.0"
 __author__ = "Warith HARCHAOUI"
 __email__ = "warithmetics@deraison.ai"
 __license__ = "BSD-3-Clause"

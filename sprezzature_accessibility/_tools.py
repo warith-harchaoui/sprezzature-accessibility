@@ -21,7 +21,7 @@ from __future__ import annotations
 #: unreachable, or reachable and undocumented.
 #:
 #: The module is a **full dotted path** rather than a bare name, because these
-#: four do not all live in one place: the audit half is in the scripts
+#: tools do not all live in one place: the audit half is in the scripts
 #: package, the drafting half's command line is in this one. A table that
 #: assumed a single prefix would have quietly excluded ``alt``.
 #:
@@ -36,10 +36,16 @@ TOOLS: dict[str, tuple[str, str]] = {
         "source alone: missing alt text, unlabelled inputs, empty buttons, "
         "onclick divs, heading order, motion guards. Standard library only.",
     ),
+    "reading": (
+        "sprezzature_accessibility_scripts.text_spacing_preset",
+        "Emit the CSS for an opt-in comfortable-reading toggle for dyslexic "
+        "readers: WCAG 1.4.12 spacing, lines of 70 characters, start-aligned, "
+        "upright, in their own case.",
+    ),
     "text-spacing": (
         "sprezzature_accessibility_scripts.text_spacing_preset",
-        "Emit the CSS for an opt-in comfortable-reading toggle — line height, "
-        "letter spacing, word spacing — at the WCAG 1.4.12 values.",
+        "The reading preset under its first name (--spacing-only for the "
+        "WCAG 1.4.12 spacing block alone).",
     ),
     "alt": (
         "sprezzature_accessibility.alt_cli",

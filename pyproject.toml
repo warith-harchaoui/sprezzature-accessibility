@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "sprezzature-accessibility"
-version = "1.5.1"
-description = "Static HTML accessibility linter: 20 WCAG/WAI rules decidable from source, time-based media included, CI-ready; drafts the missing alt text with a local vision model."
+version = "1.6.0"
+description = "Static HTML accessibility linter: 27 WCAG/WAI rules decidable from source, time-based media and reading for dyslexic readers included, CI-ready; drafts the missing alt text with a local vision model."
 readme = "README.md"
 # The upper bound is not housekeeping: it is inherited, and it was being
 # promised away. `wallet-helper` — a base dependency — declares
@@ -23,7 +23,7 @@ requires-python = ">=3.10"
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 authors = [{name = "Warith HARCHAOUI", email = "warithmetics@deraison.ai"}]
-keywords = ["accessibility", "a11y", "wcag", "html", "linter", "sprezzature"]
+keywords = ["accessibility", "a11y", "wcag", "html", "linter", "dyslexia", "readability", "sprezzature"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Programming Language :: Python :: 3",
@@ -111,6 +111,10 @@ sprezzature-accessibility = "sprezzature_accessibility.cli:main"
 sprezzature-accessibility-mcp = "sprezzature_accessibility.mcp:main"
 sprezzature-accessibility-lint = "sprezzature_accessibility_scripts.lint_a11y:main"
 sprezzature-accessibility-text-spacing = "sprezzature_accessibility_scripts.text_spacing_preset:main"
+# The reading preset (1.6.0): the text-spacing block plus measure, alignment,
+# upright type and own case. Same command as the line above, its new name; the
+# old one stays so nothing that called it breaks.
+sprezzature-accessibility-reading = "sprezzature_accessibility_scripts.text_spacing_preset:main"
 # The drafting half, in the base install since 2026-11-01. `make-alt` and
 # `sprezzature-accessibility-alt` are two spellings of one click command.
 make-alt = "sprezzature_accessibility.alt_cli:main"

@@ -2,11 +2,48 @@
 
 All notable changes to sprezzature-accessibility are documented here.
 
-## [Unreleased]
+## [1.6.0] — 2026-11-27
 
 ### Added
 
+- **Seven reading rules, for dyslexic readers and other reading difficulties.**
+  The linter had one rule on how running text reads (`body-text-tracking-tight`);
+  it now has eight, grounded in WCAG 2.2 success criterion 1.4.8 Visual
+  Presentation (AAA), the British Dyslexia Association's Dyslexia Style Guide,
+  and Rello & Baeza-Yates (2013) on italic type. All are warnings. Running text
+  is a `p`, `li`, `dd`, `blockquote`, `td` or `figcaption` of 15 words or more,
+  display type (30px and up) exempt.
+  - `body-text-justified`: justified running text (WCAG failure F88).
+  - `body-text-centered-long`: a centred paragraph of 30 words or more.
+  - `body-text-italic-long`: 15 words or more reached by italic.
+  - `body-text-all-caps-long`: 15 words or more in capitals, by `uppercase` or
+    typed so.
+  - `body-text-leading-tight`: line height under 1.5, including the line height
+    Tailwind's `text-xs`, `text-sm` and `text-xl` bring with them.
+  - `body-text-line-too-long`: lines over 80 characters, worked out from
+    `max-w-*`, padding and grid columns at each breakpoint.
+  - `text-underline-not-link`: underlined text that is not a link.
+
+  They read the cascade as far as source shows it: Tailwind classes on the
+  element and its ancestors with their breakpoint prefixes, `style`, `align`,
+  the browser's default italic and underline, and simple selectors in the
+  page's own `<style>` blocks. A linked stylesheet is not read, and the limits
+  are written in `references/lint-rules.md`. No rule asks for a "dyslexia
+  font": the studies of OpenDyslexic and Dyslexie found no reading gain.
+- **The reading preset.** `sprezzature-accessibility-reading` (sub-command
+  `reading`) emits the WCAG 1.4.12 text-spacing block as before, then a reading
+  block: `max-width: 70ch`, `text-align: start`, `font-style: normal`,
+  `text-transform: none` on running text. `--measure` sets the line length (0
+  leaves it), `--spacing-only` prints the first block alone, byte for byte what
+  1.5 printed. The first name, `sprezzature-accessibility-text-spacing`, is
+  still installed and runs the same command with the same toggle attribute.
 - Every command line ends its `--help` on one line, after a blank one: `⭐️ on GitHub: https://github.com/warith-harchaoui/sprezzature-accessibility`. A test checks it for each console script. README.md and LISEZMOI.md carry one invitation to star the repository, right after the paragraph that says what the tool does.
+
+### Changed
+
+- Rule count 20 → 27 in every document, the API severity table, the skill and
+  the "how it works" figure (redrawn from `assets/how-it-works.yaml`). The
+  skill description names dyslexia.
 
 ## [1.5.1] — 2026-11-19
 

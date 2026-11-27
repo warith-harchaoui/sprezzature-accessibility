@@ -63,7 +63,7 @@ broken install, not a missing extra.
 # ``--version`` only, so ``sprezzature-accessibility -V`` was a usage error.
 @click.version_option(None, "-V", "--version", package_name="sprezzature-accessibility")
 def main() -> None:  # pragma: no cover - click dispatches
-    """Front door over the four tools this package ships."""
+    """Front door over the tools this package ships."""
 
 
 @main.command(name="tools")
